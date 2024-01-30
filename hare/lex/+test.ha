@@ -525,6 +525,44 @@ type op = enum {
 	lextest(in, expected);
 };
 
+@test fn annotation_callback() void = {
+	let items: []str = [];
+	defer strings::freeall(items);
+
+	const in = `#[sample::annotation(a b c)] void;`;
+	const lexer = initstr(in);
+	register_annotation(&lexer, ["sample", "annotation"],
+		&sample_annotation, &items);
+
+	for (true) {
+		const tok = match (lex(&lexer)) {
+		case let tok: token =>
+			yield tok;
+		case let err: error =>
+			fmt::errorln(strerror(err))!;
+			abort();
+		};
+		if (tok.0 == ltok::EOF) {
+			break;
+		};
+	};
+
+	assert(len(items) == 3);
+	assert(items[0] == "a");
+	assert(items[1] == "b");
+	assert(items[2] == "c");
+};
+
+fn sample_annotation(id: []str, l: *lexer, user: nullable *opaque) (void | error) = {
+	let items = user: *[]str;
+	assert(lex(l)!.0 == ltok::LPAREN);
+	append(items, lex(l)!.1 as str)!;
+	append(items, lex(l)!.1 as str)!;
+	append(items, lex(l)!.1 as str)!;
+	assert(lex(l)!.0 == ltok::RPAREN);
+	assert(lex(l)!.0 == ltok::RBRACKET);
+};
+
 @test fn save_restore() void = {
 	const lexer = initstr(`export fn main() void = void;`);
 	assert(lex(&lexer)!.0 == ltok::EXPORT);

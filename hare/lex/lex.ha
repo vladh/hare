@@ -14,6 +14,18 @@ use strconv;
 use strings;
 use types;
 
+// A function which implements an annotation. The state of the lexer at the time
+// of the callback will be immediately following the identifier, and the
+// callback should lex all tokens up to and including the terminating ']'.
+//
+// 	#[example::annotation(...)]
+// 	                     ^------- start of callback
+// 	                           ^- end of callback
+//
+// The lifetime of the id parameter is only that of the callback's execution
+// duration.
+export type annotatefn = fn(id: []str, lex: *lexer, user: nullable *opaque) (void | error);
+
 export type lexer = struct {
 	in: *bufio::scanner,
 	path: str,
@@ -24,6 +36,7 @@ export type lexer = struct {
 	flags: flag,
 	comment: str,
 	require_int: bool,
+	annotations: []([]str, *annotatefn, nullable *opaque),
 };
 
 // Flags which apply to this lexer
@@ -95,6 +108,18 @@ export fn save(lex: *lexer) (restore_point | io::error) = {
 export fn restore(lex: *lexer, rp: *restore_point) (void | io::error) = {
 	io::seek(lex.in, rp.off, io::whence::SET)?;
 	*lex = rp.state;
+};
+
+// Registers an annotation callback with this lexer for the given identifier.
+// The id is borrowed for the lifetime of the lexer. Unregistered annotations
+// are silently discarded by the lexer.
+export fn register_annotation(
+	lex: *lexer,
+	id: []str,
+	cb: *annotatefn,
+	user: nullable *opaque,
+) void = {
+	append(lex.annotations, (id, cb, user))!;
 };
 
 // Returns the current value of the comment buffer, or empty string if unset (or
@@ -217,10 +242,8 @@ fn lex_annotation(l: *lexer) (void | error) = {
 
 		tok = lex(l)?;
 		switch (tok.0) {
-		case ltok::LPAREN =>
-			tokens = true;
-			break;
-		case ltok::RBRACKET =>
+		case ltok::LPAREN, ltok::RBRACKET =>
+			unlex(l, tok);
 			break;
 		case ltok::DOUBLE_COLON =>
 			yield;
@@ -229,8 +252,41 @@ fn lex_annotation(l: *lexer) (void | error) = {
 		};
 	};
 
-	if (!tokens) {
+	let user: nullable *opaque = null;
+	let cb: *annotatefn = &annotate_fallback;
+	for :outer (let i = 0z; i < len(l.annotations); i += 1) {
+		const annot = l.annotations[i];
+		const name = annot.0;
+
+		if (len(name) != len(id)) {
+			continue;
+		};
+		for (let j = 0z; j < len(name); j += 1) {
+			if (name[j] != id[j]) {
+				continue :outer;
+			};
+		};
+
+		cb = annot.1;
+		user = annot.2;
+		break;
+	};
+	cb(id, l, user)?;
+};
+
+fn annotate_fallback(
+	id: []str,
+	l: *lexer,
+	user: nullable *opaque,
+) (void | error) = {
+	let tok = lex(l)?;
+	switch (tok.0) {
+	case ltok::RBRACKET =>
 		return;
+	case ltok::LPAREN =>
+		yield;
+	case =>
+		return syntaxerr(tok.2, "invalid annotation (expected '(' or ']')");
 	};
 
 	def STACKSZ: int = 32;
@@ -988,6 +1044,7 @@ export fn prevloc(lex: *lexer) location = {
 	};
 };
 
+// Builds a lexer syntax error from a location and a reason string.
 export fn syntaxerr(loc: location, why: str) error = {
 	static let buf = path::buffer{...};
 	path::set(&buf, loc.path)!;
