@@ -26,7 +26,7 @@ fn syntaxerr(
 
 // Requires the next token to have a matching ltok. Returns that token, or an
 // error.
-fn want(lexer: *lex::lexer, want: lex::ltok...) (lex::token | error) = {
+export fn want(lexer: *lex::lexer, want: lex::ltok...) (lex::token | error) = {
 	let tok = lex::lex(lexer)?;
 	if (len(want) == 0) {
 		return tok;
@@ -55,7 +55,7 @@ fn want(lexer: *lex::lexer, want: lex::ltok...) (lex::token | error) = {
 // Looks for a matching ltok from the lexer, and if not present, unlexes the
 // token and returns void. If found, the token is consumed from the lexer and is
 // returned.
-fn try(
+export fn try(
 	lexer: *lex::lexer,
 	want: lex::ltok...
 ) (lex::token | error | void) = {
@@ -71,7 +71,7 @@ fn try(
 
 // Looks for a matching ltok from the lexer, unlexes the token, and returns
 // it; or void if it was not an ltok.
-fn peek(
+export fn peek(
 	lexer: *lex::lexer,
 	want: lex::ltok...
 ) (lex::token | error | void) = {
