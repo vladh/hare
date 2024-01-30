@@ -500,6 +500,31 @@ type op = enum {
 	lextest(in, expected);
 };
 
+@test fn discard_basic_annotation() void = {
+	const in = `#[simple] void; #[simple::ident] void;`;
+	const expected: [_]token = [
+		(ltok::VOID, void, loc(1, 11)),
+		(ltok::SEMICOLON, void, loc(1, 15)),
+		(ltok::VOID, void, loc(1, 34)),
+		(ltok::SEMICOLON, void, loc(1, 38)),
+	];
+	lextest(in, expected);
+};
+
+@test fn discard_detailed_annotation() void = {
+	const in = `
+#[with::param(a, b, c)] void;
+#[with::nested::tokens(foo(bar[baz{bar}]))] void;
+`;
+	const expected: [_]token = [
+		(ltok::VOID, void, loc(2, 25)),
+		(ltok::SEMICOLON, void, loc(2, 29)),
+		(ltok::VOID, void, loc(3, 45)),
+		(ltok::SEMICOLON, void, loc(3, 49)),
+	];
+	lextest(in, expected);
+};
+
 @test fn save_restore() void = {
 	const lexer = initstr(`export fn main() void = void;`);
 	assert(lex(&lexer)!.0 == ltok::EXPORT);

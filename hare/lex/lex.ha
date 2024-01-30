@@ -118,11 +118,20 @@ export fn lex(lex: *lexer) (token | error) = {
 		);
 	};
 
-	let r = match (nextw(lex)?) {
-	case io::EOF =>
-		return (ltok::EOF, void, mkloc(lex));
-	case let r: (rune, location) =>
-		yield r;
+	let r: (rune, location) = ('\0', location { ... });
+	for (true) {
+		r = match (nextw(lex)?) {
+		case io::EOF =>
+			return (ltok::EOF, void, mkloc(lex));
+		case let r: (rune, location) =>
+			yield r;
+		};
+
+		if (r.0 == '#') {
+			lex_annotation(lex)?;
+		} else {
+			break;
+		};
 	};
 
 	if (ascii::isdigit(r.0)) {
@@ -176,6 +185,95 @@ export fn lex(lex: *lexer) (token | error) = {
 
 fn is_name(r: rune, num: bool) bool =
 	ascii::isalpha(r) || r == '_' || r == '@' || (num && ascii::isdigit(r));
+
+fn lex_annotation(l: *lexer) (void | error) = {
+	static let in_annotation = false;
+	if (in_annotation) {
+		return syntaxerr(mkloc(l), "cannot nest annotations");
+	};
+	in_annotation = true;
+	defer in_annotation = false;
+
+	match (next(l)?) {
+	case let n: (rune, location) =>
+		const (r, l) = n;
+		if (r != '[') {
+			return syntaxerr(l, "invalid annotation; expected #[...]");
+		};
+	case io::EOF =>
+		return syntaxerr(mkloc(l), "invalid annotation; expected #[...]");
+	};
+
+	let id: []str = [];
+	defer strings::freeall(id);
+
+	let tokens = false;
+	for (true) {
+		let tok = lex(l)?;
+		if (tok.0 != ltok::NAME) {
+			return syntaxerr(tok.2, "invalid annotation, expected identifier");
+		};
+		append(id, tok.1 as str)!;
+
+		tok = lex(l)?;
+		switch (tok.0) {
+		case ltok::LPAREN =>
+			tokens = true;
+			break;
+		case ltok::RBRACKET =>
+			break;
+		case ltok::DOUBLE_COLON =>
+			yield;
+		case =>
+			return syntaxerr(tok.2, "invalid annotation, expected identifier");
+		};
+	};
+
+	if (!tokens) {
+		return;
+	};
+
+	def STACKSZ: int = 32;
+	let stack: [STACKSZ]ltok = [ltok::EOF...];
+	let stack = stack[..0];
+	let sp = 0;
+
+	static append(stack, ltok::LPAREN)!;
+	for (sp >= 0) {
+		if (sp + 1 >= STACKSZ) {
+			return syntaxerr(tok.2, "annotation depth exceeds token stack limit");
+		};
+
+		tok = lex(l)?;
+		let want = ltok::EOF;
+		switch (tok.0) {
+		case ltok::LPAREN, ltok::LBRACKET, ltok::LBRACE =>
+			static append(stack, tok.0)!;
+			sp += 1;
+		case ltok::RPAREN =>
+			want = ltok::LPAREN;
+		case ltok::RBRACKET =>
+			want = ltok::LBRACKET;
+		case ltok::RBRACE =>
+			want = ltok::LBRACE;
+		case => void;
+		};
+
+		if (want != ltok::EOF) {
+			let have = stack[sp];
+			static delete(stack[sp]);
+			sp -= 1;
+			if (have != want) {
+				return syntaxerr(tok.2, "unbalanced tokens in annotation");
+			};
+		};
+	};
+
+	tok = lex(l)?;
+	if (tok.0 != ltok::RBRACKET) {
+		return syntaxerr(tok.2, "invalid annotation (expected ']')");
+	};
+};
 
 fn lex_unicode(lex: *lexer, loc: location, n: size) (rune | error) = {
 	assert(n < 9);
