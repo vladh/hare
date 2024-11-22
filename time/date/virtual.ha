@@ -578,7 +578,5 @@ fn realize_gapbounds(v: virtual) (date, date) = {
 	let gapstart = from_instant(loc, time::add(t, -time::NANOSECOND));
 	let gapend   = from_instant(loc, t);
 
-	// TODO: check if original v falls within gapstart & gapend?
-
 	return (gapstart, gapend);
 };
