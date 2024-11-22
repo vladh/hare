@@ -543,8 +543,8 @@ fn cmpdates(a: const *opaque, b: const *opaque) int = {
 fn realize_gapbounds(v: virtual) (date, date) = {
 	let loc = v.vloc as chrono::locality;
 
-	let zlo: time::duration =  48 * time::HOUR;
-	let zhi: time::duration = -48 * time::HOUR;
+	let zlo: time::duration = 2 *  loc.daylength;
+	let zhi: time::duration = 2 * -loc.daylength;
 	for (let zone .. loc.zones) {
 		if (zone.zoff > zhi) {
 			zhi = zone.zoff;
