@@ -164,7 +164,7 @@ export fn new(
 ) (date | invalid | zfunresolved) = {
 	let _fields: [_]int = [
 		0, 1, 1,    // year month day
-		0, 0, 0, 0, // hour min sec nsec
+		0, 0, 0, 0, // hour minute second nanosecond
 	];
 
 	assert(len(fields) <= len(_fields),
@@ -185,13 +185,16 @@ export fn new(
 
 	let d = (realize(v, loc) as (date | invalid | zfunresolved))?;
 
-	// if zflag::GAP_START or zflag::GAP_END was not specified,
-	// check if input values are actually observed
-	if (
-		// TODO: check observe values outside of gap?
+	let gap_flag_specified = (
 		zoff is zflag
-		&& zoff as zflag & (zflag::GAP_START | zflag::GAP_END) == 0
-	) {
+		&& zoff as zflag & (zflag::GAP_START | zflag::GAP_END) != 0
+	);
+
+	// Some invalid inputs could theoretically calculate a valid date.
+	// zflags GAP_START and GAP_END may cause the resultant date to change.
+	// unless "GAP_" flags were specified, check if input values match the
+	// resultant date's values.
+	if (!gap_flag_specified) {
 		if (
 			_fields[0] != _year(&d)
 			|| _fields[1] != _month(&d)
