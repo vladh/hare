@@ -5,6 +5,7 @@ use fmt;
 use io;
 use memio;
 use strings;
+use time;
 use time::chrono;
 
 // [[format]] layout for the email date format.
@@ -246,13 +247,7 @@ fn fmtspec(out: io::handle, r: rune, d: *date) (size | io::error) = {
 	case 'Y' =>
 		return fmt::fprintf(out, "{:.4}", _year(d));
 	case 'z' =>
-		const (sign, zo) = if (chrono::ozone(d).zoff >= 0) {
-			yield ('+', calc_hmsn(chrono::ozone(d).zoff));
-		} else {
-			yield ('-', calc_hmsn(-chrono::ozone(d).zoff));
-		};
-		const (hr, mi) = (zo.0, zo.1);
-		return fmt::fprintf(out, "{}{:.2}{:.2}", sign, hr, mi);
+		return fmtzoff(out, chrono::ozone(d).zoff);
 	case 'Z' =>
 		return fmt::fprint(out, chrono::ozone(d).abbr);
 	case '%' =>
@@ -260,6 +255,16 @@ fn fmtspec(out: io::handle, r: rune, d: *date) (size | io::error) = {
 	case =>
 		abort("layout has unrecognised specifier");
 	};
+};
+
+fn fmtzoff(h: io::handle, zoff: time::duration) (size | io::error) = {
+	const (sign, zo) =
+		if (zoff >= 0)
+			('+', calc_hmsn(zoff))
+		else
+			('-', calc_hmsn(-zoff));
+	const (hr, mi) = (zo.0, zo.1);
+	return fmt::fprintf(h, "{}{:.2}{:.2}", sign, hr, mi);
 };
 
 @test fn format() void = {
