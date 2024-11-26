@@ -62,7 +62,7 @@ export fn diff(a: *moment, b: *moment) (time::duration | discontinuity) = {
 
 // Adds a [[time::duration]] to a [[moment]] with [[time::add]].
 export fn add(m: *moment, x: time::duration) moment = {
-	return new(m.tsc, time::add(*(m: *time::instant), x));
+	return new(m.tsc, time::add(to_instant(*m), x));
 };
 
 fn convertpair(
