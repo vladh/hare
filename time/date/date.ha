@@ -25,6 +25,20 @@ export type invalid = !chrono::invalid;
 export type date = struct {
 	chrono::moment,
 
+	// The [[locality]] with which to interpret this moment.
+	loc: locality,
+
+	// The observed [[zone]].
+	zone: nullable *zone,
+
+	// The observed daydate (scalar day number)
+	// since an abitrary epoch (e.g. the Unix epoch 1970-01-01).
+	daydate: (void | i64),
+
+	// The observed time-of-day (amount of daytime progressed in a day)
+	// as nanoseconds.
+	daytime: (void | i64),
+
 	era:         (void | int),
 	year:        (void | int),
 	month:       (void | int),
@@ -45,7 +59,8 @@ export type date = struct {
 fn init() date = date {
 	sec         = 0,
 	nsec        = 0,
-	loc         = chrono::UTC,
+	tsc         = &chrono::utc,
+	loc         = UTC,
 	zone        = null,
 	daydate     = void,
 	daytime     = void,
@@ -110,10 +125,10 @@ fn all(d: *date) *date = {
 // Examples:
 //
 // 	// 0000-01-01 00:00:00.000000000 +0000 UTC UTC
-// 	date::new(time::chrono::UTC, date::zflag::CONTIG);
+// 	date::new(date::UTC, date::zflag::CONTIG);
 //
 // 	// 2000-01-02 15:04:05.600000000 +0000 UTC UTC
-// 	date::new(time::chrono::UTC, 0,
+// 	date::new(date::UTC, 0,
 // 		2000,  1,  2,  15,  4,  5, 600000000);
 //
 // 	// 2000-01-02 15:00:00.000000000 +0100 CET Europe/Amsterdam
@@ -158,7 +173,7 @@ fn all(d: *date) *date = {
 // 		2000, 10, 29,   2, 30);
 //
 export fn new(
-	loc: chrono::locality,
+	loc: locality,
 	zoff: (time::duration | zflag),
 	fields: int...
 ) (date | invalid | zfunresolved) = {
@@ -212,32 +227,30 @@ export fn new(
 };
 
 // Returns a [[date]] of the current system time using
-// [[time::clock::REALTIME]], in the [[time::chrono::UTC]] locality.
+// [[time::clock::REALTIME]], in the [[UTC]] locality.
 export fn now() date = {
-	return from_instant(chrono::UTC, time::now(time::clock::REALTIME));
+	return from_instant(UTC, time::now(time::clock::REALTIME));
 };
 
 // Returns a [[date]] of the current system time using
 // [[time::clock::REALTIME]], in the [[time::chrono::LOCAL]] locality.
 export fn localnow() date = {
-	return from_instant(chrono::LOCAL, time::now(time::clock::REALTIME));
+	return from_instant(LOCAL, time::now(time::clock::REALTIME));
 };
 
 // Creates a [[date]] from a [[time::chrono::moment]].
-export fn from_moment(m: chrono::moment) date = {
+export fn from_moment(loc: locality, m: chrono::moment) date = {
 	const d = init();
-	d.loc = m.loc;
 	d.sec = m.sec;
 	d.nsec = m.nsec;
-	d.daydate = m.daydate;
-	d.daytime = m.daytime;
-	d.zone = m.zone;
+	d.tsc = m.tsc;
+	d.loc = loc; // TODO: check if loc.timescale == m.tsc
 	return d;
 };
 
 // Creates a [[date]] from a [[time::instant]] in a [[time::chrono::locality]].
-export fn from_instant(loc: chrono::locality, i: time::instant) date = {
-	return from_moment(chrono::new(loc, i));
+export fn from_instant(loc: locality, i: time::instant) date = {
+	return from_moment(loc, chrono::new(loc.tsc, i));
 };
 
 // Creates a [[date]] from a string, parsed according to a layout format.
@@ -257,11 +270,11 @@ export fn from_instant(loc: chrono::locality, i: time::instant) date = {
 // The date's [[time::chrono::locality]] will be selected from the provided
 // locality arguments. The 'name' field of these localities will be matched
 // against the parsed result of the %L specifier. If %L is not specified,
-// or if no locality is provided, [[time::chrono::UTC]] is used.
+// or if no locality is provided, [[UTC]] is used.
 export fn from_str(
 	layout: str,
 	s: str,
-	locs: chrono::locality...
+	locs: locality...
 ) (date | parsefail | insufficient | invalid) = {
 	const v = newvirtual();
 	v.zoff = zflag::LAP_EARLY | zflag::GAP_END;
@@ -273,30 +286,30 @@ export fn from_str(
 	parse(&v, layout, s)?;
 
 	if (v.locname is void || len(locs) == 0) {
-		v.vloc = chrono::UTC;
+		v.vloc = UTC;
 	};
 
 	return realize(v, locs...) as (date | insufficient | invalid);
 };
 
 @test fn from_str() void = {
-	let testcases: [_](str, str, []chrono::locality, (date | error)) = [
+	let testcases: [_](str, str, []locality, (date | error)) = [
 		(STAMPLOC, "2001-02-03 15:16:17.123456789 +0000 UTC UTC", [],
-			new(chrono::UTC, 0, 2001, 2, 3, 15, 16, 17, 123456789)!),
+			new(UTC, 0, 2001, 2, 3, 15, 16, 17, 123456789)!),
 		(STAMP, "2001-02-03 15:16:17", [],
-			new(chrono::UTC, 0, 2001, 2, 3, 15, 16, 17)!),
+			new(UTC, 0, 2001, 2, 3, 15, 16, 17)!),
 		(RFC3339, "2001-02-03T15:16:17+0000", [],
-			new(chrono::UTC, 0, 2001, 2, 3, 15, 16, 17)!),
+			new(UTC, 0, 2001, 2, 3, 15, 16, 17)!),
 		("%F", "2009-06-30", [],
-			new(chrono::UTC, 0, 2009, 6, 30)!),
-		("%F %L", "2009-06-30 GPS", [chrono::TAI, chrono::GPS],
-			new(chrono::GPS, 0, 2009, 6, 30)!),
+			new(UTC, 0, 2009, 6, 30)!),
+		("%F %L", "2009-06-30 GPS", [TAI, GPS],
+			new(GPS, 0, 2009, 6, 30)!),
 		("%F %T", "2009-06-30 01:02:03", [],
-			new(chrono::UTC, 0, 2009, 6, 30, 1, 2, 3)!),
+			new(UTC, 0, 2009, 6, 30, 1, 2, 3)!),
 		("%FT%T%z", "2009-06-30T18:30:00Z", [],
-			new(chrono::UTC, 0, 2009, 6, 30, 18, 30)!),
+			new(UTC, 0, 2009, 6, 30, 18, 30)!),
 		("%FT%T.%N%z", "2009-06-30T18:30:00.987654321Z", [],
-			new(chrono::UTC, 0, 2009, 6, 30, 18, 30, 0, 987654321)!),
+			new(UTC, 0, 2009, 6, 30, 18, 30, 0, 987654321)!),
 		// TODO: for the tests overhaul, when internal test timezones
 		// are available, check for %L
 		//("%FT%T%z %L", "2009-06-30T18:30:00+0200 Europe/Amsterdam", [amst],

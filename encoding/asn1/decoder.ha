@@ -6,7 +6,6 @@ use io;
 use math::{bit_size};
 use os;
 use strings;
-use time::chrono;
 use time::date;
 use types;
 
@@ -699,7 +698,7 @@ export fn read_utctime(d: *decoder, maxyear: u16) (date::date | error) = {
 	};
 
 	let v = date::newvirtual();
-	v.vloc = chrono::UTC;
+	v.vloc = date::UTC;
 	v.year = (year + cent): int;
 	v.zoff = 0;
 	v.nanosecond = 0;

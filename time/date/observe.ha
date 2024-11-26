@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // (c) Hare authors <https://harelang.org>
 
-use time::chrono;
-
 // These functions are renamed to avoid namespace conflicts, like in the
 // parameters of the [[new]] function.
 
@@ -66,7 +64,7 @@ fn _year(d: *date) int = {
 	match (d.year) {
 	case void =>
 		const ymd = calc_ymd(
-			chrono::daydate(d),
+			daydate(d),
 		);
 		d.year = ymd.0;
 		d.month = ymd.1;
@@ -81,7 +79,7 @@ fn _month(d: *date) int = {
 	match (d.month) {
 	case void =>
 		const ymd = calc_ymd(
-			chrono::daydate(d),
+			daydate(d),
 		);
 		d.year = ymd.0;
 		d.month = ymd.1;
@@ -96,7 +94,7 @@ fn _day(d: *date) int = {
 	match (d.day) {
 	case void =>
 		const ymd = calc_ymd(
-			chrono::daydate(d),
+			daydate(d),
 		);
 		d.year = ymd.0;
 		d.month = ymd.1;
@@ -111,7 +109,7 @@ fn _weekday(d: *date) int = {
 	match (d.weekday) {
 	case void =>
 		d.weekday = calc_weekday(
-			chrono::daydate(d),
+			daydate(d),
 		);
 		return d.weekday: int;
 	case let y: int =>
@@ -191,7 +189,7 @@ fn _hour(d: *date) int = {
 	match (d.hour) {
 	case void =>
 		const hmsn = calc_hmsn(
-			chrono::daytime(d),
+			daytime(d),
 		);
 		d.hour = hmsn.0;
 		d.minute = hmsn.1;
@@ -207,7 +205,7 @@ fn _minute(d: *date) int = {
 	match (d.minute) {
 	case void =>
 		const hmsn = calc_hmsn(
-			chrono::daytime(d),
+			daytime(d),
 		);
 		d.hour = hmsn.0;
 		d.minute = hmsn.1;
@@ -223,7 +221,7 @@ fn _second(d: *date) int = {
 	match (d.second) {
 	case void =>
 		const hmsn = calc_hmsn(
-			chrono::daytime(d),
+			daytime(d),
 		);
 		d.hour = hmsn.0;
 		d.minute = hmsn.1;
@@ -239,7 +237,7 @@ fn _nanosecond(d: *date) int = {
 	match (d.nanosecond) {
 	case void =>
 		const hmsn = calc_hmsn(
-			chrono::daytime(d),
+			daytime(d),
 		);
 		d.hour = hmsn.0;
 		d.minute = hmsn.1;

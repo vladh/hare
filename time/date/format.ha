@@ -6,7 +6,6 @@ use io;
 use memio;
 use strings;
 use time;
-use time::chrono;
 
 // [[format]] layout for the email date format.
 export def EMAIL: str = "%a, %d %b %Y %H:%M:%S %z";
@@ -247,9 +246,9 @@ fn fmtspec(out: io::handle, r: rune, d: *date) (size | io::error) = {
 	case 'Y' =>
 		return fmt::fprintf(out, "{:.4}", _year(d));
 	case 'z' =>
-		return fmtzoff(out, chrono::ozone(d).zoff);
+		return fmtzoff(out, ozone(d).zoff);
 	case 'Z' =>
-		return fmt::fprint(out, chrono::ozone(d).abbr);
+		return fmt::fprint(out, ozone(d).abbr);
 	case '%' =>
 		return fmt::fprint(out, "%");
 	case =>
@@ -268,7 +267,7 @@ fn fmtzoff(h: io::handle, zoff: time::duration) (size | io::error) = {
 };
 
 @test fn format() void = {
-	const d = new(chrono::UTC, 0, 1994, 1, 1, 2, 17, 5, 24)!;
+	const d = new(UTC, 0, 1994, 1, 1, 2, 17, 5, 24)!;
 
 	const cases = [
 		// special characters

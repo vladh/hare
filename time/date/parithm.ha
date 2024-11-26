@@ -104,7 +104,7 @@ export fn unitdiff(a: date, b: date, u: unit) i64 = {
 	case unit::WEEK =>
 		return unitdiff(a, b, unit::DAY) / 7;
 	case unit::DAY =>
-		return chrono::daydate(&b) - chrono::daydate(&a);
+		return daydate(&b) - daydate(&a);
 	case unit::HOUR =>
 		return unitdiff(a, b, unit::DAY) * 24 + pdiff(a, b).hours;
 	case unit::MINUTE =>
@@ -147,7 +147,7 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 			0, 0, 0, 0,
 		);
 	case unit::WEEK =>
-		const dd = chrono::daydate(&d) - _weekday(&d);
+		const dd = daydate(&d) - _weekday(&d);
 		const ymd = calc_ymd(dd);
 		return new(d.loc, zf,
 			ymd.0, ymd.1, ymd.2,
@@ -181,8 +181,8 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 @test fn pdiff() void = {
 	const cases = [
 		(
-			new(chrono::UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
-			new(chrono::UTC, 0, 2022, 2, 16, 0, 0, 0, 0)!,
+			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
+			new(UTC, 0, 2022, 2, 16, 0, 0, 0, 0)!,
 			period {
 				years = 1,
 				months = 1,
@@ -191,8 +191,8 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 			},
 		),
 		(
-			new(chrono::UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
-			new(chrono::UTC, 0, 2022, 3, 27, 0, 0, 0, 0)!,
+			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
+			new(UTC, 0, 2022, 3, 27, 0, 0, 0, 0)!,
 			period {
 				years = 1,
 				months = 2,
@@ -201,8 +201,8 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 			},
 		),
 		(
-			new(chrono::UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
-			new(chrono::UTC, 0, 2022, 3, 14, 0, 0, 0, 0)!,
+			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
+			new(UTC, 0, 2022, 3, 14, 0, 0, 0, 0)!,
 			period {
 				years = 1,
 				months = 1,
@@ -211,16 +211,16 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 			},
 		),
 		(
-			new(chrono::UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
-			new(chrono::UTC, 0, 2021, 1, 16, 0, 0, 0, 0)!,
+			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
+			new(UTC, 0, 2021, 1, 16, 0, 0, 0, 0)!,
 			period {
 				days = 1,
 				...
 			},
 		),
 		(
-			new(chrono::UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
-			new(chrono::UTC, 0, 2021, 1, 16, 1, 3, 2, 4)!,
+			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
+			new(UTC, 0, 2021, 1, 16, 1, 3, 2, 4)!,
 			period {
 				days = 1,
 				hours = 1,
@@ -231,8 +231,8 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 			},
 		),
 		(
-			new(chrono::UTC, 0, 2021, 1, 15, 2, 3, 2, 2)!,
-			new(chrono::UTC, 0, 2021, 1, 16, 1, 1, 2, 4)!,
+			new(UTC, 0, 2021, 1, 15, 2, 3, 2, 2)!,
+			new(UTC, 0, 2021, 1, 16, 1, 1, 2, 4)!,
 			period {
 				hours = 22,
 				minutes = 58,
@@ -241,8 +241,8 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 			},
 		),
 		(
-			new(chrono::UTC, 0,  500, 1, 1, 0, 0, 0, 0)!,
-			new(chrono::UTC, 0, 3500, 1, 1, 0, 6, 0, 0)!,
+			new(UTC, 0,  500, 1, 1, 0, 0, 0, 0)!,
+			new(UTC, 0, 3500, 1, 1, 0, 6, 0, 0)!,
 			period {
 				years = 3000,
 				minutes = 6,
@@ -250,8 +250,8 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 			},
 		),
 		(
-			new(chrono::UTC, 0, -500, 1, 1, 0, 0, 0, 0)!,
-			new(chrono::UTC, 0, 2500, 1, 1, 0, 6, 0, 0)!,
+			new(UTC, 0, -500, 1, 1, 0, 0, 0, 0)!,
+			new(UTC, 0, 2500, 1, 1, 0, 6, 0, 0)!,
 			period {
 				years = 3000,
 				minutes = 6,
@@ -259,8 +259,8 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 			},
 		),
 		(
-			new(chrono::UTC, 0, 2000, 1, 1, 0, 0, 0, 0)!,
-			new(chrono::UTC, 0, 2000, 1, 1, 0, 6, 0, 999999999)!,
+			new(UTC, 0, 2000, 1, 1, 0, 0, 0, 0)!,
+			new(UTC, 0, 2000, 1, 1, 0, 6, 0, 999999999)!,
 			period {
 				minutes = 6,
 				nanoseconds = 999999999,
@@ -268,16 +268,16 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 			},
 		),
 		(
-			new(chrono::UTC, 0, 2000, 1, 1, 0, 6, 0, 999999999)!,
-			new(chrono::UTC, 0, 2000, 1, 1, 0, 6, 1, 0)!,
+			new(UTC, 0, 2000, 1, 1, 0, 6, 0, 999999999)!,
+			new(UTC, 0, 2000, 1, 1, 0, 6, 1, 0)!,
 			period {
 				nanoseconds = 1,
 				...
 			},
 		),
 		(
-			new(chrono::UTC, 0, -4000, 1, 1, 0, 6, 0, 999999999)!,
-			new(chrono::UTC, 0, 4000,  1, 1, 0, 6, 1, 0)!,
+			new(UTC, 0, -4000, 1, 1, 0, 6, 0, 999999999)!,
+			new(UTC, 0, 4000,  1, 1, 0, 6, 1, 0)!,
 			period {
 				years = 8000,
 				nanoseconds = 1,
@@ -294,25 +294,25 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 @test fn unitdiff() void = {
 	const cases = [
 		(
-			new(chrono::UTC, 0,  1994,  8, 27,  11, 20,  1,         2)!,
-			new(chrono::UTC, 0,  2022,  1,  5,  13, 53, 30,        20)!,
+			new(UTC, 0,  1994,  8, 27,  11, 20,  1,         2)!,
+			new(UTC, 0,  2022,  1,  5,  13, 53, 30,        20)!,
 			(27, 328, 1427, 9993, 239834, 14390073, 863404409i64,
 				(863404409i64 * time::SECOND) + 18),
 		),
 		(
-			new(chrono::UTC, 0,  1994,  8, 27,  11, 20,  1,         0)!,
-			new(chrono::UTC, 0,  1994,  8, 28,  11, 20,  1,         2)!,
+			new(UTC, 0,  1994,  8, 27,  11, 20,  1,         0)!,
+			new(UTC, 0,  1994,  8, 28,  11, 20,  1,         2)!,
 			(0, 0, 0, 1, 24, 1440, 86400i64,
 				(86400i64 * time::SECOND) + 2),
 		),
 		(
-			new(chrono::UTC, 0,  1994,  8, 27,  11, 20,  1,         0)!,
-			new(chrono::UTC, 0,  1994,  8, 27,  11, 20,  1,         0)!,
+			new(UTC, 0,  1994,  8, 27,  11, 20,  1,         0)!,
+			new(UTC, 0,  1994,  8, 27,  11, 20,  1,         0)!,
 			(0, 0, 0, 0, 0, 0, 0i64, 0i64),
 		),
 		(
-			new(chrono::UTC, 0,  -500,  1,  1,   0, 59,  1,         0)!,
-			new(chrono::UTC, 0,  2000,  1,  1,  23,  1,  1,         0)!,
+			new(UTC, 0,  -500,  1,  1,   0, 59,  1,         0)!,
+			new(UTC, 0,  2000,  1,  1,  23,  1,  1,         0)!,
 			(2500, 30000, 130443, 913106, 913106 * 24 + 22,
 				(913106 * 24 + 22) * 60 + 2,
 				((913106 * 24 + 22) * 60 + 2) * 60i64,
@@ -341,46 +341,46 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 };
 
 @test fn truncate() void = {
-	const d = new(chrono::UTC, 0, 1994, 8, 27, 11, 20, 1, 2)!;
+	const d = new(UTC, 0, 1994, 8, 27, 11, 20, 1, 2)!;
 
 	assert(chrono::simultaneous(
 			&truncate(d, zflag::CONTIG, unit::ERA)!,
-			&new(chrono::UTC, 0, 1, 1, 1, 0, 0, 0, 0)!)!,
+			&new(UTC, 0, 1, 1, 1, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 01");
 
 	assert(chrono::simultaneous(
 			&truncate(d, zflag::CONTIG, unit::YEAR)!,
-			&new(chrono::UTC, 0, 1994, 1, 1, 0, 0, 0, 0)!)!,
+			&new(UTC, 0, 1994, 1, 1, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 02");
 
 	assert(chrono::simultaneous(
 			&truncate(d, zflag::CONTIG, unit::MONTH)!,
-			&new(chrono::UTC, 0, 1994, 8, 1, 0, 0, 0, 0)!)!,
+			&new(UTC, 0, 1994, 8, 1, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 03");
 
 	assert(chrono::simultaneous(
 			&truncate(d, zflag::CONTIG, unit::WEEK)!,
-			&new(chrono::UTC, 0, 1994, 8, 22, 0, 0, 0, 0)!)!,
+			&new(UTC, 0, 1994, 8, 22, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 04");
 
 	assert(chrono::simultaneous(
 			&truncate(d, zflag::CONTIG, unit::DAY)!,
-			&new(chrono::UTC, 0, 1994, 8, 27, 0, 0, 0, 0)!)!,
+			&new(UTC, 0, 1994, 8, 27, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 05");
 
 	assert(chrono::simultaneous(
 			&truncate(d, zflag::CONTIG, unit::HOUR)!,
-			&new(chrono::UTC, 0, 1994, 8, 27, 11, 0, 0, 0)!)!,
+			&new(UTC, 0, 1994, 8, 27, 11, 0, 0, 0)!)!,
 		"invalid truncate() result 06");
 
 	assert(chrono::simultaneous(
 			&truncate(d, zflag::CONTIG, unit::MINUTE)!,
-			&new(chrono::UTC, 0, 1994, 8, 27, 11, 20, 0, 0)!)!,
+			&new(UTC, 0, 1994, 8, 27, 11, 20, 0, 0)!)!,
 		"invalid truncate() result 07");
 
 	assert(chrono::simultaneous(
 			&truncate(d, zflag::CONTIG, unit::SECOND)!,
-			&new(chrono::UTC, 0, 1994, 8, 27, 11, 20, 1, 0)!)!,
+			&new(UTC, 0, 1994, 8, 27, 11, 20, 1, 0)!)!,
 		"invalid truncate() result 08");
 
 	assert(chrono::simultaneous(

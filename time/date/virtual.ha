@@ -123,7 +123,7 @@ export type lack = enum u8 {
 // resolved with the [[realize]] function.
 //
 // Unlike [[date]], a virtual date's fields are meant to be treated as public
-// and mutable. The embedded [[time::instant]] and [[time::chrono::locality]]
+// and mutable. The embedded [[time::instant]] and [[time::locality]]
 // fields (.sec .nsec .loc) are considered meaningless. Behaviour with the
 // observer functions is undefined.
 //
@@ -148,7 +148,7 @@ export type virtual = struct {
 	// virtual's nanosecond of timescalar second
 	vnsec:    (void | i64),
 	// virtual's locality
-	vloc:     (void | chrono::locality),
+	vloc:     (void | locality),
 	// locality name
 	locname:  (void | str),
 	// zone offset
@@ -169,7 +169,8 @@ export type virtual = struct {
 export fn newvirtual() virtual = virtual {
 	sec         = 0,
 	nsec        = 0,
-	loc         = chrono::UTC,
+	tsc         = &chrono::utc,
+	loc         = UTC,
 	zone        = null,
 	daydate     = void,
 	daytime     = void,
@@ -227,7 +228,7 @@ export fn newvirtual() virtual = virtual {
 //
 // The resultant date depends on a locality value and instant value.
 //
-// The locality ([[time::chrono::locality]]) value depends on:
+// The locality ([[time::locality]]) value depends on:
 //
 // - .vloc
 // - .locname : This is compared to the .name field of each locality
@@ -263,7 +264,7 @@ export fn newvirtual() virtual = virtual {
 // Any [[zflag]]s assigned to the .zoff field affect the final result.
 export fn realize(
 	v: virtual,
-	locs: chrono::locality...
+	locs: locality...
 ) (date | insufficient | invalid | zfunresolved) = {
 	match (v.zoff) {
 	case void =>
@@ -298,12 +299,12 @@ export fn realize(
 
 fn realize_validzoff(
 	v: virtual,
-	locs: chrono::locality...
+	locs: locality...
 ) (date | insufficient | invalid) = {
 	let d = realize_datetimezoff(v, locs...)?;
 
 	// verify zone offset
-	if (chrono::ozone(&d).zoff != v.zoff as time::duration) {
+	if (ozone(&d).zoff != v.zoff as time::duration) {
 		return invalid;
 	};
 
@@ -312,13 +313,13 @@ fn realize_validzoff(
 
 fn realize_datetimezoff(
 	v: virtual,
-	locs: chrono::locality...
+	locs: locality...
 ) (date | insufficient | invalid) = {
 	let lacking = 0u8;
 
 	// determine .loc
-	if (v.vloc is chrono::locality) {
-		v.loc = v.vloc as chrono::locality;
+	if (v.vloc is locality) {
+		v.loc = v.vloc as locality;
 	} else if (v.locname is str) {
 		for (let loc .. locs) {
 			if (loc.name == v.locname as str) {
@@ -444,19 +445,19 @@ fn realize_datetimezoff(
 	};
 
 	// determine .sec, .nsec
-	const d = from_moment(chrono::from_datetime(
+	const d = from_datetime(
 		v.loc,
 		v.zoff as time::duration,
 		v.daydate as i64,
 		v.daytime as i64,
-	));
+	);
 
 	return d;
 };
 
 fn realize_validzoffs(
 	v: virtual,
-	locs: chrono::locality...
+	locs: locality...
 ) ([]date | insufficient | invalid) = {
 	// check if only zoff is missing
 	v.zoff = 0o0;
@@ -471,8 +472,8 @@ fn realize_validzoffs(
 	let dates: []date = [];
 
 	// determine .loc
-	if (v.vloc is chrono::locality) {
-		v.loc = v.vloc as chrono::locality;
+	if (v.vloc is locality) {
+		v.loc = v.vloc as locality;
 	} else if (v.locname is str) {
 		for (let loc .. locs) {
 			if (loc.name == v.locname as str) {
@@ -541,7 +542,7 @@ fn cmpdates(a: const *opaque, b: const *opaque) int = {
 };
 
 fn realize_gapbounds(v: virtual) (date, date) = {
-	let loc = v.vloc as chrono::locality;
+	let loc = v.vloc as locality;
 
 	let zlo: time::duration = 2 *  loc.daylength;
 	let zhi: time::duration = 2 * -loc.daylength;

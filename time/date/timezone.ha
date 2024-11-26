@@ -5,6 +5,16 @@ use os;
 use sort;
 use strings;
 use time;
+use time::chrono;
+
+// The duration of a day on Earth, in terrestrial (SI) seconds.
+export def EARTH_DAY: time::duration = 86400 * time::SECOND;
+
+// The duration of a solar day on Mars, in Martian seconds.
+export def MARS_SOL_MARTIAN: time::duration = 86400 * time::SECOND;
+
+// The duration of a solar day on Mars, in terrestrial (SI) seconds.
+export def MARS_SOL_TERRESTRIAL: time::duration = 88775244147000 * time::NANOSECOND;
 
 // The locality of a [[moment]]. Contains information about how to calculate a
 // moment's observed chronological values.
@@ -17,7 +27,7 @@ export type timezone = struct {
 	name: str,
 
 	// The base timescale (time::chrono::utc)
-	timescale: *timescale,
+	tsc: *chrono::timescale,
 
 	// The duration of a day in this timezone (24 * time::HOUR)
 	daylength: time::duration,
@@ -87,26 +97,6 @@ export fn zone_finish(z: *zone) void = {
 	free(z.abbr);
 };
 
-// Creates an equivalent [[moment]] with a different [[locality]].
-//
-// If the moment's associated [[timescale]] and the target locality's timescale
-// are different, a conversion from one to the other via the TAI timescale will
-// be attempted. Any [[discontinuity]] occurrence will be returned. If a
-// discontinuity against TAI amongst the two timescales exist, consider
-// converting such instants manually.
-export fn in(loc: locality, m: moment) (moment | discontinuity) = {
-	let i = *(&m: *time::instant);
-	if (m.loc.timescale != loc.timescale) {
-		match (convert(i, m.loc.timescale, loc.timescale)) {
-		case analytical =>
-			return discontinuity;
-		case let i: time::instant =>
-			return new(loc, i);
-		};
-	};
-	return new(loc, i);
-};
-
 // Finds and returns a [[moment]]'s currently observed [[zone]].
 fn lookupzone(loc: locality, inst: time::instant) *zone = {
 	// TODO: https://todo.sr.ht/~sircmpwn/hare/643
@@ -161,10 +151,10 @@ fn cmpinstants(a: const *opaque, b: const *opaque) int = {
 // 		},
 // 	);
 //
-export fn fixedzone(ts: *timescale, daylen: time::duration, z: zone) timezone = {
+export fn fixedzone(tsc: *chrono::timescale, daylen: time::duration, z: zone) timezone = {
 	return timezone {
 		name = z.name,
-		timescale = ts,
+		tsc = tsc,
 		daylength = daylen,
 		zones = alloc([z])!,
 		transitions = [],
@@ -219,7 +209,7 @@ export const UTC: locality = &TZ_UTC;
 
 const TZ_UTC: timezone = timezone {
 	name = "UTC",
-	timescale = &utc,
+	tsc = &chrono::utc,
 	daylength = EARTH_DAY,
 	zones = [
 		zone {
@@ -238,7 +228,7 @@ export const TAI: locality = &TZ_TAI;
 
 const TZ_TAI: timezone = timezone {
 	name = "TAI",
-	timescale = &tai,
+	tsc = &chrono::tai,
 	daylength = EARTH_DAY,
 	zones = [
 		zone {
@@ -257,7 +247,7 @@ export const GPS: locality = &TZ_GPS;
 
 const TZ_GPS: timezone = timezone {
 	name = "GPS",
-	timescale = &gps,
+	tsc = &chrono::gps,
 	daylength = EARTH_DAY,
 	zones = [
 		zone {
@@ -276,7 +266,7 @@ export const TT: locality = &TZ_TT;
 
 const TZ_TT: timezone = timezone {
 	name = "TT",
-	timescale = &tt,
+	tsc = &chrono::tt,
 	daylength = EARTH_DAY,
 	zones = [
 		zone {
@@ -295,7 +285,7 @@ export const MTC: locality = &TZ_MTC;
 
 const TZ_MTC: timezone = timezone {
 	name = "MTC",
-	timescale = &mtc,
+	tsc = &chrono::mtc,
 	daylength = MARS_SOL_MARTIAN,
 	zones = [
 		zone {

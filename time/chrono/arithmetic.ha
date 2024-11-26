@@ -11,7 +11,7 @@ use time;
 // See [[simultaneous]] to determine if two moments represent the same moment in
 // time regardless of locality.
 export fn coincident(a: *moment, b: *moment) bool = {
-	return a.loc == b.loc && a.sec == b.sec && a.nsec == b.nsec;
+	return a.tsc == b.tsc && a.sec == b.sec && a.nsec == b.nsec;
 };
 
 // Returns true if two [[moment]]s represent the same moment in time, regardless
@@ -62,7 +62,7 @@ export fn diff(a: *moment, b: *moment) (time::duration | discontinuity) = {
 
 // Adds a [[time::duration]] to a [[moment]] with [[time::add]].
 export fn add(m: *moment, x: time::duration) moment = {
-	return new(m.loc, time::add(*(m: *time::instant), x));
+	return new(m.tsc, time::add(*(m: *time::instant), x));
 };
 
 fn convertpair(
@@ -72,15 +72,15 @@ fn convertpair(
 	let ia = *(a: *time::instant);
 	let ib = *(b: *time::instant);
 
-	if (a.loc.timescale != b.loc.timescale) {
-		match (convert(ia, a.loc.timescale, &tai)) {
+	if (a.tsc != b.tsc) {
+		match (convert(ia, a.tsc, &tai)) {
 		case let i: time::instant =>
 			ia = i;
 		case =>
 			return discontinuity;
 		};
 
-		match (convert(ib, b.loc.timescale, &tai)) {
+		match (convert(ib, b.tsc, &tai)) {
 		case let i: time::instant =>
 			ib = i;
 		case =>

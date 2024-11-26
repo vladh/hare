@@ -12,6 +12,7 @@ use os;
 use path;
 use strings;
 use time;
+use time::chrono;
 
 // Error concerning the Timezone database.
 export type tzdberror = !(invalidtzif | fs::error | io::error);
@@ -49,7 +50,7 @@ export fn tz(name: str) (locality | tzdberror) = {
 
 	let loc = alloc(timezone {
 		name = strings::dup(name)!,
-		timescale = &utc,
+		tsc = &chrono::utc,
 		daylength = EARTH_DAY,
 		...
 	})!;
