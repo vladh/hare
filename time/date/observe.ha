@@ -7,7 +7,12 @@ export fn ozone(d: *date) zone = {
 	case let z: *zone =>
 		return *z;
 	case null =>
-		const z = lookupzone(d.loc, to_instant(*d));
+		let lookup = if (d.loc.lookupzone != null) {
+			yield d.loc.lookupzone as *zonelookuper;
+		} else {
+			yield &lookupzone: *zonelookuper;
+		};
+		const z = lookup(d.loc, to_instant(*d));
 		d.zone = z;
 		return *z;
 	};

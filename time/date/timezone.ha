@@ -39,6 +39,10 @@ export type timezone = struct {
 	// The transitions between this timezone's zones
 	transitions: []transition,
 
+	lookupzone: nullable *zonelookuper,
+
+//	extendtransitions: nullable *fn(*timezone) size,
+
 	// A timezone specifier in the POSIX "expanded" TZ format.
 	// See https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html
 	//
@@ -78,6 +82,8 @@ type tzname = struct {
 	dst_end: str,
 	dst_endtime: str,
 };
+
+export type zonelookuper = fn(locality, time::instant) *zone;
 
 // Frees a [[timezone]]. A [[locality]] argument can be passed.
 export fn timezone_free(tz: *timezone) void = {
@@ -158,6 +164,7 @@ export fn fixedzone(tsc: *chrono::timescale, daylen: time::duration, z: zone) ti
 		daylength = daylen,
 		zones = alloc([z])!,
 		transitions = [],
+		lookupzone = null,
 		posix_extend = "",
 	};
 };
@@ -220,6 +227,7 @@ const TZ_UTC: timezone = timezone {
 		},
 	],
 	transitions = [],
+	lookupzone = null,
 	posix_extend = "",
 };
 
@@ -239,6 +247,7 @@ const TZ_TAI: timezone = timezone {
 		},
 	],
 	transitions = [],
+	lookupzone = null,
 	posix_extend = "",
 };
 
@@ -258,6 +267,7 @@ const TZ_GPS: timezone = timezone {
 		},
 	],
 	transitions = [],
+	lookupzone = null,
 	posix_extend = "",
 };
 
@@ -277,6 +287,7 @@ const TZ_TT: timezone = timezone {
 		},
 	],
 	transitions = [],
+	lookupzone = null,
 	posix_extend = "",
 };
 
@@ -296,5 +307,6 @@ const TZ_MTC: timezone = timezone {
 		},
 	],
 	transitions = [],
+	lookupzone = null,
 	posix_extend = "",
 };
