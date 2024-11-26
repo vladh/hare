@@ -21,7 +21,7 @@ fn calc_daytime__hmsn(
 	min: int,
 	sec: int,
 	nsec: int,
-) (i64 | invalid) = {
+) (i64 | invalid) = { // TODO: reconsider `invalid` here
 	const t = (
 		(hour * time::HOUR) +
 		(min * time::MINUTE) +

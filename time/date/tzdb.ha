@@ -52,6 +52,7 @@ export fn tz(name: str) (locality | tzdberror) = {
 		name = strings::dup(name)!,
 		tsc = &chrono::utc,
 		daylength = EARTH_DAY,
+		petz = PETZ_EMPTY,
 		...
 	})!;
 	match (load_tzif(&bufstrm, loc)) {
@@ -71,7 +72,7 @@ export fn tz(name: str) (locality | tzdberror) = {
 };
 
 // Loads data of the TZif "Time Zone Information Format", and initialises the
-// fields "zones", "transitions", and "posix_extend" of the given [[timezone]].
+// fields "zones", "transitions", and "petz" of the given [[timezone]].
 //
 // See: https://datatracker.ietf.org/doc/html/rfc8536
 fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
@@ -196,12 +197,12 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 		};
 		append(footerdata, buf1...)!;
 	};
-	const posix_extend = strings::dup(match (strings::fromutf8(footerdata)) {
+	const petz = match (strings::fromutf8(footerdata)) {
 	case let s: str =>
 		yield s;
 	case utf8::invalid =>
 		return invalidtzif;
-	})!;
+	};
 
 	// assemble structured data
 
@@ -276,10 +277,13 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 		append(transitions, tx)!;
 	};
 
-	// commit and return data
+	// save and return data
 	tz.phases = zones;
 	tz.transitions = transitions;
-	tz.posix_extend = posix_extend;
+
+	if (parse_petz(&tz.petz, petz) is invalidpetzstr) {
+		return invalidtzif;
+	};
 };
 
 fn mustread(h: io::handle, buf: []u8) (void | invalidtzif | io::error) = {

@@ -6,15 +6,21 @@ use strconv;
 use strings;
 use time;
 
-type failure = !void;
-
 // A parsing error occurred. This shall contain a byteindex of and rune from the
-// layout at the position where the parsing failure occured.
+// layout at the position where the parsing error occured.
 export type parsefail = !(size, rune);
 
-// Parses a datetime string into a [[virtual]] date, according to a layout
-// format string with specifiers as documented under [[format]]. Partial,
-// sequential, aggregative parsing is possible.
+// TODO: improve parsefail
+
+type parsed = !(parsed_err | parsed_done);
+
+type parsed_err = !void;
+
+type parsed_done = !void;
+
+// Parses date information from a string into a [[virtual]] date, according to a
+// layout with specifiers as documented under [[format]]. Partial, sequential,
+// aggregative parsing is possible.
 //
 // 	date::parse(&v, "%Y-%m-%d",    "2019-12-27");
 // 	date::parse(&v, "%H:%M:%S.%N", "22:07:08.000000000");
@@ -36,12 +42,12 @@ export fn parse(v: *virtual, layout: str, s: str) (void | parsefail) = {
 		if (!escaped) {
 			const sr = match (strings::next(&siter)) {
 			case done =>
-				return (liter.dec.offs, lr);
+				return (liter.dec.offs, lr): parsefail;
 			case let sr: rune =>
 				yield sr;
 			};
 			if (sr != lr) {
-				return (liter.dec.offs, lr);
+				return (liter.dec.offs, lr): parsefail;
 			};
 			continue;
 		};
@@ -49,9 +55,10 @@ export fn parse(v: *virtual, layout: str, s: str) (void | parsefail) = {
 		escaped = false;
 
 		match (parse_specifier(v, &siter, lr)) {
-		case void => void;
-		case failure =>
-			return (liter.dec.offs, lr);
+		case parsed_done =>
+			void;
+		case parsed_err =>
+			return (liter.dec.offs, lr): parsefail;
 		};
 	};
 
@@ -60,200 +67,238 @@ export fn parse(v: *virtual, layout: str, s: str) (void | parsefail) = {
 
 fn parse_specifier(
 	v: *virtual,
-	iter: *strings::iterator,
+	t: *strings::iterator,
 	lr: rune,
-) (void | failure) = {
+) parsed = {
 	switch (lr) {
 	case 'a' =>
-		v.weekday = scan_for(iter, WEEKDAYS_SHORT...)?;
+		v.weekday = scan_for(t, WEEKDAYS_SHORT...)?;
 	case 'A' =>
-		v.weekday = scan_for(iter, WEEKDAYS...)?;
+		v.weekday = scan_for(t, WEEKDAYS...)?;
 	case 'b' =>
-		v.month = scan_for(iter, MONTHS_SHORT...)? + 1;
+		v.month = scan_for(t, MONTHS_SHORT...)? + 1;
 	case 'B' =>
-		v.month = scan_for(iter, MONTHS...)? + 1;
+		v.month = scan_for(t, MONTHS...)? + 1;
 	case 'C' =>
-		v.century = scan_int(iter, 2)?;
+		v.century = scan_int(t, 2)?;
 	case 'd', 'e' =>
-		v.day = scan_int(iter, 2)?;
+		v.day = scan_int(t, 2)?;
 	case 'F' =>
-		v.year = scan_int(iter, 4)?;
-		eat_rune(iter, '-')?;
-		v.month = scan_int(iter, 2)?;
-		eat_rune(iter, '-')?;
-		v.day = scan_int(iter, 2)?;
+		v.year = scan_int(t, 4)?;
+		scan_rune(t, '-', parsed_err)?;
+		v.month = scan_int(t, 2)?;
+		scan_rune(t, '-', parsed_err)?;
+		v.day = scan_int(t, 2)?;
 	case 'G' =>
-		v.isoweekyear = scan_int(iter, 4)?;
+		v.isoweekyear = scan_int(t, 4)?;
 	case 'H' =>
-		v.hour = scan_int(iter, 2)?;
+		v.hour = scan_int(t, 2)?;
 	case 'I' =>
-		v.hour12 = scan_int(iter, 2)?;
+		v.hour12 = scan_int(t, 2)?;
 	case 'j' =>
-		v.yearday = scan_int(iter, 3)?;
+		v.yearday = scan_int(t, 3)?;
 	case 'L' =>
-		v.locname = scan_str(iter)?;
+		v.locname = scan_name(t)?;
 	case 'm' =>
-		v.month = scan_int(iter, 2)?;
+		v.month = scan_int(t, 2)?;
 	case 'M' =>
-		v.minute = scan_int(iter, 2)?;
+		v.minute = scan_int(t, 2)?;
 	case 'N' =>
-		let nsec = scan_decimal(iter, 9)?;
+		let nsec = scan_decimal(t, 9)?;
 		v.nanosecond = nsec: int;
 		v.vnsec = nsec;
 	case 'p' => // AM=false PM=true
-		v.ampm = scan_for(iter, "AM", "PM", "am", "pm")? % 2 == 1;
+		v.ampm = scan_for(t, "AM", "PM", "am", "pm")? % 2 == 1;
 	case 's' =>
-		v.vsec = scan_num(iter, 20)?;
+		v.vsec = scan_num(t, 1, 20, parsed_err)?;
 	case 'S' =>
-		v.second = scan_int(iter, 2)?;
+		v.second = scan_int(t, 2)?;
 	case 'T' =>
-		v.hour = scan_int(iter, 2)?;
-		eat_rune(iter, ':')?;
-		v.minute = scan_int(iter, 2)?;
-		eat_rune(iter, ':')?;
-		v.second = scan_int(iter, 2)?;
+		v.hour = scan_int(t, 2)?;
+		scan_rune(t, ':', parsed_err)?;
+		v.minute = scan_int(t, 2)?;
+		scan_rune(t, ':', parsed_err)?;
+		v.second = scan_int(t, 2)?;
 	case 'u' =>
-		v.weekday = scan_int(iter, 1)? - 1;
+		v.weekday = scan_int(t, 1)? - 1;
 	case 'U' =>
-		v.week = scan_int(iter, 2)?;
+		v.week = scan_int(t, 2)?;
 	case 'V' =>
-		v.isoweek = scan_int(iter, 2)?;
+		v.isoweek = scan_int(t, 2)?;
 	case 'w' =>
-		v.weekday = scan_int(iter, 1)? - 1;
+		v.weekday = scan_int(t, 1)? - 1;
 	case 'W' =>
-		v.week = scan_int(iter, 2)?;
+		v.week = scan_int(t, 2)?;
 	case 'y' =>
-		v.year100 = scan_int(iter, 2)?;
+		v.year100 = scan_int(t, 2)?;
 	case 'Y' =>
-		v.year = scan_int(iter, 4)?;
+		v.year = scan_int(t, 4)?;
 	case 'z' =>
-		v.zoff = scan_zo(iter)?;
+		v.zoff = scan_zoff(t)?;
 	case 'Z' =>
-		v.zabbr = scan_str(iter)?;
+		v.zabbr = scan_name(t)?;
 	case '%' =>
-		eat_rune(iter, '%')?;
+		scan_rune(t, '%', parsed_err)?;
 	case =>
-		return failure;
+		return parsed_err;
 	};
+
+	return parsed_done;
 };
 
-fn eat_rune(iter: *strings::iterator, needle: rune) (uint | failure) = {
-	const rn = match (strings::next(iter)) {
+// Scans one rune.
+// If [want] is void, any rune is accepted.
+// If [want] is rune, rune must match [want], or [[parsed_err]] is returned.
+// If iterator returns done, [default] is returned.
+fn scan_rune(
+	iter: *strings::iterator,
+	want: (void | rune),
+	default: (rune | parsed),
+) (rune | parsed) = {
+	match (strings::next(iter)) {
 	case done =>
-		return failure;
-	case let rn: rune =>
-		yield rn;
-	};
-	if (rn == needle) {
-		return 1;
-	} else {
-		strings::prev(iter);
-		return 0;
-	};
-};
-
-// Scans the iterator for a given list of strings.
-// Returns the list index of the matched string.
-fn scan_for(iter: *strings::iterator, list: str...) (int | failure) = {
-	const name = strings::iterstr(iter);
-	if (len(name) == 0) {
-		return failure;
-	};
-	for(let i = 0z; i < len(list); i += 1) {
-		if (strings::hasprefix(name, list[i])) {
-			// Consume name
-			for (let j = 0z; j < len(list[i]); j += 1) {
-				strings::next(iter);
-			};
-			return i: int;
-		};
-	};
-	return failure;
-};
-
-// Scans the iterator for consecutive numeric digits.
-// Left-padded whitespace and zeros are permitted.
-// Returns the resulting int.
-fn scan_int(iter: *strings::iterator, maxrunes: size) (int | failure) = {
-	let start = *iter;
-	let startfixed = false;
-	for (let i = 0z; i < maxrunes; i += 1) {
-		let rn: rune = match (strings::next(iter)) {
-		case done =>
-			break;
-		case let rn: rune =>
-			yield rn;
-		};
-		if (!ascii::isdigit(rn) && rn != ' ') {
-			return failure;
-		};
-		if (!startfixed) {
-			if (ascii::isdigit(rn)) {
-				startfixed = true;
+		return default;
+	case let r: rune =>
+		match (want) {
+		case void =>
+			return r;
+		case let w: rune =>
+			if (r == w) {
+				return r;
 			} else {
-				strings::next(&start);
+				return parsed_err;
 			};
 		};
 	};
-	match (strconv::stoi(strings::slice(&start, iter))) {
-	case let num: int =>
-		return num;
-	case =>
-		return failure;
-	};
 };
 
-// Scans the iterator for consecutive numeric digits.
-// Left-padded whitespace and zeros are permitted.
-// Returns the resulting i64.
-fn scan_num(iter: *strings::iterator, maxrunes: size) (i64 | failure) = {
-	let start = *iter;
-	for (let i = 0z; i < maxrunes; i += 1) {
-		match (strings::next(iter)) {
+// Scans a number, upto [maxwidth] digits.
+// Number must be at least [minwidth] digits, or returns [[parsed_err]].
+// If a non-digit is encountered, returns [[parsed_err]].
+// If first rune scanned is a non-digit, returns [default].
+// If iterator immediately returns done, returns [default].
+fn scan_num(
+	t: *strings::iterator,
+	minwidth: size,
+	maxwidth: size,
+	default: (i64 | parsed),
+) (i64 | parsed) = {
+	let start = *t;
+
+	for (let i = 0z; i < maxwidth; i += 1) {
+		match (strings::next(t)) {
 		case done =>
-			return failure;
-		case let rn: rune =>
-			if (!ascii::isdigit(rn)) {
-				strings::prev(iter);
+			if (i == 0z) {
+				strings::prev(t);
+				return default;
+			};
+			if (i < minwidth) return parsed_err;
+			break;
+		case let r: rune =>
+			if (!ascii::isdigit(r)) {
+				if (i < minwidth) {
+					*t = start;
+					return parsed_err;
+				};
+				strings::prev(t);
 				break;
 			};
+			continue;
 		};
 	};
 
-	match (strconv::stoi64(strings::slice(&start, iter))) {
-	case let num: i64 =>
-		return num;
-	case =>
-		return failure;
+	return strconv::stoi64(strings::slice(&start, t))!;
+};
+
+// Scans a number, left-padded with ' ' or '0'. [width] runes are scanned.
+// Digits must be consecutive, or returns [[parsed_err]].
+// The last rune must be a digit, or returns [[parsed_err]].
+// If an invalid rune is encountered, returns [[parsed_err]].
+// If first rune is invalid, returns [default].
+// If iterator immediately returns done, returns [default].
+fn scan_numpad(
+	t: *strings::iterator,
+	width: size,
+	default: (i64 | parsed),
+) (i64 | parsed) = {
+	for (let i = 0z; i < width; i += 1) {
+		match (strings::next(t)) {
+		case done =>
+			if (i == 0) {
+				strings::prev(t);
+				return default;
+			};
+			return parsed_err;
+		case let r: rune =>
+			switch (r) {
+			case =>
+				if (i == 0) {
+					strings::prev(t);
+					return default;
+				};
+				return parsed_err;
+			case ' ' =>
+				continue;
+			case '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' =>
+				strings::prev(t);
+				width = width - i;
+				return scan_num(t, width, width, parsed_err);
+			};
+		};
+	};
+
+	return parsed_err;
+};
+
+// Scans a left-padded number. Returns an int. See [[scan_numpad]].
+// If first rune is invalid, returns [[parsed_err]].
+fn scan_int(t: *strings::iterator, width: size) (int | parsed_err) = {
+	match (scan_numpad(t, width, parsed_err)) {
+	case let n: i64 =>
+		return n: int;
+	case parsed_err =>
+		return parsed_err;
+	case parsed_done =>
+		return abort();
 	};
 };
 
-// Scans the iterator for consecutive numeric digits.
-// Left-padded whitespace and zeros are NOT permitted.
-// The resulting decimal is right-padded with zeros.
-fn scan_decimal(iter: *strings::iterator, maxrunes: size) (i64 | failure) = {
-	let start = *iter;
-	for (let i = 0z; i < maxrunes; i += 1) {
-		let rn: rune = match (strings::next(iter)) {
+// Scans a number as a subunit decimal.
+// Scans upto [maxwidth] digits.
+// The scanned decimal is right-padded with zeros to reach [maxwidth].
+//
+// For example, the string
+// 	"Foo 42.125 Bar"
+// can have its substring
+// 	"125"
+// interpreted with [maxwidth]=6 as
+// 	"125000"
+// and scanned as value
+// 	125000
+//
+fn scan_decimal(t: *strings::iterator, maxwidth: size) (i64 | parsed_err) = {
+	let start = *t;
+	for (let i = 0z; i < maxwidth; i += 1) {
+		let rn: rune = match (strings::next(t)) {
 		case done =>
 			break;
 		case let rn: rune =>
 			yield rn;
 		};
 		if (!ascii::isdigit(rn)) {
-			strings::prev(iter);
+			strings::prev(t);
 			break;
 		};
 	};
-	const s = strings::slice(&start, iter);
+	const s = strings::slice(&start, t);
 	match (strconv::stoi64(s)) {
 	case let num: i64 =>
-		for (let i = 0z; i < maxrunes - len(s); i += 1) {
+		for (let i = 0z; i < maxwidth - len(s); i += 1) {
 			num *= 10;
 		};
 		return num;
 	case =>
-		return failure;
+		return parsed_err;
 	};
 };
 
@@ -266,10 +311,10 @@ fn scan_decimal(iter: *strings::iterator, maxrunes: size) (i64 | failure) = {
 // 	-nn:nn
 // 	-nnnn
 //
-fn scan_zo(iter: *strings::iterator) (time::duration | failure) = {
-	const first = match (strings::next(iter)) {
+fn scan_zoff(t: *strings::iterator) (time::duration | parsed_err) = {
+	const first = match (strings::next(t)) {
 	case done =>
-		return failure;
+		return parsed_err;
 	case let first: rune =>
 		yield first;
 	};
@@ -277,18 +322,18 @@ fn scan_zo(iter: *strings::iterator) (time::duration | failure) = {
 		return 0;
 	};
 
-	let zo = scan_int(iter, 2)? * time::HOUR;
+	let zo = scan_int(t, 2)? * time::HOUR;
 
-	match (strings::next(iter)) {
+	match (strings::next(t)) {
 	case done =>
-		return failure;
+		return parsed_err;
 	case let sep: rune =>
 		if (sep != ':') {
-			strings::prev(iter);
+			strings::prev(t);
 		};
 	};
 
-	zo += scan_int(iter, 2)? * time::MINUTE;
+	zo += scan_int(t, 2)? * time::MINUTE;
 
 	if (first == '-') {
 		zo *= -1;
@@ -298,15 +343,34 @@ fn scan_zo(iter: *strings::iterator) (time::duration | failure) = {
 };
 
 // Scans and parses locality names, made of printable characters.
-fn scan_str(iter: *strings::iterator) (str | failure) = {
-	let start = *iter;
-	for (let rn => strings::next(iter)) {
+fn scan_name(t: *strings::iterator) (str | parsed_err) = {
+	let start = *t;
+	for (let rn => strings::next(t)) {
 		if (!ascii::isgraph(rn)) {
-			strings::prev(iter);
+			strings::prev(t);
 			break;
 		};
 	};
-	return strings::slice(&start, iter);
+	return strings::slice(&start, t);
+};
+
+// Scans the iterator for a given list of strings.
+// Returns the list index of the matched string.
+fn scan_for(iter: *strings::iterator, list: str...) (int | parsed_err) = {
+	const name = strings::iterstr(iter);
+	if (len(name) == 0) {
+		return parsed_err;
+	};
+	for(let i = 0z; i < len(list); i += 1) {
+		if (strings::hasprefix(name, list[i])) {
+			// Consume name
+			for (let j = 0z; j < len(list[i]); j += 1) {
+				strings::next(iter);
+			};
+			return i: int;
+		};
+	};
+	return parsed_err;
 };
 
 @test fn parse() void = {

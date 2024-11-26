@@ -7,12 +7,13 @@ export fn zone(d: *date) zonephase = {
 	case let z: *zonephase =>
 		return *z;
 	case null =>
-		let lookup = if (d.loc.lookupzone != null) {
-			yield d.loc.lookupzone as *zonelookuper;
-		} else {
+		let lookup = match (d.loc.lookupzone) {
+		case let l: *zonelookuper =>
+			yield l;
+		case null =>
 			yield &lookupzone: *zonelookuper;
 		};
-		const z = lookup(d.loc, to_instant(*d));
+		const z = lookup(d.loc, d);
 		d.zonephase = z;
 		return *z;
 	};

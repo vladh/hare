@@ -92,13 +92,6 @@ def MONTHS_SHORT: [_]str = [
 	"Oct", "Nov", "Dec",
 ];
 
-// TODO: Make format() accept parameters of type (date | period), using the
-// "intervals" standard representation provided by ISO 8601?
-//
-// See https://en.wikipedia.org/wiki/ISO_8601#Time_intervals
-//
-// Ticket: https://todo.sr.ht/~sircmpwn/hare/650
-
 // Formats a [[date]] and writes it into a caller supplied buffer.
 // The returned string is borrowed from this buffer.
 export fn bsformat(

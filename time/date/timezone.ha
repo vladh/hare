@@ -42,13 +42,11 @@ export type timezone = struct {
 
 	lookupzone: nullable *zonelookuper,
 
-//	extendtransitions: nullable *fn(*timezone) size,
-
-	// A timezone specifier in the POSIX "expanded" TZ format.
+	// A timezone specifier in the POSIX "extend" TZ format.
 	// See https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html
 	//
 	// Used for extending calculations beyond the last known transition.
-	posix_extend: str,
+	petz: petz,
 };
 
 // A [[timezone]] state, with an offset for calculating localized date/time.
@@ -72,7 +70,7 @@ export type zonetransition = struct {
 	zoneindex: size,
 };
 
-export type zonelookuper = fn(locality, time::instant) *zonephase;
+export type zonelookuper = fn(locality, *date) *zonephase;
 
 // Frees a [[timezone]]. A [[locality]] argument can be passed.
 export fn timezone_free(tz: *timezone) void = {
@@ -82,7 +80,7 @@ export fn timezone_free(tz: *timezone) void = {
 	};
 	free(tz.phases);
 	free(tz.transitions);
-	free(tz.posix_extend);
+	petz_finish(&tz.petz);
 	free(tz);
 };
 
@@ -93,8 +91,7 @@ export fn zone_finish(z: *zonephase) void = {
 };
 
 // Finds and returns a [[moment]]'s currently observed [[zonephase]].
-fn lookupzone(loc: locality, inst: time::instant) *zonephase = {
-	// TODO: https://todo.sr.ht/~sircmpwn/hare/643
+fn lookupzone(loc: locality, d: *date) *zonephase = {
 	if (len(loc.phases) == 0) {
 		abort("time::chrono: Timezone has no zonephases");
 	};
@@ -103,27 +100,26 @@ fn lookupzone(loc: locality, inst: time::instant) *zonephase = {
 		return &loc.phases[0];
 	};
 
+	let t = to_instant(*d);
 	let trs = loc.transitions[..];
 
-	if (len(trs) == 0 || time::compare(inst, trs[0].when) == -1) {
+	if (len(trs) == 0 || time::compare(t, trs[0].when) == -1) {
 		// tzfile(5) suggests we use "time type 0" for instants before
 		// the first transition.
 		return &loc.phases[0];
 	};
 
-	// index of transition which inst is equal to or greater than.
+	// index of transition which t is equal to or greater than.
 	const idx = -1 + sort::rbisect(
-		trs, size(zonetransition), &inst, &cmpinstants,
+		trs, size(zonetransition), &t, &cmpinstants,
 	);
 
-	const z = &loc.phases[trs[idx].zoneindex];
+	let z = &loc.phases[trs[idx].zoneindex];
 
-	// if we've reached the end of the locality's transitions, try its
-	// posix_extend string
-	//
-	// TODO: Unfinished; complete.
-	if (idx == len(trs) - 1 && loc.posix_extend != "") {
-		void;
+	// if we've reached the end of the locality's transitions,
+	// try its POSIX "extend" TZ string.
+	if (idx == len(trs) - 1) {
+		z = lookupzone_posix(loc, d);
 	};
 
 	return z;
@@ -155,7 +151,7 @@ export fn fixedzone(tsc: *chrono::timescale, daylen: time::duration, z: zonephas
 		phases = alloc([z])!,
 		transitions = [],
 		lookupzone = null,
-		posix_extend = "",
+		petz = PETZ_EMPTY,
 	};
 };
 
@@ -232,7 +228,7 @@ const TZ_UTC: timezone = timezone {
 	],
 	transitions = [],
 	lookupzone = null,
-	posix_extend = "",
+	petz = PETZ_EMPTY,
 };
 
 // The TAI (International Atomic Time) "Zulu" [[timezone]] as a [[locality]].
@@ -252,7 +248,7 @@ const TZ_TAI: timezone = timezone {
 	],
 	transitions = [],
 	lookupzone = null,
-	posix_extend = "",
+	petz = PETZ_EMPTY,
 };
 
 // The GPS (Global Positioning System) "Zulu" [[timezone]] as a [[locality]].
@@ -272,7 +268,7 @@ const TZ_GPS: timezone = timezone {
 	],
 	transitions = [],
 	lookupzone = null,
-	posix_extend = "",
+	petz = PETZ_EMPTY,
 };
 
 // The TT (Terrestrial Time) "Zulu" [[timezone]] as a [[locality]].
@@ -292,7 +288,7 @@ const TZ_TT: timezone = timezone {
 	],
 	transitions = [],
 	lookupzone = null,
-	posix_extend = "",
+	petz = PETZ_EMPTY,
 };
 
 // The MTC (Coordinated Mars Time) "Zulu" [[timezone]] as a [[locality]].
@@ -312,5 +308,5 @@ const TZ_MTC: timezone = timezone {
 	],
 	transitions = [],
 	lookupzone = null,
-	posix_extend = "",
+	petz = PETZ_EMPTY,
 };
