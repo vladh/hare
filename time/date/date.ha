@@ -24,35 +24,43 @@ export type invalid = !chrono::invalid;
 // date, which waives guarantees of validity.
 export type date = struct {
 	chrono::moment,
-
 	// The [[locality]] with which to interpret this moment.
 	loc: locality,
-
 	// The observed [[zone]].
 	zone: nullable *zone,
-
-	// The observed daydate (scalar day number)
+	// The observed [[daydate]] (scalar day number)
 	// since an abitrary epoch (e.g. the Unix epoch 1970-01-01).
 	daydate: (void | i64),
-
-	// The observed time-of-day (amount of daytime progressed in a day)
-	// as nanoseconds.
+	// The observed [[daytime]] (amount of daytime progressed in a day),
+	// comparable with [[time::duration]].
 	daytime: (void | i64),
-
+	// The observed [[era]].
 	era:         (void | int),
+	// The observed [[year]].
 	year:        (void | int),
+	// The observed [[month]].
 	month:       (void | int),
+	// The observed [[day]].
 	day:         (void | int),
+	// The observed [[yearday]].
 	yearday:     (void | int),
+	// The observed [[isoweekyear]].
 	isoweekyear: (void | int),
+	// The observed [[isoweek]].
 	isoweek:     (void | int),
+	// The observed [[week]].
 	week:        (void | int),
+	// The observed [[sundayweek]].
 	sundayweek:  (void | int),
+	// The observed [[weekday]].
 	weekday:     (void | int),
-
+	// The observed [[hour]].
 	hour:        (void | int),
+	// The observed [[minute]].
 	minute:      (void | int),
+	// The observed [[second]].
 	second:      (void | int),
+	// The observed [[nanosecond]].
 	nanosecond:  (void | int),
 };
 
