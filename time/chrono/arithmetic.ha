@@ -27,7 +27,7 @@ export fn coincident(a: *moment, b: *moment) bool = {
 //
 // See [[coincident]] to determine if two [[moment]]s are equal with respect to
 // both time and locality.
-export fn simultaneous(a: *moment, b: *moment) (bool | discontinuity) = {
+export fn simultaneous(a: *moment, b: *moment) (bool | tscmismatch) = {
 	return 0 == compare(a, b)?;
 };
 
@@ -41,9 +41,9 @@ export fn simultaneous(a: *moment, b: *moment) (bool | discontinuity) = {
 // converted to [[tai]] instants first. Any [[discontinuity]] occurence will be
 // returned. If a discontinuity against TAI amongst the two timescales exist,
 // consider converting such instants manually.
-export fn compare(a: *moment, b: *moment) (i8 | discontinuity) = {
-	const (ia, ib) = convertpair(a, b)?;
-	return time::compare(ia, ib);
+export fn compare(a: *moment, b: *moment) (i8 | tscmismatch) = {
+	check_timescales(a.tsc, b.tsc)?;
+	return time::compare(to_instant(*a), to_instant(*b));
 };
 
 // Returns the [[time::duration]] between two [[moment]]s, from a to b.
@@ -55,38 +55,12 @@ export fn compare(a: *moment, b: *moment) (i8 | discontinuity) = {
 // converted to [[tai]] instants first. Any [[discontinuity]] occurence will be
 // returned. If a discontinuity against TAI amongst the two timescales exist,
 // consider converting such instants manually.
-export fn diff(a: *moment, b: *moment) (time::duration | discontinuity) = {
-	const (ia, ib) = convertpair(a, b)?;
-	return time::diff(ia, ib);
+export fn diff(a: *moment, b: *moment) (time::duration | tscmismatch) = {
+	check_timescales(a.tsc, b.tsc)?;
+	return time::diff(to_instant(*a), to_instant(*b));
 };
 
 // Adds a [[time::duration]] to a [[moment]] with [[time::add]].
 export fn add(m: *moment, x: time::duration) moment = {
 	return new(m.tsc, time::add(to_instant(*m), x));
-};
-
-fn convertpair(
-	a: *moment,
-	b: *moment,
-) ((time::instant, time::instant) | discontinuity) = {
-	let ia = *(a: *time::instant);
-	let ib = *(b: *time::instant);
-
-	if (a.tsc != b.tsc) {
-		let ms = convert(*a, &tai);
-		if (len(ms) == 1) {
-			ia = *(&ms[0]: *time::instant);
-		} else {
-			return discontinuity;
-		};
-
-		let ms = convert(*b, &tai);
-		if (len(ms) == 1) {
-			ib = *(&ms[0]: *time::instant);
-		} else {
-			return discontinuity;
-		};
-	};
-
-	return (ia, ib);
 };

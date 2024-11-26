@@ -6,18 +6,20 @@ use fs;
 use io;
 
 // All possible errors returned from this module.
-export type error = !(
-	invalid
-	| discontinuity
-);
+export type error = !(invalid | tscmismatch);
 
 // Converts an [[error]] into a human-friendly string. The result may be
 // statically allocated.
-export fn strerror(err: error) const str = {
-	match (err) {
+export fn strerror(e: error) const str = {
+	static let buf: [92]u8 = [0...];
+	match (e) {
 	case invalid =>
 		return "Invalid moment";
-	case discontinuity =>
-		return "A timescale discontinuity caused a misconversion";
+	case let e: tscmismatch =>
+		return fmt::bsprintf(buf,
+			"Timescale mismatch: {}, {}",
+			e.0.abbr,
+			e.1.abbr,
+		);
 	};
 };

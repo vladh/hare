@@ -16,9 +16,11 @@ export type tsconverter = fn(ts: *timescale, i: time::instant) ([]time::instant 
 // Timescale mismatch.
 export type tscmismatch = !(*timescale, *timescale);
 
-// A discontinuity between two [[timescale]]s caused a one-to-one
-// [[time::instant]] conversion to fail.
-export type discontinuity = !void;
+fn check_timescales(a: *timescale, b: *timescale) (void | tscmismatch) = {
+	if (a != b) {
+		return (a, b): tscmismatch;
+	};
+};
 
 // Converts a [[time::instant]] from one [[timescale]] to the next exhaustively.
 // The final conversion result is returned. For each active pair of timescales,

@@ -67,10 +67,6 @@ export fn strerror(err: error) const str = {
 			return "Timezone database error: Invalid TZif data";
 		};
 	case let err: chrono::tscmismatch =>
-		return fmt::bsprintf(buf,
-			"Timescale mismatch: {}, {}",
-			err.0.abbr,
-			err.1.abbr,
-		);
+		return chrono::strerror(err);
 	};
 };
