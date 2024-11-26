@@ -117,8 +117,9 @@ fn lookupzone(loc: locality, inst: time::instant) *zone = {
 	let trs = loc.transitions[..];
 
 	if (len(trs) == 0 || time::compare(inst, trs[0].when) == -1) {
-		// TODO: special case
-		abort("lookupzone(): time is before known transitions");
+		// tzfile(5) suggests we use "time type 0" for instants before
+		// the first transition.
+		return &loc.zones[0];
 	};
 
 	// index of transition which inst is equal to or greater than.
