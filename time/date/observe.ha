@@ -1,6 +1,54 @@
 // SPDX-License-Identifier: MPL-2.0
 // (c) Hare authors <https://harelang.org>
 
+// Observes a [[date]]'s [[zone]].
+export fn ozone(d: *date) zone = {
+	match (d.zone) {
+	case let z: *zone =>
+		return *z;
+	case null =>
+		const z = lookupzone(d.loc, to_instant(*d));
+		d.zone = z;
+		return *z;
+	};
+};
+
+// Observes a [[date]]'s observed daydate (day number since epoch).
+//
+// For dates with [[locality]]s based on the [[utc]], [[tai]], [[gps]], and
+// similar timescales, their epoch date should be interpreted as the Unix epoch
+// (1970 Janurary 1st). Other timescales may suggest their own interpretations
+// applicable to other chronologies.
+export fn daydate(d: *date) i64 = {
+	match (d.daydate) {
+	case let dd: i64 =>
+		return dd;
+	case void =>
+		const (dd, dt) = calc_datetime(
+			d.loc, to_instant(*d), ozone(d).zoff,
+		);
+		d.daytime = dt;
+		d.daydate = dd;
+		return dd;
+	};
+};
+
+// Observes a [[date]]'s observed time-of-day (amount of daytime progressed in
+// a day) as nanoseconds.
+export fn daytime(d: *date) i64 = {
+	match (d.daytime) {
+	case let dt: i64 =>
+		return dt;
+	case void =>
+		const (dd, dt) = calc_datetime(
+			d.loc, to_instant(*d), ozone(d).zoff,
+		);
+		d.daytime = dt;
+		d.daydate = dd;
+		return dt;
+	};
+};
+
 // These functions are renamed to avoid namespace conflicts, like in the
 // parameters of the [[new]] function.
 

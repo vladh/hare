@@ -257,6 +257,17 @@ export fn from_instant(loc: locality, i: time::instant) date = {
 	return from_moment(loc, chrono::new(loc.tsc, i))!;
 };
 
+// Creates a [[date]] from a given [[locality]], zone offset, daydate, and
+// time-of-day.
+export fn from_datetime(
+	loc: locality,
+	zo: time::duration,
+	dd: i64,
+	dt: i64,
+) date = {
+	return from_instant(loc, calc_instant(loc.daylength, zo, dd, dt));
+};
+
 // Creates a [[date]] from a string, parsed according to a layout format.
 // See [[parse]] and [[format]]. Example:
 //
@@ -301,6 +312,39 @@ export fn to_moment(d: date) chrono::moment = *(&d: *chrono::moment);
 
 // Extracts the [[time::instant]] of the given [[date]].
 export fn to_instant(d: date) time::instant = *(&d: *time::instant);
+
+// Calculates the observed daydate and time-of-day of a [[time::instant]] in a
+// [[locality]] at a particular zone offset.
+fn calc_datetime(
+	loc: locality,
+	inst: time::instant,
+	zoff: time::duration,
+) (i64, time::duration) = {
+	const i = time::add(inst, zoff);
+	const day = loc.daylength;
+	const daysec = day / time::SECOND;
+	const dd = if (i.sec >= 0) i.sec / daysec else (i.sec + 1) / daysec - 1;
+	const dt = ((i.sec % daysec + daysec) * time::SECOND + i.nsec) % day;
+	return (dd, dt);
+};
+
+fn calc_instant(
+	day: time::duration, // length of a day
+	zo: time::duration,  // zone offset
+	dd: i64,             // date since epoch
+	dt: i64,             // time since start of day (ns)
+) time::instant = {
+	const daysec = (day / time::SECOND): i64;
+	const dayrem = day % time::SECOND;
+	let i = time::instant {
+		sec = dd * daysec,
+		nsec = 0,
+	};
+	i = time::add(i, dd * dayrem);
+	i = time::add(i, dt);
+	i = time::add(i, -zo);
+	return i;
+};
 
 @test fn from_str() void = {
 	let testcases: [_](str, str, []locality, (date | error)) = [
