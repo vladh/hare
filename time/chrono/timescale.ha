@@ -135,7 +135,7 @@ fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 		};
 
 		const firstleap = utc_leapsecs[0]; // TODO: no leapsecs loaded
-		if (time::compare(i, time::from_unix(firstleap.0)) < 0) {
+		if (time::compare(i, time::new(firstleap.0)) < 0) {
 			append(ret, time::instant {
 				sec = i.sec + firstleap.1,
 				nsec = i.nsec,
@@ -145,7 +145,7 @@ fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 
 		for (let idx = len(utc_leapsecs) - 1; idx >= 0 ; idx -= 1) {
 			const leap = utc_leapsecs[idx];
-			const leapsecond = time::from_unix(leap.0);
+			const leapsecond = time::new(leap.0);
 			const leapoffset = leap.1;
 			const diff = time::diff(leapsecond, i);
 
@@ -222,7 +222,7 @@ fn utc_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 		};
 
 		const firstleap = utc_leapsecs[0]; // TODO: no leapsecs loaded
-		if (time::compare(i, time::from_unix(firstleap.0 + firstleap.1)) < 0) {
+		if (time::compare(i, time::new(firstleap.0 + firstleap.1)) < 0) {
 			append(ret, time::instant {
 				sec = i.sec - firstleap.1,
 				nsec = i.nsec,
@@ -232,7 +232,7 @@ fn utc_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 
 		for (let idx = len(utc_leapsecs) - 1; idx >= 0 ; idx -= 1) {
 			const leap = utc_leapsecs[idx];
-			const leapsecond = time::from_unix(leap.0 + leap.1);
+			const leapsecond = time::new(leap.0 + leap.1);
 			const leapoffset = leap.1;
 			const diff = time::diff(leapsecond, i);
 
