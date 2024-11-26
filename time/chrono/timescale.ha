@@ -13,6 +13,9 @@ export type timescale = struct {
 
 export type tsconverter = fn(ts: *timescale, i: time::instant) ([]time::instant | void);
 
+// Timescale mismatch.
+export type tscmismatch = !(*timescale, *timescale);
+
 // A discontinuity between two [[timescale]]s caused a one-to-one
 // [[time::instant]] conversion to fail.
 export type discontinuity = !void;

@@ -239,18 +239,22 @@ export fn localnow() date = {
 };
 
 // Creates a [[date]] from a [[time::chrono::moment]].
-export fn from_moment(loc: locality, m: chrono::moment) date = {
+export fn from_moment(loc: locality, m: chrono::moment) (date | chrono::tscmismatch) = {
+	if (loc.tsc != m.tsc) {
+		return (loc.tsc, m.tsc): chrono::tscmismatch;
+	};
+
 	const d = init();
 	d.sec = m.sec;
 	d.nsec = m.nsec;
 	d.tsc = m.tsc;
-	d.loc = loc; // TODO: check if loc.timescale == m.tsc
+	d.loc = loc;
 	return d;
 };
 
 // Creates a [[date]] from a [[time::instant]] in a [[time::chrono::locality]].
 export fn from_instant(loc: locality, i: time::instant) date = {
-	return from_moment(loc, chrono::new(loc.tsc, i));
+	return from_moment(loc, chrono::new(loc.tsc, i))!;
 };
 
 // Creates a [[date]] from a string, parsed according to a layout format.

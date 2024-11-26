@@ -11,18 +11,9 @@ use time::chrono;
 // be attempted. Any [[discontinuity]] occurrence will be returned. If a
 // discontinuity against TAI amongst the two timescales exist, consider
 // converting such instants manually.
-export fn in(loc: locality, d: date) (date | chrono::discontinuity) = {
-	let i = *(&d: *time::instant);
-	if (d.loc.tsc != loc.tsc) {
-	//	match (chrono::convert(i, d.loc.tsc, loc.tsc)) {
-	//	case chrono::analytical =>
-	//		return chrono::discontinuity;
-	//	case let i: time::instant =>
-	//		return chrono::new(loc.tsc, i);
-	//	};
-		abort("tsc misatch"); // TODO
-	};
-	return from_moment(loc, chrono::new(loc.tsc, i));
+export fn in(loc: locality, d: date) (date | chrono::tscmismatch) = {
+	let m = *(&d: *chrono::moment);
+	return from_moment(loc, m);
 };
 
 // Observes a [[date]]'s observed [[zone]].

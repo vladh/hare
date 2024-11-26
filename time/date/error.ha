@@ -5,6 +5,7 @@ use fmt;
 use fs;
 use io;
 use strings;
+use time::chrono;
 
 // All possible errors returned from this module.
 export type error = !(
@@ -14,15 +15,15 @@ export type error = !(
 	| parsefail
 	| invalidtzif
 	| tzdberror
+	| chrono::tscmismatch
 );
-
 
 // Converts an [[error]] into a human-friendly string. The result may be
 // statically allocated.
 export fn strerror(err: error) const str = {
+	static let buf: [92]u8 = [0...];
 	match (err) {
 	case let lack: insufficient =>
-		static let buf: [92]u8 = [0...];
 		return strings::rtrim(fmt::bsprint(buf,
 			"Insufficient date information, could not calculate:",
 			if (lack & insufficient::LOCALITY: u8 == 0) "" else
@@ -65,5 +66,11 @@ export fn strerror(err: error) const str = {
 		case invalidtzif =>
 			return "Timezone database error: Invalid TZif data";
 		};
+	case let err: chrono::tscmismatch =>
+		return fmt::bsprintf(buf,
+			"Timescale mismatch: {}, {}",
+			err.0.abbr,
+			err.1.abbr,
+		);
 	};
 };
