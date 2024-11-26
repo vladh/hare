@@ -35,7 +35,7 @@ type utciniterror = !(fs::error | io::error | utf8::invalid);
 //
 // This number is hypothetical since timekeeping before atomic clocks was not
 // accurate enough to account for small changes in time.
-export def SECS_1900_1970: i64 = 2208988800;
+def SECONDS_1900_1970: i64 = 2208988800;
 
 // UTC/TAI leap second data; UTC timestamps and their offsets from TAI.
 // Sourced from [[UTC_LEAPSECS_PATH]].
@@ -71,7 +71,7 @@ fn parse_utc_leapsecs(h: io::handle) (void | utf8::invalid | io::error) = {
 			continue;
 		};
 
-		let secs = secs as i64 - SECS_1900_1970;
+		let secs = secs as i64 - SECONDS_1900_1970;
 		let diff = diff as i64;
 		append(utc_leapsecs, (secs, diff))!;
 	};
