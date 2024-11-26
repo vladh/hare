@@ -8,5 +8,5 @@ use time;
 //
 // See [[reckon]].
 export fn add(d: date, x: time::duration) date = {
-	return from_instant(d.loc, time::add(*(&d: *time::instant), x));
+	return from_instant(d.loc, time::add(to_instant(d), x));
 };
