@@ -4,10 +4,10 @@
 use time;
 use time::chrono;
 
-// The nominal units of the Gregorian chronology. Used for chronological
+// Nominal unitary periods of the Gregorian chronology. Used for chronological
 // arithmetic.
-export type unit = enum int {
-	ERA,
+export type step = enum int {
+	ERA, // TODO: reconsider ERA
 	YEAR,
 	MONTH,
 	WEEK,
@@ -91,32 +91,32 @@ export fn pdiff(a: date, b: date) period = {
 	return if (reverse) neg(p) else p;
 };
 
-// Calculates the nominal [[unit]] difference between two [[date]]s.
-export fn unitdiff(a: date, b: date, u: unit) i64 = {
+// Calculates the nominal [[step]] difference between two [[date]]s.
+export fn hop(a: date, b: date, u: step) i64 = {
 	switch (u) {
-	case unit::ERA =>
+	case step::ERA =>
 		return era(&b) - era(&a);
-	case unit::YEAR =>
+	case step::YEAR =>
 		return pdiff(a, b).years;
-	case unit::MONTH =>
+	case step::MONTH =>
 		const d = pdiff(a, b);
 		return d.years * 12 + d.months;
-	case unit::WEEK =>
-		return unitdiff(a, b, unit::DAY) / 7;
-	case unit::DAY =>
+	case step::WEEK =>
+		return hop(a, b, step::DAY) / 7;
+	case step::DAY =>
 		return daydate(&b) - daydate(&a);
-	case unit::HOUR =>
-		return unitdiff(a, b, unit::DAY) * 24 + pdiff(a, b).hours;
-	case unit::MINUTE =>
-		return unitdiff(a, b, unit::HOUR) * 60 + pdiff(a, b).minutes;
-	case unit::SECOND =>
-		return unitdiff(a, b, unit::MINUTE) * 60 + pdiff(a, b).seconds;
-	case unit::NANOSECOND =>
-		return unitdiff(a, b, unit::SECOND) * 1000000000 + pdiff(a, b).nanoseconds;
+	case step::HOUR =>
+		return hop(a, b, step::DAY) * 24 + pdiff(a, b).hours;
+	case step::MINUTE =>
+		return hop(a, b, step::HOUR) * 60 + pdiff(a, b).minutes;
+	case step::SECOND =>
+		return hop(a, b, step::MINUTE) * 60 + pdiff(a, b).seconds;
+	case step::NANOSECOND =>
+		return hop(a, b, step::SECOND) * 1000000000 + pdiff(a, b).nanoseconds;
 	};
 };
 
-// Truncates the given [[date]] at the provided nominal [[unit]].
+// Truncates the given [[date]] at the provided nominal [[step]].
 // The [[zflag]] parameter affects the final result. Example:
 //
 // 	// On this day in Sao Paulo, a +1 hour jump occurs at 00:00.
@@ -127,53 +127,53 @@ export fn unitdiff(a: date, b: date, u: unit) i64 = {
 // 		2000, 10,  8, 12)!
 // 	//
 // 	// 2000-10-08 01:00:00.000000000 -0200 -02 America/Sao_Paulo
-// 	let b = date::truncate(a, date::zflag::GAP_END, date::unit::DAY)!;
+// 	let b = date::truncate(a, date::zflag::GAP_END, date::step::DAY)!;
 //
-export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) = {
+export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) = {
 	switch (u) {
-	case unit::ERA =>
+	case step::ERA =>
 		return new(d.loc, zf,
 			1, 1, 1,
 			0, 0, 0, 0,
 		);
-	case unit::YEAR =>
+	case step::YEAR =>
 		return new(d.loc, zf,
 			_year(&d), 1, 1,
 			0, 0, 0, 0,
 		);
-	case unit::MONTH =>
+	case step::MONTH =>
 		return new(d.loc, zf,
 			_year(&d), _month(&d), 1,
 			0, 0, 0, 0,
 		);
-	case unit::WEEK =>
+	case step::WEEK =>
 		const dd = daydate(&d) - _weekday(&d);
 		const ymd = calc_ymd(dd);
 		return new(d.loc, zf,
 			ymd.0, ymd.1, ymd.2,
 			0, 0, 0, 0,
 		);
-	case unit::DAY =>
+	case step::DAY =>
 		return new(d.loc, zf,
 			_year(&d), _month(&d), _day(&d),
 			0, 0, 0, 0,
 		);
-	case unit::HOUR =>
+	case step::HOUR =>
 		return new(d.loc, zf,
 			_year(&d), _month(&d), _day(&d),
 			_hour(&d), 0, 0, 0,
 		);
-	case unit::MINUTE =>
+	case step::MINUTE =>
 		return new(d.loc, zf,
 			_year(&d), _month(&d), _day(&d),
 			_hour(&d), _minute(&d), 0, 0,
 		);
-	case unit::SECOND =>
+	case step::SECOND =>
 		return new(d.loc, zf,
 			_year(&d), _month(&d), _day(&d),
 			_hour(&d), _minute(&d), _second(&d), 0,
 		);
-	case unit::NANOSECOND =>
+	case step::NANOSECOND =>
 		return d;
 	};
 };
@@ -291,7 +291,7 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 	};
 };
 
-@test fn unitdiff() void = {
+@test fn hop() void = {
 	const cases = [
 		(
 			new(UTC, 0,  1994,  8, 27,  11, 20,  1,         2)!,
@@ -321,21 +321,21 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 		),
 	];
 	for (let (da, db, expected) .. cases) {
-		assert(unitdiff(da, db, unit::YEAR) == expected.0,
+		assert(hop(da, db, step::YEAR) == expected.0,
 			"invalid diff_in_years() result");
-		assert(unitdiff(da, db, unit::MONTH) == expected.1,
+		assert(hop(da, db, step::MONTH) == expected.1,
 			"invalid diff_in_months() result");
-		assert(unitdiff(da, db, unit::WEEK) == expected.2,
+		assert(hop(da, db, step::WEEK) == expected.2,
 			"invalid diff_in_weeks() result");
-		assert(unitdiff(da, db, unit::DAY) == expected.3,
+		assert(hop(da, db, step::DAY) == expected.3,
 			"invalid diff_in_days() result");
-		assert(unitdiff(da, db, unit::HOUR) == expected.4,
+		assert(hop(da, db, step::HOUR) == expected.4,
 			"invalid diff_in_hours() result");
-		assert(unitdiff(da, db, unit::MINUTE) == expected.5,
+		assert(hop(da, db, step::MINUTE) == expected.5,
 			"invalid diff_in_minutes() result");
-		assert(unitdiff(da, db, unit::SECOND) == expected.6,
+		assert(hop(da, db, step::SECOND) == expected.6,
 			"invalid diff_in_seconds() result");
-		assert(unitdiff(da, db, unit::NANOSECOND) == expected.7,
+		assert(hop(da, db, step::NANOSECOND) == expected.7,
 			"invalid diff_in_nanoseconds() result");
 	};
 };
@@ -344,47 +344,47 @@ export fn truncate(d: date, zf: zflag, u: unit) (date | invalid | zfunresolved) 
 	const d = new(UTC, 0, 1994, 8, 27, 11, 20, 1, 2)!;
 
 	assert(chrono::simultaneous(
-			&truncate(d, zflag::CONTIG, unit::ERA)!,
+			&truncate(d, zflag::CONTIG, step::ERA)!,
 			&new(UTC, 0, 1, 1, 1, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 01");
 
 	assert(chrono::simultaneous(
-			&truncate(d, zflag::CONTIG, unit::YEAR)!,
+			&truncate(d, zflag::CONTIG, step::YEAR)!,
 			&new(UTC, 0, 1994, 1, 1, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 02");
 
 	assert(chrono::simultaneous(
-			&truncate(d, zflag::CONTIG, unit::MONTH)!,
+			&truncate(d, zflag::CONTIG, step::MONTH)!,
 			&new(UTC, 0, 1994, 8, 1, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 03");
 
 	assert(chrono::simultaneous(
-			&truncate(d, zflag::CONTIG, unit::WEEK)!,
+			&truncate(d, zflag::CONTIG, step::WEEK)!,
 			&new(UTC, 0, 1994, 8, 22, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 04");
 
 	assert(chrono::simultaneous(
-			&truncate(d, zflag::CONTIG, unit::DAY)!,
+			&truncate(d, zflag::CONTIG, step::DAY)!,
 			&new(UTC, 0, 1994, 8, 27, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 05");
 
 	assert(chrono::simultaneous(
-			&truncate(d, zflag::CONTIG, unit::HOUR)!,
+			&truncate(d, zflag::CONTIG, step::HOUR)!,
 			&new(UTC, 0, 1994, 8, 27, 11, 0, 0, 0)!)!,
 		"invalid truncate() result 06");
 
 	assert(chrono::simultaneous(
-			&truncate(d, zflag::CONTIG, unit::MINUTE)!,
+			&truncate(d, zflag::CONTIG, step::MINUTE)!,
 			&new(UTC, 0, 1994, 8, 27, 11, 20, 0, 0)!)!,
 		"invalid truncate() result 07");
 
 	assert(chrono::simultaneous(
-			&truncate(d, zflag::CONTIG, unit::SECOND)!,
+			&truncate(d, zflag::CONTIG, step::SECOND)!,
 			&new(UTC, 0, 1994, 8, 27, 11, 20, 1, 0)!)!,
 		"invalid truncate() result 08");
 
 	assert(chrono::simultaneous(
-			&truncate(d, zflag::CONTIG, unit::NANOSECOND)!,
+			&truncate(d, zflag::CONTIG, step::NANOSECOND)!,
 			&d)!,
 		"invalid truncate() result 09");
 };
