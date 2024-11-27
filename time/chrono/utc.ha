@@ -41,21 +41,21 @@ def SECONDS_1900_1970: i64 = 2208988800;
 // Sourced from [[UTC_LEAPSECS_PATH]].
 let utc_leapsecs: [](i64, i64) = [];
 
-let utc_isinitialized: bool = false;
+export let utc_status: (bool | utciniterror) = false;
 
 @fini fn free_utc() void = {
 	free(utc_leapsecs);
 };
 
-fn init_utc_leapsecs() (void | utciniterror) = {
+fn utc_init_leapsecs() (void | utciniterror) = {
 	const file = os::open(UTC_LEAPSECS_PATH)?;
 	defer io::close(file)!;
-	parse_utc_leapsecs(file)?;
+	utc_parse_leapsecs(file)?;
 };
 
 // Parse UTC/TAI leap second data from [[UTC_LEAPSECS_PATH]].
 // See file for format details.
-fn parse_utc_leapsecs(h: io::handle) (void | utf8::invalid | io::error) = {
+fn utc_parse_leapsecs(h: io::handle) (void | utf8::invalid | io::error) = {
 	const scan = bufio::newscanner(h);
 	defer bufio::finish(&scan);
 

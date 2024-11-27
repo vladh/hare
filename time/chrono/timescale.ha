@@ -115,17 +115,23 @@ export const utc: timescale = timescale {
 };
 
 fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
+	let ret: []time::instant = [];
 	if (ts == &utc) {
-		return alloc([i]...)!;
+		append(ret, i)!;
+		return ret;
 	} else if (ts == &tai) {
-		let ret: []time::instant = [];
-		if (!utc_isinitialized) {
-			match (init_utc_leapsecs()) {
-			case void =>
-				utc_isinitialized = true;
-			case =>
-				abort("Failed to initialize UTC timescale");
+		match (utc_status) {
+		case let loaded: bool =>
+			if (!loaded) {
+				match (utc_init_leapsecs()) {
+				case void =>
+					utc_status = true;
+				case =>
+					abort("UTC timescale init error");
+				};
 			};
+		case utciniterror =>
+			abort("UTC timescale init error");
 		};
 
 		const firstleap = utc_leapsecs[0]; // TODO: no leapsecs loaded
@@ -196,17 +202,23 @@ fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 };
 
 fn utc_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
+	let ret: []time::instant = [];
 	if (ts == &utc) {
-		return alloc([i]...)!;
+		append(ret, i)!;
+		return ret;
 	} else if (ts == &tai) {
-		let ret: []time::instant = [];
-		if (!utc_isinitialized) {
-			match (init_utc_leapsecs()) {
-			case void =>
-				utc_isinitialized = true;
-			case =>
-				abort("Failed to initialize UTC timescale");
+		match (utc_status) {
+		case let loaded: bool =>
+			if (!loaded) {
+				match (utc_init_leapsecs()) {
+				case void =>
+					utc_status = true;
+				case =>
+					abort("UTC timescale init error");
+				};
 			};
+		case utciniterror =>
+			abort("UTC timescale init error");
 		};
 
 		const firstleap = utc_leapsecs[0]; // TODO: no leapsecs loaded
