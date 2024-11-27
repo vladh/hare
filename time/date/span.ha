@@ -15,55 +15,55 @@ export type span = struct {
 };
 
 // Returns true if two [[span]]s are numerically equal, false otherwise.
-export fn peq(pa: span, pb: span) bool = {
+export fn equalspan(x: span, y: span) bool = {
 	return (
-		pa.years          == pb.years
-		&& pa.months      == pb.months
-		&& pa.weeks       == pb.weeks
-		&& pa.days        == pb.days
-		&& pa.hours       == pb.hours
-		&& pa.minutes     == pb.minutes
-		&& pa.seconds     == pb.seconds
-		&& pa.nanoseconds == pb.nanoseconds
+		x.years          == y.years
+		&& x.months      == y.months
+		&& x.weeks       == y.weeks
+		&& x.days        == y.days
+		&& x.hours       == y.hours
+		&& x.minutes     == y.minutes
+		&& x.seconds     == y.seconds
+		&& x.nanoseconds == y.nanoseconds
 	);
 };
 
-// Returns the sum [[span]] of a set of periods.
-export fn sum(ps: span...) span = {
-	let out = span { ... };
-	for (let p &.. ps) {
-		out.years       += p.years;
-		out.months      += p.months;
-		out.weeks       += p.weeks;
-		out.days        += p.days;
-		out.hours       += p.hours;
-		out.minutes     += p.minutes;
-		out.seconds     += p.seconds;
-		out.nanoseconds += p.nanoseconds;
+// Returns the sum [[span]] of a set of spans.
+export fn sum(spans: span...) span = {
+	let x = span { ... };
+	for (let y &.. spans) {
+		x.years       += y.years;
+		x.months      += y.months;
+		x.weeks       += y.weeks;
+		x.days        += y.days;
+		x.hours       += y.hours;
+		x.minutes     += y.minutes;
+		x.seconds     += y.seconds;
+		x.nanoseconds += y.nanoseconds;
 	};
-	return out;
+	return x;
 };
 
 // Returns a [[span]] with its fields negated.
-export fn neg(p: span) span = span {
-	years       = -p.years,
-	months      = -p.months,
-	weeks       = -p.weeks,
-	days        = -p.days,
-	hours       = -p.hours,
-	minutes     = -p.minutes,
-	seconds     = -p.seconds,
-	nanoseconds = -p.nanoseconds,
+export fn neg(x: span) span = span {
+	years       = -x.years,
+	months      = -x.months,
+	weeks       = -x.weeks,
+	days        = -x.days,
+	hours       = -x.hours,
+	minutes     = -x.minutes,
+	seconds     = -x.seconds,
+	nanoseconds = -x.nanoseconds,
 };
 
 // Returns a [[span]] with its fields made absolute and positive.
-export fn abs(p: span) span = span {
-	years       = if (p.years < 0)       -p.years       else p.years,
-	months      = if (p.months < 0)      -p.months      else p.months,
-	weeks       = if (p.weeks < 0)       -p.weeks       else p.weeks,
-	days        = if (p.days < 0)        -p.days        else p.days,
-	hours       = if (p.hours < 0)       -p.hours       else p.hours,
-	minutes     = if (p.minutes < 0)     -p.minutes     else p.minutes,
-	seconds     = if (p.seconds < 0)     -p.seconds     else p.seconds,
-	nanoseconds = if (p.nanoseconds < 0) -p.nanoseconds else p.nanoseconds,
+export fn abs(x: span) span = span {
+	years       = if (x.years < 0)       -x.years       else x.years,
+	months      = if (x.months < 0)      -x.months      else x.months,
+	weeks       = if (x.weeks < 0)       -x.weeks       else x.weeks,
+	days        = if (x.days < 0)        -x.days        else x.days,
+	hours       = if (x.hours < 0)       -x.hours       else x.hours,
+	minutes     = if (x.minutes < 0)     -x.minutes     else x.minutes,
+	seconds     = if (x.seconds < 0)     -x.seconds     else x.seconds,
+	nanoseconds = if (x.nanoseconds < 0) -x.nanoseconds else x.nanoseconds,
 };

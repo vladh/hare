@@ -185,6 +185,6 @@ export fn traverse(a: date, b: date) span = {
 	];
 	for (let (da, db, expected) .. cases) {
 		const actual = traverse(da, db);
-		assert(peq(actual, expected), "traverse miscalculation");
+		assert(equalspan(actual, expected), "traverse miscalculation");
 	};
 };
