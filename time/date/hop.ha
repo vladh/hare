@@ -4,6 +4,9 @@
 use time;
 
 // Calculates the nominal [[step]] difference between two [[date]]s.
+//
+// Be aware, using date of different [[locality]]s may return unexpected
+// results.
 export fn hop(a: date, b: date, u: step) i64 = {
 	switch (u) {
 	case step::ERA =>

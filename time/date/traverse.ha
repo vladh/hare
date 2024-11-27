@@ -4,9 +4,12 @@
 use time::chrono;
 
 // Calculates the [[span]] between two [[date]]s, from A to B.
-// The returned span, provided to [[reckon]] along with A, will produce B,
-// regardless of the [[calculus]] used. All the span's non-zero fields will
-// have the same sign.
+//
+// The returned span, provided to [[reckon]] with [[rflag]]::DEFAULT and date A,
+// will produce B. The span's fields will all be the same sign.
+//
+// Be aware, using date of different [[locality]]s may return unexpected
+// results.
 export fn traverse(a: date, b: date) span = {
 	let s = span { ... };
 
