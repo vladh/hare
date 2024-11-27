@@ -14,7 +14,7 @@ export fn traverse(a: date, b: date) span = {
 		return s;
 	};
 
-	let reverse = if (chrono::compare(&a, &b) > 0) true else false;
+	let reverse = chrono::compare(&a, &b) > 0;
 	if (reverse) {
 		let tmp = a;
 		a = b;
