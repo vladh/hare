@@ -321,6 +321,34 @@ export fn to_moment(d: date) chrono::moment = *(&d: *chrono::moment);
 // Extracts the [[time::instant]] of the given [[date]].
 export fn to_instant(d: date) time::instant = *(&d: *time::instant);
 
+// Returns true if two [[date]]s represent the same time in the same locality,
+// which is to say that their [[locality]] and [[time::instant]] are both equal.
+// Their observed values and representations in a chronology should be the same
+// in all cases.
+//
+// See [[simultaneous]] to determine if two moments represent the same date in
+// time regardless of locality.
+export fn coincident(a: *date, b: *date) bool = {
+	return a.tsc == b.tsc && a.sec == b.sec && a.nsec == b.nsec;
+};
+
+// Returns true if two [[date]]s represent the same date in time, regardless
+// of locality.
+//
+// The moments are compared as [[time::instant]]s; their observed chronological
+// values and representations are ignored.
+//
+// If the moments' associated [[timescale]]s are different, they will be
+// converted to [[tai]] instants first. Any [[discontinuity]] occurence will be
+// returned. If a discontinuity against TAI amongst the two timescales exist,
+// consider converting such instants manually.
+//
+// See [[coincident]] to determine if two [[date]]s are equal with respect to
+// both time and locality.
+export fn simultaneous(a: *date, b: *date) (bool | chrono::tscmismatch) = {
+	return 0 == chrono::compare(a, b)?;
+};
+
 // Calculates the observed daydate and time-of-day of a [[time::instant]] in a
 // [[locality]] at a particular zone-offset.
 fn calc_datetime(
@@ -389,7 +417,7 @@ fn calc_instant(
 		match (expect) {
 		case let e: date =>
 			assert(actual is date, "wanted 'date', got 'error'");
-			assert(chrono::simultaneous(&(actual as date), &e)!,
+			assert(simultaneous(&(actual as date), &e)!,
 				"incorrect 'date' value");
 		case let e: parsefail =>
 			assert(actual is parsefail,
