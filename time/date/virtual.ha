@@ -171,7 +171,7 @@ export fn newvirtual() virtual = virtual {
 	nsec        = 0,
 	tsc         = &chrono::utc,
 	loc         = UTC,
-	zone        = null,
+	zonephase   = null,
 	daydate     = void,
 	daytime     = void,
 
@@ -304,7 +304,7 @@ fn realize_validzoff(
 	let d = realize_datetimezoff(v, locs...)?;
 
 	// verify zone offset
-	if (ozone(&d).zoff != v.zoff as time::duration) {
+	if (zone(&d).zoff != v.zoff as time::duration) {
 		return invalid;
 	};
 
@@ -488,7 +488,7 @@ fn realize_validzoffs(
 
 	// try matching zone abbreviation
 	if (v.zabbr is str) {
-		for (let zone .. v.loc.zones) {
+		for (let zone .. v.loc.phases) {
 			if (v.zabbr as str == zone.abbr) {
 				v.zoff = zone.zoff;
 				match (realize_validzoff(v, locs...)) {
@@ -514,7 +514,7 @@ fn realize_validzoffs(
 	};
 
 	// try zone offsets from locality
-	for (let zone .. v.loc.zones) {
+	for (let zone .. v.loc.phases) {
 		v.zoff = zone.zoff;
 		match (realize_validzoff(v, locs...)) {
 		case let d: date =>
@@ -546,7 +546,7 @@ fn realize_gapbounds(v: virtual) (date, date) = {
 
 	let zlo: time::duration = 2 *  loc.daylength;
 	let zhi: time::duration = 2 * -loc.daylength;
-	for (let zone .. loc.zones) {
+	for (let zone .. loc.phases) {
 		if (zone.zoff > zhi) {
 			zhi = zone.zoff;
 		};

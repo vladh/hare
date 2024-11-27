@@ -27,7 +27,7 @@ export type date = struct {
 	// The [[locality]] with which to interpret this moment.
 	loc: locality,
 	// The observed [[zone]].
-	zone: nullable *zone,
+	zonephase: nullable *zonephase,
 	// The observed [[daydate]] (scalar day number)
 	// since an abitrary epoch (e.g. the Unix epoch 1970-01-01).
 	daydate: (void | i64),
@@ -69,7 +69,7 @@ fn init() date = date {
 	nsec        = 0,
 	tsc         = &chrono::utc,
 	loc         = UTC,
-	zone        = null,
+	zonephase   = null,
 	daydate     = void,
 	daytime     = void,
 
@@ -265,7 +265,7 @@ export fn from_instant(loc: locality, i: time::instant) date = {
 	return from_moment(loc, chrono::new(loc.tsc, i))!;
 };
 
-// Creates a [[date]] from a given [[locality]], zone offset, daydate, and
+// Creates a [[date]] from a given [[locality]], zone-offset, daydate, and
 // time-of-day.
 export fn from_datetime(
 	loc: locality,
@@ -322,7 +322,7 @@ export fn to_moment(d: date) chrono::moment = *(&d: *chrono::moment);
 export fn to_instant(d: date) time::instant = *(&d: *time::instant);
 
 // Calculates the observed daydate and time-of-day of a [[time::instant]] in a
-// [[locality]] at a particular zone offset.
+// [[locality]] at a particular zone-offset.
 fn calc_datetime(
 	loc: locality,
 	inst: time::instant,
@@ -338,7 +338,7 @@ fn calc_datetime(
 
 fn calc_instant(
 	day: time::duration, // length of a day
-	zo: time::duration,  // zone offset
+	zo: time::duration,  // zone-offset
 	dd: i64,             // date since epoch
 	dt: i64,             // time since start of day (ns)
 ) time::instant = {

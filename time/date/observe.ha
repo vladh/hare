@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: MPL-2.0
 // (c) Hare authors <https://harelang.org>
 
-// Observes a [[date]]'s [[zone]].
-export fn ozone(d: *date) zone = {
-	match (d.zone) {
-	case let z: *zone =>
+// Observes a [[date]]'s [[zonephase]].
+export fn zone(d: *date) zonephase = {
+	match (d.zonephase) {
+	case let z: *zonephase =>
 		return *z;
 	case null =>
 		let lookup = if (d.loc.lookupzone != null) {
@@ -13,7 +13,7 @@ export fn ozone(d: *date) zone = {
 			yield &lookupzone: *zonelookuper;
 		};
 		const z = lookup(d.loc, to_instant(*d));
-		d.zone = z;
+		d.zonephase = z;
 		return *z;
 	};
 };
@@ -30,7 +30,7 @@ export fn daydate(d: *date) i64 = {
 		return dd;
 	case void =>
 		const (dd, dt) = calc_datetime(
-			d.loc, to_instant(*d), ozone(d).zoff,
+			d.loc, to_instant(*d), zone(d).zoff,
 		);
 		d.daytime = dt;
 		d.daydate = dd;
@@ -46,7 +46,7 @@ export fn daytime(d: *date) i64 = {
 		return dt;
 	case void =>
 		const (dd, dt) = calc_datetime(
-			d.loc, to_instant(*d), ozone(d).zoff,
+			d.loc, to_instant(*d), zone(d).zoff,
 		);
 		d.daytime = dt;
 		d.daydate = dd;

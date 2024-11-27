@@ -246,9 +246,9 @@ fn fmtspec(out: io::handle, r: rune, d: *date) (size | io::error) = {
 	case 'Y' =>
 		return fmt::fprintf(out, "{:.4}", _year(d));
 	case 'z' =>
-		return fmtzoff(out, ozone(d).zoff);
+		return fmtzoff(out, zone(d).zoff);
 	case 'Z' =>
-		return fmt::fprint(out, ozone(d).abbr);
+		return fmt::fprint(out, zone(d).abbr);
 	case '%' =>
 		return fmt::fprint(out, "%");
 	case =>

@@ -32,11 +32,11 @@ export type timezone = struct {
 	// The duration of a day in this timezone (24 * time::HOUR)
 	daylength: time::duration,
 
-	// The possible temporal zones a locality with this timezone can observe
+	// The possible zonephases a locality with this timezone can observe
 	// (CET, CEST, ...)
-	zones: []zone,
+	phases: []zonephase,
 
-	// The transitions between this timezone's zones
+	// The transitions between this timezone's zonephases
 	transitions: []transition,
 
 	lookupzone: nullable *zonelookuper,
@@ -51,7 +51,7 @@ export type timezone = struct {
 };
 
 // A [[timezone]] state, with an offset for calculating localized date/time.
-export type zone = struct {
+export type zonephase = struct {
 	// The offset from the normal timezone (2 * time::HOUR)
 	zoff: time::duration,
 
@@ -65,53 +65,41 @@ export type zone = struct {
 	dst: bool, // true
 };
 
-// A [[timezone]] transition between two [[zone]]s.
+// A [[timezone]] transition between two [[zonephase]]s.
 export type transition = struct {
 	when: time::instant,
 	zoneindex: size,
 };
 
-// A destructured dual std/dst POSIX timezone. See tzset(3).
-type tzname = struct {
-	std_name: str,
-	std_offset: time::duration,
-	dst_name: str,
-	dst_offset: time::duration,
-	dst_start: str,
-	dst_starttime: str,
-	dst_end: str,
-	dst_endtime: str,
-};
-
-export type zonelookuper = fn(locality, time::instant) *zone;
+export type zonelookuper = fn(locality, time::instant) *zonephase;
 
 // Frees a [[timezone]]. A [[locality]] argument can be passed.
 export fn timezone_free(tz: *timezone) void = {
 	free(tz.name);
-	for (let zone &.. tz.zones) {
-		zone_finish(zone);
+	for (let zonephase &.. tz.phases) {
+		zone_finish(zonephase);
 	};
-	free(tz.zones);
+	free(tz.phases);
 	free(tz.transitions);
 	free(tz.posix_extend);
 	free(tz);
 };
 
-// Frees resources associated with a [[zone]].
-export fn zone_finish(z: *zone) void = {
+// Frees resources associated with a [[zonephase]].
+export fn zone_finish(z: *zonephase) void = {
 	free(z.name);
 	free(z.abbr);
 };
 
-// Finds and returns a [[moment]]'s currently observed [[zone]].
-fn lookupzone(loc: locality, inst: time::instant) *zone = {
+// Finds and returns a [[moment]]'s currently observed [[zonephase]].
+fn lookupzone(loc: locality, inst: time::instant) *zonephase = {
 	// TODO: https://todo.sr.ht/~sircmpwn/hare/643
-	if (len(loc.zones) == 0) {
-		abort("time::chrono: Timezone has no zones");
+	if (len(loc.phases) == 0) {
+		abort("time::chrono: Timezone has no zonephases");
 	};
 
-	if (len(loc.zones) == 1) {
-		return &loc.zones[0];
+	if (len(loc.phases) == 1) {
+		return &loc.phases[0];
 	};
 
 	let trs = loc.transitions[..];
@@ -119,7 +107,7 @@ fn lookupzone(loc: locality, inst: time::instant) *zone = {
 	if (len(trs) == 0 || time::compare(inst, trs[0].when) == -1) {
 		// tzfile(5) suggests we use "time type 0" for instants before
 		// the first transition.
-		return &loc.zones[0];
+		return &loc.phases[0];
 	};
 
 	// index of transition which inst is equal to or greater than.
@@ -127,7 +115,7 @@ fn lookupzone(loc: locality, inst: time::instant) *zone = {
 		trs, size(transition), &inst, &cmpinstants,
 	);
 
-	const z = &loc.zones[trs[idx].zoneindex];
+	const z = &loc.phases[trs[idx].zoneindex];
 
 	// if we've reached the end of the locality's transitions, try its
 	// posix_extend string
@@ -146,11 +134,11 @@ fn cmpinstants(a: const *opaque, b: const *opaque) int = {
 	return time::compare(a.when, *b): int;
 };
 
-// Creates a [[timezone]] with a single [[zone]]. Useful for fixed offsets.
+// Creates a [[timezone]] with a single [[zonephase]]. Useful for fixed offsets.
 // For example, replicate the civil time Hawaii timezone on Earth:
 //
 // 	let hawaii = chrono::fixedzone(&chrono::utc, chrono::EARTH_DAY,
-// 		chrono::zone {
+// 		chrono::zonephase {
 // 			zoff = -10 * time::HOUR,
 // 			name = "Hawaiian Reef",
 // 			abbr = "HARE",
@@ -158,12 +146,12 @@ fn cmpinstants(a: const *opaque, b: const *opaque) int = {
 // 		},
 // 	);
 //
-export fn fixedzone(tsc: *chrono::timescale, daylen: time::duration, z: zone) timezone = {
+export fn fixedzone(tsc: *chrono::timescale, daylen: time::duration, z: zonephase) timezone = {
 	return timezone {
 		name = z.name,
 		tsc = tsc,
 		daylength = daylen,
-		zones = alloc([z])!,
+		phases = alloc([z])!,
 		transitions = [],
 		lookupzone = null,
 		posix_extend = "",
@@ -219,8 +207,8 @@ const TZ_UTC: timezone = timezone {
 	name = "UTC",
 	tsc = &chrono::utc,
 	daylength = EARTH_DAY,
-	zones = [
-		zone {
+	phases = [
+		zonephase {
 			zoff = 0 * time::SECOND,
 			name = "Universal Coordinated Time",
 			abbr = "UTC",
@@ -239,8 +227,8 @@ const TZ_TAI: timezone = timezone {
 	name = "TAI",
 	tsc = &chrono::tai,
 	daylength = EARTH_DAY,
-	zones = [
-		zone {
+	phases = [
+		zonephase {
 			zoff = 0 * time::SECOND,
 			name = "International Atomic Time",
 			abbr = "TAI",
@@ -259,8 +247,8 @@ const TZ_GPS: timezone = timezone {
 	name = "GPS",
 	tsc = &chrono::gps,
 	daylength = EARTH_DAY,
-	zones = [
-		zone {
+	phases = [
+		zonephase {
 			zoff = 0 * time::SECOND,
 			name = "Global Positioning System",
 			abbr = "GPS",
@@ -279,8 +267,8 @@ const TZ_TT: timezone = timezone {
 	name = "TT",
 	tsc = &chrono::tt,
 	daylength = EARTH_DAY,
-	zones = [
-		zone {
+	phases = [
+		zonephase {
 			zoff = 0 * time::SECOND,
 			name = "Terrestrial Time",
 			abbr = "TT",
@@ -299,8 +287,8 @@ const TZ_MTC: timezone = timezone {
 	name = "MTC",
 	tsc = &chrono::mtc,
 	daylength = MARS_SOL_MARTIAN,
-	zones = [
-		zone {
+	phases = [
+		zonephase {
 			zoff = 0 * time::SECOND,
 			name = "Coordinated Mars Time",
 			abbr = "MTC",

@@ -206,10 +206,10 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 	// assemble structured data
 
 	// assemble zones
-	let zones: []zone = [];
+	let zones: []zonephase = [];
 	for (let i = 0z; i < typecnt; i += 1) {
 		const idx = i * 6;
-		const zone = zone { ... };
+		const zone = zonephase { ... };
 
 		// offset
 		const zoff = endian::begetu32(zonedata[idx..idx + 4]): i32;
@@ -277,7 +277,7 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 	};
 
 	// commit and return data
-	tz.zones = zones;
+	tz.phases = zones;
 	tz.transitions = transitions;
 	tz.posix_extend = posix_extend;
 };
