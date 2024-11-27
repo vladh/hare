@@ -5,7 +5,7 @@ use time;
 use time::chrono;
 
 // Invalid [[date]].
-export type invalid = !chrono::invalid;
+export type invalid = !void;
 
 // A date/time object; a [[time::chrono::moment]] wrapper optimized for the
 // Gregorian chronology, and by extension a [[time::instant]] wrapper.

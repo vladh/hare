@@ -29,7 +29,7 @@ use strings;
 // timescales. Therefore, we have decided to take an alternative approach.
 
 // Error initializing the [[utc]] [[timescale]].
-type utciniterror = !(fs::error | io::error | utf8::invalid);
+export type utciniterror = !(fs::error | io::error | utf8::invalid);
 
 // The number of seconds between the years 1900 and 1970.
 //

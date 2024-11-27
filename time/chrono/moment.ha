@@ -3,9 +3,6 @@
 
 use time;
 
-// Invalid [[moment]].
-export type invalid = !void;
-
 // A moment in time within a [[locality]]. Create one with [[new]]. This type
 // extends the [[time::instant]] type and couples it with a [[timescale]] via
 // its [[locality]] field.
