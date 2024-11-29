@@ -37,10 +37,11 @@ export fn strerror(err: error) const str = {
 		));
 	case invalid =>
 		return "Invalid date information";
-	case let lap: zfunresolved =>
-		if (lap) {
+	case let e: zfunresolved =>
+		switch (e) {
+		case zferror::GAP =>
 			return "Failed to resolve zone-offset in a timezone transition overlap";
-		} else {
+		case zferror::LAP =>
 			return "Failed to resolve zone-offset in a timezone transition gap";
 		};
 	case let pf: parsefail =>

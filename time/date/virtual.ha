@@ -104,7 +104,12 @@ export type zflag = enum u8 {
 // account for some timezone effect and could not produce a valid zone-offset.
 // A false value signifies the occurence of a timezone transition gap.
 // A true value signifies the occurence of a timezone transition overlap.
-export type zfunresolved = !bool;
+export type zfunresolved = !zferror;
+
+export type zferror = enum {
+	GAP,
+	LAP,
+};
 
 // A [[virtual]] date does not have enough information from which to create a
 // valid [[date]].
@@ -281,7 +286,7 @@ export fn realize(
 			} else if (0 != zf & zflag::GAP_START) {
 				return realize_gapbounds(v).0;
 			} else {
-				return false: zfunresolved;
+				return zferror::GAP: zfunresolved;
 			};
 		case 1 =>
 			return valid_dates[0];
@@ -291,7 +296,7 @@ export fn realize(
 			} else if (0 != zf & zflag::LAP_EARLY) {
 				return valid_dates[0];
 			} else {
-				return true: zfunresolved;
+				return zferror::LAP: zfunresolved;
 			};
 		};
 	};
