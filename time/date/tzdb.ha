@@ -255,14 +255,14 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 	};
 
 	// assemble transitions
-	let transitions: []transition = [];
+	let transitions: []zonetransition = [];
 	for (let i = 0z; i < timecnt; i += 1) {
 		const zoneindex = zone_indicies[i];
 		if (zoneindex < 0 || zoneindex > (typecnt - 1)) {
 			return invalidtzif;
 		};
 
-		const tx = transition {
+		const tx = zonetransition {
 			when = time::instant {
 				sec = transition_times[i],
 				...

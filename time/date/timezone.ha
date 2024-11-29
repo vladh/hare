@@ -37,7 +37,7 @@ export type timezone = struct {
 	phases: []zonephase,
 
 	// The transitions between this timezone's zonephases
-	transitions: []transition,
+	transitions: []zonetransition,
 
 	lookupzone: nullable *zonelookuper,
 
@@ -66,7 +66,7 @@ export type zonephase = struct {
 };
 
 // A [[timezone]] transition between two [[zonephase]]s.
-export type transition = struct {
+export type zonetransition = struct {
 	when: time::instant,
 	zoneindex: size,
 };
@@ -112,7 +112,7 @@ fn lookupzone(loc: locality, inst: time::instant) *zonephase = {
 
 	// index of transition which inst is equal to or greater than.
 	const idx = -1 + sort::rbisect(
-		trs, size(transition), &inst, &cmpinstants,
+		trs, size(zonetransition), &inst, &cmpinstants,
 	);
 
 	const z = &loc.phases[trs[idx].zoneindex];
@@ -129,7 +129,7 @@ fn lookupzone(loc: locality, inst: time::instant) *zonephase = {
 };
 
 fn cmpinstants(a: const *opaque, b: const *opaque) int = {
-	let a = a: *transition;
+	let a = a: *zonetransition;
 	let b = b: *time::instant;
 	return time::compare(a.when, *b): int;
 };
