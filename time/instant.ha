@@ -15,6 +15,12 @@ export type instant = struct {
 // Represents a unique interval of time between two [[instant]]s.
 export type interval = (instant, instant);
 
+// The [[instant]] representing the origin or epoch "zero" value.
+export def INSTANT_ZERO = instant {
+	sec = 0,
+	nsec = 0,
+};
+
 // The earliest representable [[instant]].
 export def INSTANT_MIN = instant {
 	sec = types::I64_MIN,
@@ -27,8 +33,14 @@ export def INSTANT_MAX = instant {
 	nsec = SECOND - 1,
 };
 
-// Creates a new [[instant]] with seconds and nanoseconds.
+// Creates a new [[instant]] using second and nanosecond values.
+// The nanosecond value should be 0 or greater, and less than [[SECOND]].
 export fn new(sec: i64, nsec: i64 = 0) instant = instant {
 	sec = sec,
-	nsec = nsec,
+	nsec = nsec, // TODO: abort if nsec>SECOND ?
+};
+
+// Creates a new [[instant]] using a nanosecond value from an abitrary epoch.
+export fn from_nsec(nsec: i64) instant = {
+	return add(INSTANT_ZERO, nsec);
 };
