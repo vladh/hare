@@ -34,10 +34,10 @@ export def INSTANT_MAX = instant {
 };
 
 // Creates a new [[instant]] using second and nanosecond values.
-// The nanosecond value should be 0 or greater, and less than [[SECOND]].
+// Nanosecond values outside the range 0 to 999,999,999 will cause an abort.
 export fn new(sec: i64, nsec: i64 = 0) instant = instant {
 	sec = sec,
-	nsec = nsec, // TODO: abort if nsec>SECOND ?
+	nsec = if (nsec < 0 || nsec >= SECOND) abort("Invalid nsec") else nsec,
 };
 
 // Creates a new [[instant]] using a nanosecond value from an abitrary epoch.
