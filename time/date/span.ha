@@ -1,6 +1,9 @@
 // SPDX-License-Identifier: MPL-2.0
 // (c) Hare authors <https://harelang.org>
 
+use fmt;
+use io;
+
 // Represents a span of time in the Gregorian chronology, using nominal units of
 // time. Used for chronological arithmetic.
 export type span = struct {
@@ -66,4 +69,26 @@ export fn abs(x: span) span = span {
 	minutes     = if (x.minutes < 0)     -x.minutes     else x.minutes,
 	seconds     = if (x.seconds < 0)     -x.seconds     else x.seconds,
 	nanoseconds = if (x.nanoseconds < 0) -x.nanoseconds else x.nanoseconds,
+};
+
+// Formats a [[span]] and writes it into an internal static buffer. The returned
+// string is borrowed from this buffer. The following layout is used:
+//
+//     "?Y ?M ?W ?D ?h ?m ?s ?n"
+//
+// where each '?' is replaced with the appopriate span field values in order of
+// decreasing significance, and the inbetween spaces are replaced with the given
+// sep parameter.
+export fn formatspan(s: span, sep: rune = ' ') str = {
+	static let buf: [128]u8 = [0...];
+	return fmt::bsprintf(buf, "{}Y{}{}M{}{}W{}{}D{}{}h{}{}m{}{}s{}{}n",
+		s.years, sep,
+		s.months, sep,
+		s.weeks, sep,
+		s.days, sep,
+		s.hours, sep,
+		s.minutes, sep,
+		s.seconds, sep,
+		s.nanoseconds,
+	);
 };
