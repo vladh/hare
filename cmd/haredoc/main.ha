@@ -192,7 +192,7 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 				append(notmatching, decl)!;
 			};
 		};
-		get_init_funcs(&matching, &notmatching);
+		include_related(&matching, &notmatching);
 
 		for (let decl .. notmatching) {
 			ast::decl_finish(decl);
@@ -446,11 +446,11 @@ fn has_decl(decl: ast::decl, name: str) bool = {
 	assert(parseident("::") is void);
 };
 
-fn get_init_funcs(matching: *[]ast::decl, notmatching: *[]ast::decl) void = {
+fn include_related(matching: *[]ast::decl, notmatching: *[]ast::decl) void = {
 	if (len(matching) != 1) {
 		return;
 	};
-	let ident = match (matching[0].decl) {
+	let decl = match (matching[0].decl) {
 	case let d: []ast::decl_type =>
 		if (len(d) != 1 || len(d[0].ident) != 1) {
 			return;
@@ -465,7 +465,7 @@ fn get_init_funcs(matching: *[]ast::decl, notmatching: *[]ast::decl) void = {
 			};
 		case => void;
 		};
-		yield d[0].ident;
+		yield d[0];
 	case =>
 		return;
 	};
@@ -488,17 +488,147 @@ fn get_init_funcs(matching: *[]ast::decl, notmatching: *[]ast::decl) void = {
 			};
 		case let d: ast::decl_func =>
 			let _type = d.prototype.repr as ast::func_type;
+			if (signature_matches(decl._type, d.prototype)) {
+				append(matching, notmatching[i])!;
+				delete(notmatching[i]);
+				i -= 1;
+				continue;
+			};
 			yield _type.result;
 		case =>
 			continue;
 		};
 
-		if (is_init_type(ident, _type)) {
+		if (is_init_type(decl.ident, _type)) {
 			append(matching, notmatching[i])!;
 			delete(notmatching[i]);
 			i -= 1;
 		};
 	};
+};
+
+fn signature_matches(want: *ast::_type, prototype: *ast::_type) bool = {
+	for (true) {
+		match (want.repr) {
+		case let repr: ast::pointer_type =>
+			want = repr.referent;
+		case =>
+			break;
+		};
+	};
+	return want.repr is ast::func_type && type_eq(want, prototype);
+};
+
+// This isn't perfect, but it's correct 99% of the time
+fn type_eq(a: *ast::_type, b: *ast::_type) bool = {
+	if (a.flags != b.flags) {
+		return false;
+	};
+
+	match (a.repr) {
+	case let arepr: ast::alias_type =>
+		match (b.repr) {
+		case let brepr: ast::alias_type =>
+			return arepr.unwrap == brepr.unwrap
+				&& ast::ident_eq(arepr.ident, brepr.ident);
+		case =>
+			return false;
+		};
+	case let arepr: ast::builtin_type =>
+		match (b.repr) {
+		case let brepr: ast::builtin_type =>
+			return arepr == brepr;
+		case =>
+			return false;
+		};
+	case ast::enum_type =>
+		return false; // code is invalid
+	case let arepr: ast::func_type =>
+		const brepr = match (b.repr) {
+		case let brepr: ast::func_type =>
+			yield brepr;
+		case =>
+			return false;
+		};
+
+		if (len(arepr.params) != len(brepr.params)
+				|| arepr.variadism != brepr.variadism) {
+			return false;
+		};
+		for (let i = 0z; i < len(arepr.params); i += 1) {
+			if (!type_eq(arepr.params[i]._type,
+					brepr.params[i]._type)) {
+				return false;
+			};
+		};
+		return type_eq(arepr.result, brepr.result);
+	case let arepr: ast::list_type =>
+		const brepr = match (b.repr) {
+		case let brepr: ast::list_type =>
+			yield brepr;
+		case =>
+			return false;
+		};
+
+		if (!type_eq(arepr.members, brepr.members)) {
+			return false;
+		};
+		match (arepr.length) {
+		case *ast::expr =>
+			// It's not really worth it to check that the lengths
+			// are equal, since that would require checking
+			// expressions for equality, which isn't possible to do
+			// 100% correctly anyway (without an actual type
+			// checker). I can't imagine false positives will be
+			// very common here.
+			return brepr.length is *ast::expr;
+		case ast::len_slice =>
+			return brepr.length is ast::len_slice;
+		case ast::len_unbounded =>
+			return brepr.length is ast::len_unbounded;
+		case ast::len_contextual =>
+			return brepr.length is ast::len_contextual;
+		};
+	case let arepr: ast::pointer_type =>
+		match (b.repr) {
+		case let brepr: ast::pointer_type =>
+			return arepr.flags == brepr.flags
+				&& type_eq(arepr.referent, brepr.referent);
+		case =>
+			return false;
+		};
+	case (ast::struct_type | ast::union_type) =>
+		// This pretty much won't ever happen in real-world code, and
+		// checking for equality is more effort than it's worth
+		return false;
+	case let arepr: ast::tagged_type =>
+		match (b.repr) {
+		case let brepr: ast::tagged_type =>
+			return types_eq(arepr, brepr);
+		case =>
+			return false;
+		};
+	case let arepr: ast::tuple_type =>
+		match (b.repr) {
+		case let brepr: ast::tuple_type =>
+			return types_eq(arepr, brepr);
+		case =>
+			return false;
+		};
+	};
+};
+
+fn types_eq(a: []*ast::_type, b: []*ast::_type) bool = {
+	if (len(a) != len(b)) {
+		return false;
+	};
+
+	for (let i = 0z; i < len(a); i += 1) {
+		if (!type_eq(a[i], b[i])) {
+			return false;
+		};
+	};
+	return true;
 };
 
 fn is_init_type(ident: ast::ident, _type: *ast::_type) bool = {
