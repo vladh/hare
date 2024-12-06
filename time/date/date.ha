@@ -247,6 +247,9 @@ export fn localnow() date = {
 };
 
 // Creates a [[date]] from a [[time::chrono::moment]].
+//
+// [[time::chrono::tscmismatch]] is returned if the [[time::chrono::timescale]]s
+// of the moment and the target [[locality]] are different.
 export fn from_moment(loc: locality, m: chrono::moment) (date | chrono::tscmismatch) = {
 	if (loc.tsc != m.tsc) {
 		return (loc.tsc, m.tsc): chrono::tscmismatch;
@@ -323,28 +326,21 @@ export fn to_instant(d: date) time::instant = *(&d: *time::instant);
 
 // Returns true if two [[date]]s represent the same time in the same locality,
 // which is to say that their [[locality]] and [[time::instant]] are both equal.
-// Their observed values and representations in a chronology should be the same
-// in all cases.
+// Their observed chronological values should be the same in all cases.
 //
-// See [[simultaneous]] to determine if two moments represent the same date in
-// time regardless of locality.
+// See [[simultaneous]].
 export fn coincident(a: *date, b: *date) bool = {
 	return a.loc == b.loc && a.sec == b.sec && a.nsec == b.nsec;
 };
 
-// Returns true if two [[date]]s represent the same date in time, regardless
-// of locality.
+// Returns true if two [[date]]s represent the same [[time::chrono::moment]] in
+// time, regardless of their [[locality]] or observed chronological values.
+// Otherwise, returns false.
 //
-// The moments are compared as [[time::instant]]s; their observed chronological
-// values and representations are ignored.
+// [[time::chrono::tscmismatch]] is returned if the [[time::chrono::timescale]]s
+// of the given dates are different.
 //
-// If the moments' associated [[timescale]]s are different, they will be
-// converted to [[tai]] instants first. Any [[discontinuity]] occurence will be
-// returned. If a discontinuity against TAI amongst the two timescales exist,
-// consider converting such instants manually.
-//
-// See [[coincident]] to determine if two [[date]]s are equal with respect to
-// both time and locality.
+// See [[coincident]].
 export fn simultaneous(a: *date, b: *date) (bool | chrono::tscmismatch) = {
 	return 0 == chrono::compare(a, b)?;
 };

@@ -6,11 +6,8 @@ use time::chrono;
 
 // Creates an equivalent [[date]] with a different [[locality]].
 //
-// If the date's associated [[timescale]] and the target locality's timescale
-// are different, a conversion from one to the other via the TAI timescale will
-// be attempted. Any [[discontinuity]] occurrence will be returned. If a
-// discontinuity against TAI amongst the two timescales exist, consider
-// converting such instants manually.
+// [[time::chrono::tscmismatch]] is returned if the [[time::chrono::timescale]]s
+// of the given moment and the target [[locality]] are different.
 export fn in(loc: locality, d: date) (date | chrono::tscmismatch) = {
 	return from_moment(loc, to_moment(d));
 };
