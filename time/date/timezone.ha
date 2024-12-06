@@ -2,6 +2,7 @@
 // (c) Hare authors <https://harelang.org>
 
 use os;
+use path;
 use sort;
 use strings;
 use time;
@@ -167,23 +168,37 @@ export const LOCAL: locality = &TZ_UTC;
 
 @init fn init_tz_local() void = {
 	let path = match (os::getenv("TZ")) {
-	case let path: str =>
+	case let s: str =>
 		// remove POSIX prefix ':'
-		yield if (strings::hasprefix(path, ':')) {
-			yield strings::sub(path, 1, strings::end);
-		} else {
-			yield path;
+		let s =
+			if (strings::hasprefix(s, ":"))
+				strings::trimprefix(s, ":")
+			else
+				s;
+
+		yield match (path::init(s)) {
+		case => return;
+		case let p: path::buffer =>
+			yield path::string(&p);
 		};
+
 	case void =>
-		yield match (os::realpath(LOCALTIME_PATH)) {
-		case let path: str =>
-			yield if (strings::hasprefix(path, TZDB_PATH)) {
-				yield strings::trimprefix(path, TZDB_PATH);
-			} else {
-				yield path;
-			};
-		case =>
-			return;
+		let s = match (os::realpath(LOCALTIME_PATH)) {
+		case => return;
+		case let s: str =>
+			yield s;
+		};
+
+		let p = match (path::init(s)) {
+		case => return;
+		case let p: path::buffer =>
+			yield p;
+		};
+
+		yield match (path::trimprefix(&p, TZDB_PATH)) {
+		case => return;
+		case let s: str =>
+			yield s;
 		};
 	};
 
