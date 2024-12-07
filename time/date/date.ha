@@ -329,7 +329,7 @@ export fn to_instant(d: date) time::instant = *(&d: *time::instant);
 // See [[simultaneous]] to determine if two moments represent the same date in
 // time regardless of locality.
 export fn coincident(a: *date, b: *date) bool = {
-	return a.tsc == b.tsc && a.sec == b.sec && a.nsec == b.nsec;
+	return a.loc == b.loc && a.sec == b.sec && a.nsec == b.nsec;
 };
 
 // Returns true if two [[date]]s represent the same date in time, regardless
