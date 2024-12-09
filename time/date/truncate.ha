@@ -68,47 +68,47 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 @test fn truncate() void = {
 	const d = new(UTC, 0, 1994, 8, 27, 11, 20, 1, 2)!;
 
-	assert(chrono::simultaneous(
+	assert(0 == chrono::compare(
 			&truncate(d, zflag::CONTIG, step::ERA)!,
 			&new(UTC, 0, 1, 1, 1, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 01");
 
-	assert(chrono::simultaneous(
+	assert(0 == chrono::compare(
 			&truncate(d, zflag::CONTIG, step::YEAR)!,
 			&new(UTC, 0, 1994, 1, 1, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 02");
 
-	assert(chrono::simultaneous(
+	assert(0 == chrono::compare(
 			&truncate(d, zflag::CONTIG, step::MONTH)!,
 			&new(UTC, 0, 1994, 8, 1, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 03");
 
-	assert(chrono::simultaneous(
+	assert(0 == chrono::compare(
 			&truncate(d, zflag::CONTIG, step::WEEK)!,
 			&new(UTC, 0, 1994, 8, 22, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 04");
 
-	assert(chrono::simultaneous(
+	assert(0 == chrono::compare(
 			&truncate(d, zflag::CONTIG, step::DAY)!,
 			&new(UTC, 0, 1994, 8, 27, 0, 0, 0, 0)!)!,
 		"invalid truncate() result 05");
 
-	assert(chrono::simultaneous(
+	assert(0 == chrono::compare(
 			&truncate(d, zflag::CONTIG, step::HOUR)!,
 			&new(UTC, 0, 1994, 8, 27, 11, 0, 0, 0)!)!,
 		"invalid truncate() result 06");
 
-	assert(chrono::simultaneous(
+	assert(0 == chrono::compare(
 			&truncate(d, zflag::CONTIG, step::MINUTE)!,
 			&new(UTC, 0, 1994, 8, 27, 11, 20, 0, 0)!)!,
 		"invalid truncate() result 07");
 
-	assert(chrono::simultaneous(
+	assert(0 == chrono::compare(
 			&truncate(d, zflag::CONTIG, step::SECOND)!,
 			&new(UTC, 0, 1994, 8, 27, 11, 20, 1, 0)!)!,
 		"invalid truncate() result 08");
 
-	assert(chrono::simultaneous(
+	assert(0 == chrono::compare(
 			&truncate(d, zflag::CONTIG, step::NANOSECOND)!,
 			&d)!,
 		"invalid truncate() result 09");

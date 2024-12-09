@@ -287,15 +287,15 @@ fn reckon_nanoseconds(r: *virtual, nsecs: i64, rf: rflag) void = {
 
 	let a = new(UTC, 0)!;
 	let r = reckon(a, zflag::CONTIG, 0, s)!;
-	assert(simultaneous(&a, &r)!, "01. incorrect result");
+	assert(0 == chrono::compare(&a, &r)!, "01. incorrect result");
 
 	let a = new(UTC, 0,  2019, 12, 27,  21,  7,  8,         0)!;
 	let r = reckon(a, zflag::CONTIG, 0, s)!;
-	assert(simultaneous(&a, &r)!, "02. incorrect result");
+	assert(0 == chrono::compare(&a, &r)!, "02. incorrect result");
 
 	let a = new(UTC, 0,  1970,  1,  1,   0,  0,  0,         0)!;
 	let r = reckon(a, zflag::CONTIG, 0, s)!;
-	assert(simultaneous(&a, &r)!, "03. incorrect result");
+	assert(0 == chrono::compare(&a, &r)!, "03. incorrect result");
 
 	// generic span, rflag::CEIL
 
@@ -312,7 +312,7 @@ fn reckon_nanoseconds(r: *virtual, nsecs: i64, rf: rflag) void = {
 		...
 	})!;
 	let b = new(UTC, 0,  2021,  1, 28,  22,  8,  9,         1)!;
-	assert(simultaneous(&b, &r)!, "04. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "04. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, span {
 		years       = -1,
@@ -325,7 +325,7 @@ fn reckon_nanoseconds(r: *virtual, nsecs: i64, rf: rflag) void = {
 		...
 	})!;
 	let b = new(UTC, 0,  2018, 11, 26,  20,  6,  6, 999999999)!;
-	assert(simultaneous(&b, &r)!, "05. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "05. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, span {
 		years       = 100,
@@ -338,7 +338,7 @@ fn reckon_nanoseconds(r: *virtual, nsecs: i64, rf: rflag) void = {
 		...
 	})!;
 	let b = new(UTC, 0,  2128,  8, 10,   2, 48, 48,       100)!;
-	assert(simultaneous(&b, &r)!, "06. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "06. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, span {
 		years       = -100,
@@ -351,14 +351,14 @@ fn reckon_nanoseconds(r: *virtual, nsecs: i64, rf: rflag) void = {
 		...
 	})!;
 	let b = new(UTC, 0,  1911,  5, 15,  15, 25, 27, 999999900)!;
-	assert(simultaneous(&b, &r)!, "07. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "07. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, span {
 		weeks = 100,
 		...
 	})!;
 	let b = new(UTC, 0,  2021, 11, 26,  21,  7,  8,         0)!;
-	assert(simultaneous(&b, &r)!, "08. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "08. incorrect result");
 
 	// rflag, February 29 overflows
 
@@ -367,19 +367,19 @@ fn reckon_nanoseconds(r: *virtual, nsecs: i64, rf: rflag) void = {
 
 	let r = reckon(a, zflag::CONTIG, rflag::FLOOR, s)!;
 	let b = new(UTC, 0,  2000,  2,  1)!;
-	assert(simultaneous(&b, &r)!, "09. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "09. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::CEIL, s)!;
 	let b = new(UTC, 0,  2000,  2, 29)!;
-	assert(simultaneous(&b, &r)!, "10. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "10. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::HOP, s)!;
 	let b = new(UTC, 0,  2000,  3,  1)!;
-	assert(simultaneous(&b, &r)!, "11. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "11. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::FOLD, s)!;
 	let b = new(UTC, 0,  2000,  3,  2)!;
-	assert(simultaneous(&b, &r)!, "12. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "12. incorrect result");
 
 	// rflag, February 28 overflows
 
@@ -388,19 +388,19 @@ fn reckon_nanoseconds(r: *virtual, nsecs: i64, rf: rflag) void = {
 
 	let r = reckon(a, zflag::CONTIG, rflag::FLOOR, s)!;
 	let b = new(UTC, 0,  2001,  2,  1)!;
-	assert(simultaneous(&b, &r)!, "13. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "13. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::CEIL, s)!;
 	let b = new(UTC, 0,  2001,  2, 28)!;
-	assert(simultaneous(&b, &r)!, "14. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "14. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::HOP, s)!;
 	let b = new(UTC, 0,  2001,  3,  1)!;
-	assert(simultaneous(&b, &r)!, "15. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "15. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::FOLD, s)!;
 	let b = new(UTC, 0,  2001,  3,  3)!;
-	assert(simultaneous(&b, &r)!, "16. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "16. incorrect result");
 
 	// multiple spans
 
@@ -418,35 +418,35 @@ fn reckon_nanoseconds(r: *virtual, nsecs: i64, rf: rflag) void = {
 
 	let r = reckon(a, zflag::CONTIG, 0, spans[..1]...)!;
 	let b = new(UTC, 0,  2002,  2,  1)!;
-	assert(simultaneous(&b, &r)!, "17. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "17. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, spans[..2]...)!;
 	let b = new(UTC, 0,  2000, 12, 31)!;
-	assert(simultaneous(&b, &r)!, "18. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "18. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, spans[..3]...)!;
 	let b = new(UTC, 0,  1999, 11, 29)!;
-	assert(simultaneous(&b, &r)!, "19. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "19. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, spans[..4]...)!;
 	let b = new(UTC, 0,  2000, 12, 30)!;
-	assert(simultaneous(&b, &r)!, "20. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "20. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, spans[..5]...)!;
 	let b = new(UTC, 0,  2000, 12, 30,   1,  1,  1)!;
-	assert(simultaneous(&b, &r)!, "21. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "21. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, spans[..6]...)!;
 	let b = new(UTC, 0,  2000, 12, 30)!;
-	assert(simultaneous(&b, &r)!, "22. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "22. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, spans[..7]...)!;
 	let b = new(UTC, 0,  2000, 12, 29,  22, 58, 59)!;
-	assert(simultaneous(&b, &r)!, "23. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "23. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, 0, spans[..8]...)!;
 	let b = new(UTC, 0,  2000, 12, 30)!;
-	assert(simultaneous(&b, &r)!, "24. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "24. incorrect result");
 
 	// multiple spans, rflag::REVSIG
 
@@ -464,35 +464,35 @@ fn reckon_nanoseconds(r: *virtual, nsecs: i64, rf: rflag) void = {
 
 	let r = reckon(a, zflag::CONTIG, rflag::REVSIG, spans[..1]...)!;
 	let b = new(UTC, 0,  2002,  2,  1)!;
-	assert(simultaneous(&b, &r)!, "25. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "25. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::REVSIG, spans[..2]...)!;
 	let b = new(UTC, 0,  2000, 12, 31)!;
-	assert(simultaneous(&b, &r)!, "26. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "26. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::REVSIG, spans[..3]...)!;
 	let b = new(UTC, 0,  1999, 11, 30)!;
-	assert(simultaneous(&b, &r)!, "27. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "27. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::REVSIG, spans[..4]...)!;
 	let b = new(UTC, 0,  2001,  1,  1)!;
-	assert(simultaneous(&b, &r)!, "28. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "28. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::REVSIG, spans[..5]...)!;
 	let b = new(UTC, 0,  2001,  1,  1,   1,  1,  1)!;
-	assert(simultaneous(&b, &r)!, "29. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "29. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::REVSIG, spans[..6]...)!;
 	let b = new(UTC, 0,  2001,  1,  1)!;
-	assert(simultaneous(&b, &r)!, "30. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "30. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::REVSIG, spans[..7]...)!;
 	let b = new(UTC, 0,  2000, 12, 31,  22, 58, 59)!;
-	assert(simultaneous(&b, &r)!, "31. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "31. incorrect result");
 
 	let r = reckon(a, zflag::CONTIG, rflag::REVSIG, spans[..8]...)!;
 	let b = new(UTC, 0,  2001,  1,  1)!;
-	assert(simultaneous(&b, &r)!, "32. incorrect result");
+	assert(0 == chrono::compare(&b, &r)!, "32. incorrect result");
 
 	return;
 };
