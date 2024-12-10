@@ -135,27 +135,36 @@ fn cmpinstants(a: const *opaque, b: const *opaque) int = {
 };
 
 // Creates a [[timezone]] with a single [[zonephase]]. Useful for fixed offsets.
-// For example, replicate the civil time Hawaii timezone on Earth:
+// The caller must free the return value with [[timezone_free]]. An example,
+// replicate the civil time Hawaii timezone on Earth:
 //
-// 	let hawaii = chrono::fixedzone(&chrono::utc, chrono::EARTH_DAY,
+// 	let hawaii = chrono::fixedzone(
+// 		&chrono::utc,
+// 		"Custom/Hawaiian_Reef",
+// 		chrono::EARTH_DAY,
 // 		chrono::zonephase {
 // 			zoff = -10 * time::HOUR,
-// 			name = "Hawaiian Reef",
 // 			abbr = "HARE",
 // 			dst = false,
+// 			...
 // 		},
 // 	);
 //
-export fn fixedzone(tsc: *chrono::timescale, daylen: time::duration, z: zonephase) timezone = {
-	return timezone {
-		name = z.name,
+export fn fixedzone(
+	tsc: *chrono::timescale,
+	name: str,
+	daylen: time::duration,
+	z: zonephase,
+) *timezone = {
+	return alloc(timezone {
+		name = strings::dup(name)!,
 		tsc = tsc,
 		daylength = daylen,
 		phases = alloc([z])!,
 		transitions = [],
 		lookupzone = null,
 		petz = PETZ_EMPTY,
-	};
+	})!;
 };
 
 // The local [[locality]]; the system or environment configured [[timezone]].
