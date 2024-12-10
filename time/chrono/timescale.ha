@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 // (c) Hare authors <https://harelang.org>
 
+// TODO: consider:  export const TSC_UTC = &utc;  etc.
+
 use time;
 
 // Represents a scale of time; a time standard. See [[convert]].
@@ -28,6 +30,8 @@ fn check_timescales(a: *timescale, b: *timescale) (void | tscmismatch) = {
 // two-step intermediary [[tai]] conversion will occur. If given zero
 // timescales, the given moment is returned.
 export fn convert(m: moment, tscs: *timescale...) []moment = {
+	// TODO: consider returning just 2-tuple of (earliest, latest) moments.
+
 	let t = *(&m: *time::instant);
 	let ms: []moment = [m];
 	let tmps: []moment = [];
@@ -113,6 +117,7 @@ export const utc: timescale = timescale {
 	convto = &utc_convto,
 	convfrom = &utc_convfrom,
 };
+// TODO: find better way to handle utc initialization cases.
 
 fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	let ret: []time::instant = [];
