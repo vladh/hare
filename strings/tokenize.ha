@@ -79,7 +79,6 @@ export fn remaining_tokens(s: *tokenizer) str = {
 };
 
 fn tokenize_test(
-	testcase: str,
 	in: str,
 	delim: str,
 	tokens: []str,
@@ -95,21 +94,22 @@ fn tokenize_test(
 
 		const p = peek_token(&tok) as str;
 		const n = next_token(&tok) as str;
-		assert(p == n, testcase);
-		assert(n == want, testcase);
+		assert(p == n);
+		assert(n == want);
 	};
 
 	if (n >= iters) {
 		return tok;
 	};
 
-	assert(peek_token(&tok) is done, testcase);
-	assert(next_token(&tok) is done, testcase);
+	assert(peek_token(&tok) is done);
+	assert(next_token(&tok) is done);
 	return tok;
 };
 
 @test fn tokenize() void = {
-	tokenize_test("simple case",
+	// simple case
+	tokenize_test(
 		"Hello world! My name is Harriet.", " ",
 		[
 			"Hello",
@@ -120,7 +120,8 @@ fn tokenize_test(
 			"Harriet.",
 		]);
 
-	tokenize_test("multiple delimiters",
+	// multiple delimiters
+	tokenize_test(
 		"/dev/sda1\t/ ext4 rw,relatime\t0 0", " \t",
 		[
 			"/dev/sda1",
@@ -131,7 +132,8 @@ fn tokenize_test(
 			"0",
 		]);
 
-	tokenize_test("consecutive delimiters",
+	// consecutive delimiters
+	tokenize_test(
 		"hello    world", " ",
 		[
 			"hello",
@@ -141,7 +143,8 @@ fn tokenize_test(
 			"world",
 		]);
 
-	tokenize_test("leading delimiters",
+	// leading delimiters
+	tokenize_test(
 		" hello world ", " ",
 		[
 			"",
@@ -150,7 +153,8 @@ fn tokenize_test(
 			"",
 		]);
 
-	const tok = tokenize_test("remaining_tokens",
+	// remaining_tokens
+	const tok = tokenize_test(
 		"Hello world! My name is Harriet.", " ",
 		[
 			"Hello",

@@ -148,7 +148,6 @@ export fn remaining_tokens(s: *tokenizer) []u8 = {
 
 fn tokenize_test(
 	func: *fn([]u8, u8...) tokenizer,
-	testcase: str,
 	in: []u8,
 	delim: []u8,
 	tokens: [][]u8,
@@ -164,76 +163,86 @@ fn tokenize_test(
 
 		const p = peek_token(&tok) as []u8;
 		const n = next_token(&tok) as []u8;
-		assert(equal(p, n), testcase);
-		assert(equal(n, want), testcase);
+		assert(equal(p, n));
+		assert(equal(n, want));
 	};
 
 	if (n >= iters) {
 		return tok;
 	};
 
-	assert(peek_token(&tok) is done, testcase);
-	assert(next_token(&tok) is done, testcase);
+	assert(peek_token(&tok) is done);
+	assert(next_token(&tok) is done);
 	return tok;
 };
 
 @test fn tokenize() void = {
-	tokenize_test(&tokenize, "simple case", [1, 2, 0, 3, 4], [0], [
+	// simple case
+	tokenize_test(&tokenize, [1, 2, 0, 3, 4], [0], [
 		[1, 2],
 		[3, 4],
 	]);
 
-	tokenize_test(&tokenize, "multiple delimiters", [1, 2, 0, 3, 4, 42, 5, 6], [0, 42], [
+	// multiple delimiters
+	tokenize_test(&tokenize, [1, 2, 0, 3, 4, 42, 5, 6], [0, 42], [
 		[1, 2],
 		[3, 4],
 		[5, 6],
 	]);
 
-	tokenize_test(&tokenize, "empty tokens", [1, 2, 0, 0, 0, 3, 4], [0], [
+	// empty tokens
+	tokenize_test(&tokenize, [1, 2, 0, 0, 0, 3, 4], [0], [
 		[1, 2],
 		[],
 		[],
 		[3, 4],
 	]);
 
-	tokenize_test(&tokenize, "leading empty tokens", [0, 1, 2, 3, 0], [0], [
+	// leading empty tokens
+	tokenize_test(&tokenize, [0, 1, 2, 3, 0], [0], [
 		[],
 		[1, 2, 3],
 		[],
 	]);
 
-	const tok = tokenize_test(&tokenize, "remaining_tokens", [1, 2, 0, 3, 4], [0], [
+	// remaining_tokens
+	const tok = tokenize_test(&tokenize, [1, 2, 0, 3, 4], [0], [
 		[1, 2],
 	], 1);
 	assert(equal(remaining_tokens(&tok), [3, 4]));
 };
 
 @test fn rtokenize() void = {
-	tokenize_test(&rtokenize, "simple case", [1, 2, 0, 3, 4], [0], [
+	// simple case
+	tokenize_test(&rtokenize, [1, 2, 0, 3, 4], [0], [
 		[3, 4],
 		[1, 2],
 	]);
 
-	tokenize_test(&rtokenize, "multiple delimiters", [1, 2, 0, 3, 4, 42, 5, 6], [0, 42], [
+	// multiple delimiters
+	tokenize_test(&rtokenize, [1, 2, 0, 3, 4, 42, 5, 6], [0, 42], [
 		[5, 6],
 		[3, 4],
 		[1, 2],
 	]);
 
-	tokenize_test(&rtokenize, "empty tokens", [1, 2, 0, 0, 0, 3, 4], [0], [
+	// empty tokens
+	tokenize_test(&rtokenize, [1, 2, 0, 0, 0, 3, 4], [0], [
 		[3, 4],
 		[],
 		[],
 		[1, 2],
 	]);
 
-	tokenize_test(&rtokenize, "leading empty tokens", [0, 1, 2, 3, 0], [0], [
+	// leading empty tokens
+	tokenize_test(&rtokenize, [0, 1, 2, 3, 0], [0], [
 		[],
 		[1, 2, 3],
 		[],
 	]);
 
-	const tok = tokenize_test(&rtokenize, "remaining_tokens", [1, 2, 0, 3, 4], [0], [
+	// remaining_tokens
+	const tok = tokenize_test(&rtokenize, [1, 2, 0, 3, 4], [0], [
 		[3, 4],
 	], 1);
 	assert(equal(remaining_tokens(&tok), [1, 2]));
