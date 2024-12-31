@@ -13,7 +13,8 @@ export type socket = io::file;
 // Note that CLOEXEC is on by default, and NOCLOEXEC flag disables it.
 export type sockflag = enum int {
 	NOCLOEXEC = rt::SOCK_CLOEXEC,
-	NONBLOCK = rt::SOCK_NONBLOCK
+	NONBLOCK = rt::SOCK_NONBLOCK,
+	DGRAM = rt::SOCK_DGRAM,
 };
 
 // Accepts the next connection from a socket. Blocks until a new connection is

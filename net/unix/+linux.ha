@@ -25,7 +25,14 @@ export fn connect(
 		f |= options[i];
 	};
 	f ^= rt::SOCK_CLOEXEC; // invert CLOEXEC
-	const sockfd = match (rt::socket(rt::AF_UNIX: int, rt::SOCK_STREAM | f, 0)) {
+
+	// set default type if none provided. assumes that socket types will
+	// not outgrow 0xf and additional flags will not be added within 0xf.
+	if (f & 0xf == 0) {
+		f |= rt::SOCK_STREAM;
+	};
+
+	const sockfd = match (rt::socket(rt::AF_UNIX: int, f, 0)) {
 	case let err: rt::errno =>
 		return errors::errno(err);
 	case let fd: int =>
