@@ -20,6 +20,7 @@ use os;
 use path;
 use strconv;
 use strings;
+use time;
 use unix::tty;
 
 fn build(name: str, cmd: *getopt::command) (void | error) = {
@@ -194,6 +195,22 @@ fn build(name: str, cmd: *getopt::command) (void | error) = {
 
 	let dest = os::stdout_file;
 	if (output != "-") {
+		match (os::stat(output)) {
+		case let output_stat: fs::filestat =>
+			let output_mtime = output_stat.mtime;
+			match (os::stat(built)) {
+			case let built_stat: fs::filestat =>
+				let built_mtime = built_stat.mtime;
+				// Avoid replacing the destination file if it's
+				// already up-to-date
+				if (time::compare(output_mtime, built_mtime) >= 0) {
+					return;
+				};
+			case fs::error => void;
+			};
+		case fs::error => void;
+		};
+
 		let mode: fs::mode = 0o644;
 		if (ctx.goal == build::stage::BIN) {
 			mode |= 0o111;
