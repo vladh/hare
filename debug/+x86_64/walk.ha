@@ -32,7 +32,7 @@ export fn next(frame: stackframe) (stackframe | done) = {
 export fn frame_pc(frame: stackframe) uintptr = frame.ip;
 
 // Implementation detail, constructs a synthetic stack frame.
-fn mkframe(next: *stackframe, ip: uintptr) stackframe = {
+fn mkframe(next: nullable *stackframe, ip: uintptr) stackframe = {
 	return stackframe {
 		fp = next,
 		ip = ip,

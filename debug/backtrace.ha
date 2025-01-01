@@ -15,7 +15,8 @@ def MAX_FRAMES_TOP: size = 16z;
 def MAX_FRAMES_BOTTOM: size = 16z;
 def MAX_FRAMES: size = MAX_FRAMES_TOP + MAX_FRAMES_BOTTOM;
 
-fn backtrace(self: *image::image, frame: stackframe) void = {
+// Prints a backtrace to the standard error.
+export fn backtrace(self: *image::image, frame: stackframe) void = {
 	let orig = frame;
 	let nframe = 1z;
 	for (true; nframe += 1) {
