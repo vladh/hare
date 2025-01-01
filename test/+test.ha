@@ -3,6 +3,8 @@
 
 use ascii;
 use bufio;
+use debug;
+use debug::image;
 use encoding::hex;
 use encoding::utf8;
 use fmt;
@@ -30,9 +32,17 @@ type status = enum {
 	SEGV,
 };
 
+type abort_reason = struct {
+	path: nullable *str,
+	line: u64,
+	col: u64,
+	msg: str,
+};
+
 type failure = struct {
 	test: str,
-	reason: rt::abort_reason,
+	reason: abort_reason,
+	trace: u64,
 };
 
 type skipped = struct {
@@ -79,8 +89,6 @@ fn colored() bool = {
 	return len(os::tryenv("NO_COLOR", "")) == 0
 		&& tty::isatty(os::stdout_file);
 };
-
-let jmp_buf = rt::jmp_buf { ... };
 
 const @symbol("__test_array_start") test_start: [*]test;
 const @symbol("__test_array_end") test_end: [*]test;
@@ -140,6 +148,17 @@ export @symbol("__test_main") fn main() size = {
 	};
 
 	if (len(ctx.failures) > 0) {
+		const image = match (image::self()) {
+		case let img: image::image =>
+			yield img;
+		case => yield;
+		};
+		defer match (&image) {
+		case let img: *image::image =>
+			image::close(img);
+		case void => void;
+		};
+
 		fmt::println("Failures:")!;
 		for (let failure .. ctx.failures) {
 			match (failure.reason.path) {
@@ -155,6 +174,22 @@ export @symbol("__test_main") fn main() size = {
 					failure.reason.col,
 					failure.reason.msg)!;
 			};
+
+			if (failure.trace == 0) continue;
+
+			const image = match (&image) {
+			case let img: *image::image =>
+				yield img;
+			case void => continue;
+			};
+
+			const trace = match (debug::trace_by_id(failure.trace)) {
+			case let frame: debug::stackframe =>
+				yield frame;
+			case void => continue;
+			};
+
+			debug::backtrace(image, trace);
 		};
 		fmt::println()!;
 	};
@@ -243,10 +278,16 @@ fn run_test(ctx: *context, test: test) status = {
 	let orig_stderr = os::stderr;
 	os::stdout = &ctx.stdout;
 	os::stderr = &ctx.stderr;
-	defer rt::jmp = null;
+
+	trace = 0u64;
+
+	default_abort = rt::onabort(&onabort);
+	defer rt::onabort(default_abort);
+
+	defer jmp = null;
 	const n = rt::setjmp(&jmp_buf): status;
 	if (n == status::RETURN) {
-		rt::jmp = &jmp_buf;
+		jmp = &jmp_buf;
 		test.func();
 	};
 
@@ -290,10 +331,11 @@ fn interpret_status(ctx: *context, test: str, status: status) bool = {
 			styled_print(91, "FAIL");
 			append(ctx.failures, failure {
 				test = test,
-				reason = rt::abort_reason {
+				reason = abort_reason {
 					msg = "Expected test to abort",
 					...
 				},
+				trace = 0,
 			});
 			return true;
 		} else {
@@ -308,7 +350,8 @@ fn interpret_status(ctx: *context, test: str, status: status) bool = {
 			styled_print(91, "FAIL");
 			append(ctx.failures, failure {
 				test = test,
-				reason = rt::reason,
+				reason = reason,
+				trace = trace,
 			});
 			return true;
 		};
@@ -316,17 +359,18 @@ fn interpret_status(ctx: *context, test: str, status: status) bool = {
 		styled_print(37, "SKIP");
 		append(ctx.skipped, skipped {
 			test = test,
-			reason = rt::reason.msg,
+			reason = reason.msg,
 		});
 		return false;
 	case status::SEGV =>
 		styled_print(91, "FAIL");
 		append(ctx.failures, failure {
 			test = test,
-			reason = rt::abort_reason {
+			reason = abort_reason {
 				msg = "Segmentation fault",
 				...
 			},
+			trace = trace,
 		});
 		return true;
 	};
@@ -340,10 +384,42 @@ fn styled_print(color: int, result: fmt::formattable) void = {
 	};
 };
 
+let jmp_buf = rt::jmp_buf { ... };
+let jmp: nullable *rt::jmp_buf = null;
+let reason: abort_reason = abort_reason { ... };
+let trace = 0u64;
+let default_abort = null: *rt::abort_handler;
+
+fn onabort(
+	path: *str,
+	line: u64,
+	col: u64,
+	msg: str,
+) never = {
+	match (jmp) {
+	case let j: *rt::jmp_buf =>
+		let frame = debug::walk();
+		// Skip rt:: and test:: frames
+		frame = debug::next(frame) as debug::stackframe;
+		frame = debug::next(frame) as debug::stackframe;
+
+		trace = debug::trace_store(frame);
+		reason = abort_reason {
+			path = path,
+			line = line,
+			col = col,
+			msg = msg,
+		};
+		rt::longjmp(j, status::ABORT);
+	case null =>
+		default_abort(path, line, col, msg);
+	};
+};
+
 fn handle_segv(
 	sig: signal::sig,
 	info: *signal::siginfo,
-	ucontext: *opaque,
+	uctx: *opaque,
 ) void = {
 	rt::longjmp(&jmp_buf, status::SEGV);
 };

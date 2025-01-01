@@ -11,19 +11,19 @@ let want_abort = false;
 // Expect the currently running test to abort. The test will fail if it doesn't
 // abort.
 export fn expectabort() void = {
-	if (rt::jmp == null) {
+	if (jmp == null) {
 		abort("Attempted to call test::expectabort outside of @test function");
 	};
 	want_abort = true;
 };
 
 // Skip the currently running test.
-export fn skip(reason: str) never = {
-	if (rt::jmp == null) {
+export fn skip(why: str) never = {
+	if (jmp == null) {
 		abort("Attempted to call test::skip outside of @test function");
 	};
-	rt::reason = rt::abort_reason {
-		msg = reason,
+	reason = abort_reason {
+		msg = why,
 		...
 	};
 	rt::longjmp(&jmp_buf, status::SKIP);

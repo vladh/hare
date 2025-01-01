@@ -11,9 +11,11 @@ export type abort_handler = fn(
 
 let handle_abort: *abort_handler = &platform_abort;
 
-// Sets a new global runtime abort handler.
-export fn onabort(handler: *abort_handler) void = {
+// Sets a new global runtime abort handler, returning the previous handler.
+export fn onabort(handler: *abort_handler) *abort_handler = {
+	const prev = handle_abort;
 	handle_abort = handler;
+	return prev;
 };
 
 export @symbol("rt.abort") fn _abort(
