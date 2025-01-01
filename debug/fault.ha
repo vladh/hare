@@ -26,7 +26,7 @@ def ALTSTACK_SIZE: size = 16384;
 };
 
 fn signal_handler(sig: sig, info: *signal::siginfo, uctx: *opaque) void = {
-	signal::resetall();
+	begin_fatal();
 
 	const ip = uctx_ip(uctx);
 	const sp = uctx_sp(uctx);

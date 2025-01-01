@@ -16,6 +16,8 @@ fn debug_abort(
 	col: u64,
 	msg: str,
 ) never = {
+	begin_fatal();
+
 	fmt::errorfln("Abort: {}:{}:{}: {}", *path, line, col, msg): void;
 
 	const self = match (image::self()) {

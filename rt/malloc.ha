@@ -5,21 +5,6 @@
 // Appel, Andrew W., and David A. Naumann. "Verified sequential malloc/free"
 // but with logarithmic bin sizing and additional safety checks. Not thread-safe
 
-// A group of blocks that were allocated together.
-export type chunk = union {
-	padding: size, // TODO: track number of active allocations here
-	data: [*]u8,
-};
-
-// Metadata for a block.
-export type meta = struct {
-	union {
-		sz: size,
-		next: uintptr,
-	},
-	user: [*]u8,
-};
-
 // Size of the header/footer for allocations.
 def META: size = size(size);
 
@@ -36,41 +21,6 @@ def CHUNKSZ: size = 1 << 21;
 
 // Byte to fill allocations with while they're not in use.
 def POISON: u8 = 0x69;
-
-export type memory_heap = struct {
-	// Number of allocations currently in flight.
-	cur_allocs: size,
-	// Freelists for blocks up to 2048 bytes.
-	bins: [9]nullable *meta,
-	// The chunk to allocate from if there are no blocks available in the
-	// right freelist.
-	cur_chunk: (*chunk, size),
-};
-
-let static_heap = memory_heap {
-	cur_allocs = 0,
-	bins = [null...],
-	cur_chunk = (null: *chunk, CHUNKSZ),
-};
-
-let heap = &static_heap;
-
-export fn newheap() memory_heap = {
-	// Re-initializes the heap from scratch, abandoning all prior memory
-	// allocations and returning the previous heap.
-	//
-	// This function is designed to be called by debug:: in a scenario where
-	// the heap has been corrupted. It abandons the corrupt heap and
-	// prepares a fresh heap which debug:: can use to allocate memory for
-	// any operations it needs to perform during clean-up.
-	const old = *heap;
-	*heap = memory_heap {
-		cur_allocs = 0,
-		bins = [null...],
-		cur_chunk = (null: *chunk, CHUNKSZ),
-	};
-	return old;
-};
 
 // Allocates n bytes of memory and returns a pointer to them, or null if there
 // is insufficient memory.

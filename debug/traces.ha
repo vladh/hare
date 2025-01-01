@@ -30,6 +30,9 @@ export fn trace_store(frame: stackframe) u64 = {
 	static let pc: []uintptr = [];
 	pc = pc[..0];
 
+	const prev_heap = begin_altheap();
+	defer end_altheap(prev_heap);
+
 	const hash = fnv::fnv64a();
 	for (true) {
 		hash::write(&hash, &frame_pc(frame): *[size(uintptr)]u8);
