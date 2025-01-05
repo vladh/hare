@@ -8,6 +8,7 @@ use hare::module;
 use io;
 use os::exec;
 use path;
+use time;
 
 export type error = !(exec::error | fs::error | io::error | module::error | path::error);
 
@@ -83,7 +84,7 @@ export type context = struct {
 	libc: bool,
 
 	cmds: [NSTAGES]str,
-	cmd_hashes: [NSTAGES][sha256::SZ]u8,
+	cmd_mtimes: [NSTAGES]time::instant,
 
 	mode: output,
 	completed: size,

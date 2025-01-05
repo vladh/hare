@@ -3,7 +3,6 @@
 
 use bufio;
 use cmd::hare::build;
-use crypto::sha256;
 use errors;
 use fmt;
 use fs;
@@ -12,7 +11,6 @@ use hare::ast;
 use hare::lex;
 use hare::module;
 use hare::parse;
-use hash;
 use io;
 use memio;
 use os::exec;
@@ -156,26 +154,22 @@ fn build(name: str, cmd: *getopt::command) (void | error) = {
 		ctx.cmds[build::stage::BIN] = os::tryenv("CC", arch.cc_cmd);
 	};
 
-	let h = sha256::sha256();
-	defer hash::close(&h);
 	for (let i = 1z; i < len(ctx.cmds); i += 1) {
-		defer hash::reset(&h);
 		const cmd_path = match (exec::lookup(ctx.cmds[i])) {
-		case let cmd_path: str => yield cmd_path;
+		case let cmd_path: str =>
+			yield cmd_path;
 		case void =>
 			fmt::fatalf("Error: Command not found: {}", ctx.cmds[i]);
 		};
-		const cmd_file = match (os::open(cmd_path)) {
-		case let file: io::file => yield file;
+
+		const stat = match (os::stat(cmd_path)) {
+		case let stat: fs::filestat =>
+			yield stat;
 		case let err: fs::error =>
-			fmt::fatalf("Error: {}", fs::strerror(err));
+			fmt::fatalf("Error: Failed to stat {}: {}", ctx.cmds[i],
+				fs::strerror(err));
 		};
-		defer io::close(cmd_file)!;
-		let b: [sha256::BLOCKSZ]u8 = [0...];
-		for (let s => io::read(cmd_file, &b)!) {
-			hash::write(&h, b[..s]);
-		};
-		hash::sum(&h, ctx.cmd_hashes[i]);
+		ctx.cmd_mtimes[i] = stat.mtime;
 	};
 
 	const input = if (len(cmd.args) == 0) os::getcwd() else cmd.args[0];

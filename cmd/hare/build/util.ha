@@ -14,6 +14,7 @@ use os::exec;
 use path;
 use shlex;
 use strings;
+use time;
 
 // for use as a scratch buffer
 let buf = path::buffer { ... };
@@ -160,7 +161,7 @@ fn get_hash(
 ) [sha256::SZ]u8 = {
 	let h = sha256::sha256();
 
-	hash::write(&h, ctx.cmd_hashes[t.kind]);
+	hash::write(&h, *(&ctx.cmd_mtimes[t.kind]: *[size(time::instant)]u8));
 	for (let flag .. flags) {
 		hash::write(&h, strings::toutf8(flag));
 	};
