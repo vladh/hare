@@ -48,7 +48,8 @@ const gcm_vtable: io::vtable = io::vtable {
 //
 // The user must call [[io::close]] when they are done using the stream to
 // securely erase secret information stored in the stream state. Close will
-// also finish the 'block' provided by [[gcm_init]].
+// also finish the 'block' provided by [[gcm_init]]. If the 'block' should
+// not be finished, [[gcm_unlink_block]] must be called before close.
 export fn gcm() gcmstream = {
 	return gcmstream {
 		stream = &gcm_vtable,
@@ -233,6 +234,12 @@ export fn gcm_verify(s: *gcmstream, tag: []u8) (void | errors::invalid) = {
 	if (eqslice(tag, tmp) == 0) {
 		return errors::invalid;
 	};
+};
+
+// Unlinks the 'block' provided by [[gcm_init]] to avoid finishing it when
+// calling [[io::close]] on the stream.
+export fn gcm_unlink_block(s: *gcmstream) void = {
+	s.block = null;
 };
 
 fn gcm_closer(s: *io::stream) (void | io::error) = {
