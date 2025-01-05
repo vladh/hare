@@ -268,9 +268,13 @@ fn get_output(goal: build::stage, input: str) (str | error) = {
 		// XXX: double cast here (and below) shouldn't be necessary
 		return output: output_exists: error;
 	};
-	if (!fs::isfile(stat.mode)
-			|| fs::mode_perm(stat.mode) & fs::mode::USER_X == 0) {
+	if (fs::mode_perm(stat.mode) & fs::mode::USER_X == 0
+			&& goal == build::stage::BIN) {
 		return output: output_exists: error;
 	};
+	if (!fs::isfile(stat.mode)) {
+		return output: output_exists: error;
+	};
+
 	return output;
 };
