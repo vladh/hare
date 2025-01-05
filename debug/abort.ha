@@ -5,8 +5,10 @@ use debug::image;
 use fmt;
 use rt;
 
+let default_abort = null: *rt::abort_handler;
+
 @init fn init_abort() void = {
-	rt::onabort(&debug_abort);
+	default_abort = rt::onabort(&debug_abort);
 };
 
 // Note: take care not to get into an abort loop when working on this code

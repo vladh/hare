@@ -13,6 +13,7 @@ let heap = rt::EMPTY_HEAP;
 fn begin_fatal() void = {
 	signal::resetall();
 	rt::setheap(&heap);
+	rt::onabort(default_abort);
 };
 
 // Enables the debug:: heap.
