@@ -264,6 +264,9 @@ fn do_test(ctx: *context, test: test) void = {
 			stdout = stdout,
 			stderr = stderr,
 		});
+	} else {
+		free(stdout);
+		free(stderr);
 	};
 
 	reset(ctx);
