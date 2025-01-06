@@ -27,8 +27,8 @@ export fn multireplace(s: str, repls: (str, str)...) str = {
 		for (let (replace, with) .. repls) {
 			const replb = (toutf8(replace), toutf8(with));
 			if (bytes::hasprefix(b[i..], replb.0)) {
-				append(res, b[prev..i]...);
-				append(res, replb.1...);
+				append(res, b[prev..i]...)!;
+				append(res, replb.1...)!;
 				i += len(replb.0);
 				prev = i;
 				continue :step;
@@ -36,7 +36,7 @@ export fn multireplace(s: str, repls: (str, str)...) str = {
 		};
 		i += 1;
 	};
-	append(res, b[prev..i]...);
+	append(res, b[prev..i]...)!;
 	return fromutf8_unsafe(res);
 };
 

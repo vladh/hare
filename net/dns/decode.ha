@@ -16,12 +16,12 @@ type decoder = struct {
 // return value.
 export fn decode(buf: []u8) (*message | format) = {
 	let success = false;
-	let msg = alloc(message { ... });
+	let msg = alloc(message { ... })!;
 	defer if (!success) message_free(msg);
 	let dec = decoder_init(buf);
 	decode_header(&dec, &msg.header)?;
 	for (let i = 0z; i < msg.header.qdcount; i += 1) {
-		append(msg.questions, decode_question(&dec)?);
+		append(msg.questions, decode_question(&dec)?)!;
 	};
 	decode_rrecords(&dec, msg.header.ancount, &msg.answers)?;
 	decode_rrecords(&dec, msg.header.nscount, &msg.authority)?;
@@ -36,7 +36,7 @@ fn decode_rrecords(
 	out: *[]rrecord,
 ) (void | format) = {
 	for (let i = 0z; i < count; i += 1) {
-		append(out, decode_rrecord(dec)?);
+		append(out, decode_rrecord(dec)?)!;
 	};
 };
 
@@ -151,7 +151,7 @@ fn decode_name(dec: *decoder) ([]str | format) = {
 			return format;
 		};
 
-		append(names, strings::dup(name));
+		append(names, strings::dup(name))!;
 	};
 	return format;
 };
@@ -296,7 +296,7 @@ fn decode_dnskey(dec: *decoder) (rdata | format) = {
 		algorithm = decode_u8(dec)?,
 		key = [],
 	};
-	append(r.key, dec.cur[..]...);
+	append(r.key, dec.cur[..]...)!;
 	return r;
 };
 
@@ -333,9 +333,9 @@ fn decode_opt(dec: *decoder) (rdata | format) = {
 		if (len(dec.cur) < sz) {
 			return format;
 		};
-		append(o.data, dec.cur[..sz]...);
+		append(o.data, dec.cur[..sz]...)!;
 		dec.cur = dec.cur[sz..];
-		append(r.options, o);
+		append(r.options, o)!;
 	};
 	success = true;
 	return r;
@@ -346,7 +346,7 @@ fn decode_nsec(dec: *decoder) (rdata | format) = {
 		next_domain = decode_name(dec)?,
 		type_bitmaps = [],
 	};
-	append(r.type_bitmaps, dec.cur[..]...);
+	append(r.type_bitmaps, dec.cur[..]...)!;
 	return r;
 };
 
@@ -368,7 +368,7 @@ fn decode_rrsig(dec: *decoder) (rdata | format) = {
 		signer_name = decode_name(dec)?,
 		signature = [],
 	};
-	append(r.signature, dec.cur[..]...);
+	append(r.signature, dec.cur[..]...)!;
 	return r;
 };
 
@@ -398,7 +398,7 @@ fn decode_sshfp(dec: *decoder) (rdata | format) = {
 		fp_type = decode_u8(dec)?,
 		fingerprint = [],
 	};
-	append(r.fingerprint, dec.cur[..]...);
+	append(r.fingerprint, dec.cur[..]...)!;
 	return r;
 };
 
@@ -417,7 +417,7 @@ fn decode_tsig(dec: *decoder) (rdata | format) = {
 	if (len(dec.cur) < r.mac_len) {
 		return format;
 	};
-	append(r.mac, dec.cur[..r.mac_len]...);
+	append(r.mac, dec.cur[..r.mac_len]...)!;
 	defer if (!success) free(r.mac);
 	dec.cur = dec.cur[r.mac_len..];
 
@@ -429,7 +429,7 @@ fn decode_tsig(dec: *decoder) (rdata | format) = {
 		return format;
 	};
 	if (r.other_len > 0) {
-		append(r.other_data, dec.cur[..]...);
+		append(r.other_data, dec.cur[..]...)!;
 	};
 
 	success = true;
@@ -446,9 +446,9 @@ fn decode_txt(dec: *decoder) (rdata | format) = {
 			return format;
 		};
 		let item: []u8 = [];
-		append(item, dec.cur[..ln]...);
+		append(item, dec.cur[..ln]...)!;
 		dec.cur = dec.cur[ln..];
-		append(items, item);
+		append(items, item)!;
 	};
 	success = true;
 	return items;

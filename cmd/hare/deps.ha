@@ -122,7 +122,7 @@ fn deps_graph(mods: *[]module::module) void = {
 
 	let links: []link = [];
 	defer free(links);
-	let depth: []uint = alloc([0...], len(mods));
+	let depth: []uint = alloc([0...], len(mods))!;
 	// traverse in reverse because reverse-topo-sort
 	for (let i = len(mods) - 1; i < len(mods); i -= 1) {
 		// reverse-sort deps so that we know the last in the list is the
@@ -190,7 +190,7 @@ fn deps_graph(mods: *[]module::module) void = {
 				depth = depth[i],
 				child = mods[i].deps[j].0,
 				final = len(mods[i].deps) == j + 1,
-			});
+			})!;
 		};
 	};
 };

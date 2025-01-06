@@ -303,7 +303,7 @@ fn strstack_size(ss: *strstack) size = ss.bufc;
 
 fn strstack_push(ss: *strstack) *memio::stream = {
 	if (ss.bufc == len(ss.bufv)) {
-		append(ss.bufv, memio::dynamic());
+		append(ss.bufv, memio::dynamic())!;
 	};
 	let b = &ss.bufv[ss.bufc];
 	memio::reset(b);

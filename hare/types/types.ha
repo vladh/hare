@@ -22,8 +22,8 @@ export type builtin = enum u8 {
 	// Keep me consistent with ast::builtin
 
 	BOOL, DONE, F32, F64, FCONST, I16, I32, I64, I8, ICONST, INT, NEVER,
-	NULL, OPAQUE, RCONST, RUNE, SIZE, STR, U16, U32, U64, U8, UINT, UINTPTR,
-	VALIST, VOID
+	NOMEM, NULL, OPAQUE, RCONST, RUNE, SIZE, STR, U16, U32, U64, U8, UINT,
+	UINTPTR, VALIST, VOID
 };
 
 // An enum type, e.g. enum { FOO = 0 }

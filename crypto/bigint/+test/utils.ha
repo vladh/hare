@@ -8,7 +8,7 @@ export fn fromhex(h: str) []word = {
 	let n: []u8 = hex::decodestr(h)!;
 	defer free(n);
 
-	let i: []word = alloc([0...], encodelen(n));
+	let i: []word = alloc([0...], encodelen(n))!;
 	encode(i, n);
 	return i;
 };
@@ -22,7 +22,7 @@ export fn fromhexmod(h: str, m: []word) []word = {
 
 // The caller must free the result.
 export fn tohex(x: []word) str = {
-	let buf: []u8 = alloc([0...], (len(x) - 1) * size(word));
+	let buf: []u8 = alloc([0...], (len(x) - 1) * size(word))!;
 	defer free(buf);
 
 	decode(buf, x);

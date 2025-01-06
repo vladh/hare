@@ -18,7 +18,7 @@ fn d(i: []u8) decoder = {
 	let buf = memio::fixed(i);
 	let h = match (mem) {
 	case null =>
-		let h = alloc(buf);
+		let h = alloc(buf)!;
 		mem = h;
 		yield h;
 	case let m: *memio::stream =>

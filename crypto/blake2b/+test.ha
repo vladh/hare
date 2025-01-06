@@ -20,10 +20,10 @@ use strings;
 		let blake = blake2b(key, len(out));
 		defer hash::close(&blake);
 		hash::write(&blake, in);
-		let sum: []u8 = alloc([], len(out));
+		let sum: []u8 = alloc([], len(out))!;
 		defer free(sum);
 		for (let i = 0z; i < len(out); i += 1) {
-			append(sum, 0);
+			append(sum, 0)!;
 		};
 		hash::sum(&blake, sum);
 		let out = memio::dynamic();

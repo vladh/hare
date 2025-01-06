@@ -457,9 +457,9 @@ type op = enum {
 	for (let i = 0z; i < len(ops); i += 1) {
 		switch (ops[i]) {
 		case op::LEX =>
-			append(t, lex(&lexer)!);
+			append(t, lex(&lexer)!)!;
 		case op::NEXT =>
-			append(r, next(&lexer) as (rune, location));
+			append(r, next(&lexer) as (rune, location))!;
 		case op::UNGET =>
 			unget(&lexer, r[len(r) - 1].0);
 			delete(r[len(r) - 1]);

@@ -24,7 +24,7 @@ use bytes;
 	];
 	let result: [25]u8 = [0...];
 
-	let buf: []word = alloc([0...], encodelen(decoded));
+	let buf: []word = alloc([0...], encodelen(decoded))!;
 	defer free(buf);
 
 	encode(buf, decoded);
@@ -52,7 +52,7 @@ use bytes;
 
 	let mod = fromhex("00190000");
 	defer free(mod);
-	let resultbuf: []word = alloc([0...], encodelen(input));
+	let resultbuf: []word = alloc([0...], encodelen(input))!;
 	defer free(resultbuf);
 	let result: [4]u8 = [0...];
 
@@ -79,7 +79,7 @@ use bytes;
 
 	let mod = fromhex("190000");
 	defer free(mod);
-	let resultbuf: []word = alloc([0...], encodelen(input));
+	let resultbuf: []word = alloc([0...], encodelen(input))!;
 	defer free(resultbuf);
 	let result: [4]u8 = [0...];
 
@@ -88,14 +88,14 @@ use bytes;
 	assert(bytes::equal(result, input));
 
 	const input: [4]u8 = [0, 0x19, 0, 0];
-	let resultbuf: []word = alloc([0...], encodelen(input));
+	let resultbuf: []word = alloc([0...], encodelen(input))!;
 	defer free(resultbuf);
 	encodereduce(resultbuf, input, mod);
 	decode(result, resultbuf);
 	assert(iszero(resultbuf) == 1);
 
 	const input: [4]u8 = [0x24, 0x17, 0x01, 0x05];
-	let resultbuf: []word = alloc([0...], encodelen(input));
+	let resultbuf: []word = alloc([0...], encodelen(input))!;
 	defer free(resultbuf);
 	encodereduce(resultbuf, input, mod);
 	decode(result, resultbuf);

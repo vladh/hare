@@ -37,9 +37,9 @@ fn load_systemdb() (void | fs::error | io::error | utf8::invalid) = {
 		let entry = alloc(mimetype {
 			mime = strings::dup(mime),
 			exts = [],
-		});
+		})!;
 		for (let ext => strings::next_token(&tok)) {
-			append(entry.exts, strings::dup(ext));
+			append(entry.exts, strings::dup(ext))!;
 		};
 		register_heap(entry);
 	};
@@ -47,7 +47,7 @@ fn load_systemdb() (void | fs::error | io::error | utf8::invalid) = {
 
 fn register_heap(mime: *mimetype) void = {
 	let i = len(heap_db);
-	append(heap_db, mime);
+	append(heap_db, mime)!;
 	for (i < len(heap_db); i += 1) {
 		hashtable_insert(heap_db[i]);
 	};

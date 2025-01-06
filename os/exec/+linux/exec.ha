@@ -101,19 +101,19 @@ fn platform_finish(cmd: *command) void = rt::close(cmd.platform)!;
 fn platform_exec(cmd: *command) error = {
 	// We don't worry about freeing the return values from c::fromstr
 	// because once we exec(2) our heap is fried anyway
-	let argv: []nullable *const c::char = alloc([], len(cmd.argv) + 1z);
+	let argv: []nullable *const c::char = alloc([], len(cmd.argv) + 1z)!;
 	for (let arg .. cmd.argv) {
-		append(argv, c::fromstr(arg));
+		append(argv, c::fromstr(arg))!;
 	};
-	append(argv, null);
+	append(argv, null)!;
 
 	let envp: nullable *[*]nullable *const c::char = null;
 	if (len(cmd.env) != 0) {
-		let env: []nullable *const c::char = alloc([], len(cmd.env) + 1);
+		let env: []nullable *const c::char = alloc([], len(cmd.env) + 1)!;
 		for (let e .. cmd.env) {
-			append(env, c::fromstr(e));
+			append(env, c::fromstr(e))!;
 		};
-		append(env, null);
+		append(env, null)!;
 		envp = env: *[*]nullable *const c::char;
 	};
 

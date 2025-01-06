@@ -12,7 +12,7 @@ export fn dup(s: const str) str = {
 	case let b: *[*]u8 =>
 		yield b;
 	};
-	let buf: []u8 = alloc(id[..in.length], in.length);
+	let buf: []u8 = alloc(id[..in.length], in.length)!;
 	let out = types::string {
 		data = buf: *[*]u8,
 		length = in.length,
@@ -24,9 +24,9 @@ export fn dup(s: const str) str = {
 // Creates a copy of a []str slice with all the strings duplicated. The result
 // must be freed using [[freeall]].
 export fn dupall(strs: []str) []str = {
-	let newsl: []str = alloc([], len(strs));
+	let newsl: []str = alloc([], len(strs))!;
 	for (let s .. strs) {
-		static append(newsl, dup(s));
+		static append(newsl, dup(s))!;
 	};
 	return newsl;
 };

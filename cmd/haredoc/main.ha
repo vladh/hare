@@ -172,14 +172,14 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 				match (err) {
 				case let err: lex::syntax =>
 					const msg = strings::dup(err.1);
-					append(parse_errs, (err.0, msg));
+					append(parse_errs, (err.0, msg))!;
 					continue;
 				case =>
 					return err;
 				};
 			};
 			defer free(d);
-			append(decls, d...);
+			append(decls, d...)!;
 		};
 
 		let matching: []ast::decl = [];
@@ -187,9 +187,9 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 
 		for (let decl .. decls) {
 			if (has_decl(decl, id[len(id) - 1])) {
-				append(matching, decl);
+				append(matching, decl)!;
 			} else {
-				append(notmatching, decl);
+				append(notmatching, decl)!;
 			};
 		};
 		get_init_funcs(&matching, &notmatching);
@@ -232,14 +232,14 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 				match (err) {
 				case let err: lex::syntax =>
 					const msg = strings::dup(err.1);
-					append(parse_errs, (err.0, msg));
+					append(parse_errs, (err.0, msg))!;
 					continue;
 				case =>
 					return err;
 				};
 			};
 			defer free(d);
-			append(decls, d...);
+			append(decls, d...)!;
 		};
 
 		const rpath = match (path::init(modpath, "README")) {
@@ -328,7 +328,7 @@ fn parseident(in: str) ((ast::ident, bool) | void) = {
 			lex::unlex(&lexer, tok);
 			return;
 		};
-		append(ident, name);
+		append(ident, name)!;
 		z += len(name);
 		const tok = lex::lex(&lexer)!;
 		switch (tok.0) {
@@ -494,7 +494,7 @@ fn get_init_funcs(matching: *[]ast::decl, notmatching: *[]ast::decl) void = {
 		};
 
 		if (is_init_type(ident, _type)) {
-			append(matching, notmatching[i]);
+			append(matching, notmatching[i])!;
 			delete(notmatching[i]);
 			i -= 1;
 		};

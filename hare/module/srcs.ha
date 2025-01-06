@@ -109,7 +109,7 @@ fn path_find(ctx: *context, buf: *path::buffer) (srcset | error) = {
 	_findsrcs(buf, ctx.tags, &srcs, &res, 0)?;
 	for (let i = 0z; i < len(srcs); i += 1) {
 		if (len(srcs[i].3) != 1) {
-			return alloc(srcs[i].3...): file_conflict;
+			return alloc(srcs[i].3...)!: file_conflict;
 		};
 		let out = switch (srcs[i].1) {
 		case "ha" =>
@@ -122,7 +122,7 @@ fn path_find(ctx: *context, buf: *path::buffer) (srcset | error) = {
 			yield &res.sc;
 		case => abort();
 		};
-		append(out, srcs[i].3[0]);
+		append(out, srcs[i].3[0])!;
 	};
 
 	// module needs either a hare source file or a README in order to be
@@ -249,7 +249,7 @@ fn _findsrcs(
 					strings::freeall(srcs[i].3);
 					srcs[i].3 = [];
 				};
-				append(srcs[i].3, strings::dup(bufstr));
+				append(srcs[i].3, strings::dup(bufstr))!;
 				return;
 			};
 		};
@@ -258,14 +258,14 @@ fn _findsrcs(
 			strings::dup(base),
 			strings::dup(ext),
 			ntags,
-			alloc([strings::dup(bufstr)]),
-		));
+			alloc([strings::dup(bufstr)])!,
+		))!;
 		return;
 	};
 
 	if (!fs::isdir(stat.mode)) return; // ignore special files
 
-	append(res.dirs, strings::dup(pathstr));
+	append(res.dirs, strings::dup(pathstr))!;
 	if (time::compare(res.mtime, stat.mtime) < 0) {
 		res.mtime = stat.mtime;
 	};
@@ -328,7 +328,7 @@ export fn parse_tags(s: str) ([]tag | error) = {
 		append(tags, tag {
 			name = strings::fromutf8_unsafe(bs[start+1..end]),
 			include = bs[start] == '+',
-		});
+		})!;
 		start = end;
 	};
 	return tags;

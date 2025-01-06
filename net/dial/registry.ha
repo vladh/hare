@@ -82,7 +82,7 @@ export fn registerproto(name: str, dial: *dialer) void = {
 	append(protocols, protocol {
 		name = name,
 		dial = dial,
-	});
+	})!;
 };
 
 // Registers a new application-level service (e.g. SSH) with the dialer. Note
@@ -100,7 +100,7 @@ export fn registersvc(
 		name = name,
 		alias = alias,
 		port = port,
-	});
+	})!;
 };
 
 fn lookup_service(proto: str, service: str) (u16 | void) = {

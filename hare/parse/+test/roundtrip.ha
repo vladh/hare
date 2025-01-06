@@ -37,6 +37,7 @@ fn _roundtrip(src: str) str = {
 		case let decls: []ast::decl =>
 			yield decls;
 		case let err: error =>
+			fmt::errorln(src)!;
 			fmt::errorln(strerror(err))!;
 			abort();
 		},

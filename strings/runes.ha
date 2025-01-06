@@ -9,7 +9,7 @@ export fn torunes(s: str) []rune = {
 	let sl: []rune = [];
 	let iter = iter(s);
 	for (let r => next(&iter)) {
-		append(sl, r);
+		append(sl, r)!;
 	};
 	return sl;
 };
@@ -19,7 +19,7 @@ export fn fromrunes(runes: []rune) str = {
 	let bytes: []u8 = [];
 	for (let r .. runes) {
 		const bs = utf8::encoderune(r);
-		append(bytes, bs...);
+		append(bytes, bs...)!;
 	};
 	return fromutf8_unsafe(bytes);
 };

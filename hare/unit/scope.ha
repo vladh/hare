@@ -57,7 +57,7 @@ fn scope_push(ctx: *context, class: scope_class) *scope = {
 		class = class,
 		parent = ctx.scope,
 		...
-	});
+	})!;
 	ctx.scope = new;
 	return new;
 };
@@ -80,11 +80,11 @@ fn ident_hash(ident: ast::ident) u64 = {
 
 fn scope_insert(ctx: *context, obj: object) *object = {
 	const scope = ctx.scope;
-	append(scope.objects, obj);
+	append(scope.objects, obj)!;
 	let obj = &scope.objects[len(scope.objects) - 1];
 	const hash = ident_hash(obj.ident);
 	obj.hash = hash;
-	append(scope.hashmap[hash: size % SCOPE_BUCKETS], obj);
+	append(scope.hashmap[hash: size % SCOPE_BUCKETS], obj)!;
 	return obj;
 };
 

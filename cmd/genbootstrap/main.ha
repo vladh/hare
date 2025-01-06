@@ -46,7 +46,7 @@ export fn main() void = {
 	defer io::close(&objs)!;
 	for (let i = 0z; i < len(mods); i += 1) {
 		append(ids, (strings::join("_", mods[i].ns...),
-			unparse::identstr(mods[i].ns)));
+			unparse::identstr(mods[i].ns)))!;
 		fmt::fprintf(&tds, ` HARE_TD_{}=$(HARECACHE)/{}.td`,
 			ids[i].1, ids[i].0)!;
 		fmt::fprintf(&objs, ` $(HARECACHE)/{}.o`, ids[i].0)!;

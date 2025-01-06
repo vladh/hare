@@ -50,7 +50,7 @@ export fn parse_deps(files: str...) ([]ast::ident | error) = {
 			let id = import.ident;
 			let idx = sort::rbisect(deps, size(ast::ident), &id, &idcmp);
 			if (idx == 0 || idcmp(&deps[idx - 1], &id) != 0) {
-				insert(deps[idx], ast::ident_dup(id));
+				insert(deps[idx], ast::ident_dup(id))!;
 			};
 		};
 	};
@@ -102,7 +102,7 @@ fn get_deps(cachedir: str, srcs: *srcset) ([]ast::ident | error) = {
 	} else {
 		let in = bufio::newscanner_static(depsfile, buf.buf);
 		for (let s => bufio::scan_line(&in)?) {
-			append(deps, parse::identstr(s)?);
+			append(deps, parse::identstr(s)?)!;
 		};
 	};
 	return deps;
@@ -148,7 +148,7 @@ export fn gather_submodules(
 	case let b: *path::buffer =>
 		yield b;
 	case let m: ast::ident =>
-		append(id, m...);
+		append(id, m...)!;
 		static let b = path::buffer { ... };
 		let res = find(ctx, id)?;
 		defer finish_srcset(&res.1);
@@ -190,7 +190,7 @@ export fn _gather_submodules(
 		defer free(stack);
 		path::push(buf, dir.name)?;
 		defer path::pop(buf);
-		append(mod, dir.name);
+		append(mod, dir.name)!;
 		defer delete(mod[len(mod) - 1]);
 		match (_gather(ctx, out, &stack, *mod, false, recursive)) {
 		case size =>
@@ -227,7 +227,7 @@ fn _gather(
 
 	for (let j = 0z; j < len(stack); j += 1) {
 		if (modpath == stack[j]) {
-			append(stack, modpath);
+			append(stack, modpath)!;
 			return strings::dupall(stack[j..]): dep_cycle;
 		};
 	};
@@ -237,18 +237,18 @@ fn _gather(
 			return j;
 		};
 	};
-	append(stack, modpath);
+	append(stack, modpath)!;
 	defer delete(stack[len(stack) - 1]);
 
 	let cache = get_cache(ctx.harecache, modpath)?;
 	let depids = get_deps(cache, &srcs)?;
 	defer free(depids);
-	let deps: [](size, ast::ident) = alloc([], len(depids));
+	let deps: [](size, ast::ident) = alloc([], len(depids))!;
 
 	if (!is_dep || recursive) {
 		for (let depid .. depids) {
 			static append(deps, (_gather(ctx, out, stack, depid,
-						true, recursive)?, depid));
+						true, recursive)?, depid))!;
 		};
 	};
 
@@ -269,7 +269,7 @@ fn _gather(
 		srcs = srcs,
 		deps = deps,
 		is_dep = is_dep,
-	});
+	})!;
 	return len(out) - 1;
 };
 

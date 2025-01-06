@@ -76,7 +76,7 @@ export fn newscanner(
 	return scanner {
 		stream = &scanner_vtable,
 		src = src,
-		buffer = alloc([0...], BUFSZ),
+		buffer = alloc([0...], BUFSZ)!,
 		maxread = maxread,
 		start = 0,
 		pending = [],
@@ -151,7 +151,7 @@ fn scan_readahead(scan: *scanner) (size | io::EOF | io::error) = {
 			if (pending >= readahead) {
 				return errors::overflow;
 			};
-			append(scan.buffer, [0...], readahead);
+			append(scan.buffer, [0...], readahead)!;
 		};
 	};
 
@@ -332,7 +332,7 @@ export fn read_tok(h: io::handle, delim: u8...) ([]u8 | io::EOF | io::error) = {
 			if (bytes::contains(delim, res)) {
 				break;
 			};
-			append(buf, res);
+			append(buf, res)!;
 		case io::EOF =>
 			if (len(buf) == 0) {
 				return io::EOF;

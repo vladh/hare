@@ -32,8 +32,6 @@ case cancelled =>
 	yield "The requested operation was cancelled";
 case refused =>
 	yield "A connection attempt was refused";
-case nomem =>
-	yield "Unable to allocate sufficient memory for the requested operation";
 case interrupted =>
 	yield "Operation interrupted";
 case again =>

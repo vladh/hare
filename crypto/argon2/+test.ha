@@ -42,7 +42,7 @@ use test;
 	let data: [12]u8 = [4...];
 	let result: [32]u8 = [0...];
 
-	let mem: []u64 = alloc([0...], 32z * BLOCKSZ);
+	let mem: []u64 = alloc([0...], 32z * BLOCKSZ)!;
 	defer free(mem);
 
 	let expected: [_]u8 = [
@@ -75,7 +75,7 @@ use test;
 	let data: [12]u8 = [4...];
 	let result: [32]u8 = [0...];
 
-	let mem: []u64 = alloc([0...], 32z * BLOCKSZ);
+	let mem: []u64 = alloc([0...], 32z * BLOCKSZ)!;
 	defer free(mem);
 
 	let expected: [_]u8 = [
@@ -107,7 +107,7 @@ use test;
 	let data: [12]u8 = [4...];
 	let result: [32]u8 = [0...];
 
-	let mem: []u64 = alloc([0...], 32z * BLOCKSZ);
+	let mem: []u64 = alloc([0...], 32z * BLOCKSZ)!;
 	defer free(mem);
 
 	let expected: [_]u8 = [
@@ -226,7 +226,7 @@ type tcase = struct {
 		const t = tests[i];
 		const expected = hex::decodestr(t.h)!;
 		defer free(expected);
-		let dest: []u8 = alloc([0...], len(expected));
+		let dest: []u8 = alloc([0...], len(expected))!;
 		defer free(dest);
 
 		argon2(dest, pass, salt, &t.c, t.m)!;
@@ -257,7 +257,7 @@ type tcase = struct {
 		const t = tests[i];
 		const expected = hex::decodestr(t.h)!;
 		defer free(expected);
-		let dest: []u8 = alloc([0...], len(expected));
+		let dest: []u8 = alloc([0...], len(expected))!;
 		defer free(dest);
 
 		argon2(dest, pass, salt, &t.c, t.m)!;

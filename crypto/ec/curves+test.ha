@@ -31,7 +31,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 	let m1: [P256_SCALARSZ]u8 = [0...];
 	m1[len(m1) - 1] = 1;
 
-	let g = alloc(P256_G);
+	let g = alloc(P256_G)!;
 	defer free(g);
 	assert(c.mul(g, m1) == 1);
 	assert(bytes::equal(g, P256_G));
@@ -40,7 +40,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 	assert(bytes::equal(g, P256_G));
 
 	// multiply by order - 1
-	let o = alloc(P256_N);
+	let o = alloc(P256_N)!;
 	defer free(o);
 	o[len(o) - 1] -= 1;
 
@@ -57,7 +57,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 	assert(c.mul(g, o) == 1);
 	assert(bytes::equal(g, expected));
 
-	let g = alloc(P256_G);
+	let g = alloc(P256_G)!;
 	defer free(g);
 	assert(c.mulgen(g, o) == 65);
 	assert(bytes::equal(g, expected));
@@ -77,7 +77,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 		0x43, 0x37, 0x13, 0xdf, 0xc9,
 	];
 
-	let g = alloc(P256_G);
+	let g = alloc(P256_G)!;
 	defer free(g);
 	assert(c.mul(g, priv) == 1);
 	assert(bytes::equal(g, expected));
@@ -306,7 +306,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 	let m1: [P384_SCALARSZ]u8 = [0...];
 	m1[len(m1) - 1] = 1;
 
-	let g = alloc(P384_G);
+	let g = alloc(P384_G)!;
 	defer free(g);
 	assert(c.mul(g, m1) == 1);
 	assert(bytes::equal(g, P384_G));
@@ -315,7 +315,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 	assert(bytes::equal(g, P384_G));
 
 	// multiply by order - 1
-	let o = alloc(P384_N);
+	let o = alloc(P384_N)!;
 	defer free(o);
 	o[len(o) - 1] -= 1;
 
@@ -335,7 +335,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 	assert(c.mul(g, o) == 1);
 	assert(bytes::equal(g, expected));
 
-	let g = alloc(P384_G);
+	let g = alloc(P384_G)!;
 	defer free(g);
 	assert(c.mulgen(g, o) == 97);
 	assert(bytes::equal(g, expected));
@@ -361,7 +361,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 		0xcf, 0x6b, 0x62, 0xfd, 0xe5, 0x4b, 0xcc,
 	];
 
-	let g = alloc(P384_G);
+	let g = alloc(P384_G)!;
 	defer free(g);
 	assert(c.mul(g, priv) == 1);
 	assert(bytes::equal(g, expected));
@@ -652,7 +652,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 	let m1: [P521_SCALARSZ]u8 = [0...];
 	m1[len(m1) - 1] = 1;
 
-	let g = alloc(P521_G);
+	let g = alloc(P521_G)!;
 	defer free(g);
 	assert(c.mul(g, m1) == 1);
 	assert(bytes::equal(g, P521_G));
@@ -661,7 +661,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 	assert(bytes::equal(g, P521_G));
 
 	// multiply by order - 1
-	let o = alloc(P521_N);
+	let o = alloc(P521_N)!;
 	defer free(o);
 	o[len(o) - 1] -= 1;
 
@@ -685,7 +685,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 	assert(c.mul(g, o) == 1);
 	assert(bytes::equal(g, expected));
 
-	let g = alloc(P521_G);
+	let g = alloc(P521_G)!;
 	defer free(g);
 	assert(c.mulgen(g, o) == 133);
 	assert(bytes::equal(g, expected));
@@ -717,7 +717,7 @@ fn tmuladd(c: *curve, tcs: []multc) void = {
 		0xb2, 0xb1, 0x62,
 	];
 
-	let g = alloc(P521_G);
+	let g = alloc(P521_G)!;
 	defer free(g);
 	assert(c.mul(g, priv) == 1);
 	assert(bytes::equal(g, expected));

@@ -403,7 +403,7 @@ export fn decodeslice(
 	};
 	let ins = memio::fixed(in);
 	let decoder = newdecoder(enc, &ins);
-	let out = alloc([0u8...], decodedsize(len(in)));
+	let out = alloc([0u8...], decodedsize(len(in)))!;
 	let outs = memio::fixed(out);
 	match (io::copy(&outs, &decoder)) {
 	case io::error =>
@@ -474,7 +474,7 @@ export fn decode(
 			for (true) match (io::read(&decoder, buf)!) {
 			case let z: size =>
 				if (z > 0) {
-					append(decb, buf[..z]...);
+					append(decb, buf[..z]...)!;
 				};
 			case io::EOF =>
 				break;

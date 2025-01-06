@@ -120,7 +120,7 @@ export fn tryparse(args: []str, help: help...) (command | error) = {
 			for (let j = 0z; j < len(help); j += 1) match (help[j]) {
 			case let f: flag_help =>
 				if (r == f.0) {
-					append(opts, (r, ""));
+					append(opts, (r, ""))!;
 					found = true;
 					break;
 				};
@@ -133,9 +133,9 @@ export fn tryparse(args: []str, help: help...) (command | error) = {
 							return (args[0], help, r: requires_arg): error;
 						};
 						i += 1;
-						append(opts, (r, args[i]));
+						append(opts, (r, args[i]))!;
 					} else {
-						append(opts, (r, value));
+						append(opts, (r, value))!;
 					};
 					continue :arg;
 				};
@@ -159,7 +159,7 @@ export fn tryparse(args: []str, help: help...) (command | error) = {
 			expects_subcmd = true;
 			if (s.0 == args[i]) match (tryparse(args[i..], s.1...)) {
 			case let c: command =>
-				subcmd = (s.0, alloc(c));
+				subcmd = (s.0, alloc(c)!);
 			case let e: error =>
 				free(opts);
 				return e;

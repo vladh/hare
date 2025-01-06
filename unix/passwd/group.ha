@@ -176,7 +176,7 @@ export fn getgroups(name: str) []grent = {
 		for (const tok => strings::next_token(&tok)) {
 			if (tok == name) {
 				grent_dup(&ent);
-				append(groups, ent);
+				append(groups, ent)!;
 			};
 		};
 	};

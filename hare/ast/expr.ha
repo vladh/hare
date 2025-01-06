@@ -241,7 +241,7 @@ export type tuple_literal = []*expr;
 export type _null = void;
 
 // A scalar value.
-export type value = (bool | done | _null | str | rune | void);
+export type value = (bool | done | nomem |_null | str | rune | void);
 
 // An integer or float literal.
 export type number_literal = struct {

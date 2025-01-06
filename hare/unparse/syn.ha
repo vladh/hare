@@ -113,7 +113,7 @@ export fn syn_wrap(ctx: *context, s: str, kind: synkind) (size | io::error) = {
 
 			let z = _type(io::empty, &syn_nowrap, t)!;
 			if (ctx.linelen + z < 80) yield;
-			st.extra = alloc(syn_wrap_extra::MULTILINE_FN_PARAM);
+			st.extra = alloc(syn_wrap_extra::MULTILINE_FN_PARAM)!;
 			z = fmt::fprintln(ctx.out, s)?;
 			ctx.linelen = 0;
 			ctx.indent += 1;
@@ -141,7 +141,7 @@ export fn syn_wrap(ctx: *context, s: str, kind: synkind) (size | io::error) = {
 			yield :extra, &syn_wrap_extra::NONE;
 		};
 
-		st.extra = alloc(syn_wrap_extra::MULTILINE_TAGGED_OR_TUPLE);
+		st.extra = alloc(syn_wrap_extra::MULTILINE_TAGGED_OR_TUPLE)!;
 		let z = fmt::fprintln(ctx.out, s)?;
 		ctx.indent += 1;
 		ctx.linelen = ctx.indent * 8;

@@ -31,12 +31,10 @@ export @symbol("rt.abort") fn _abort(
 const reasons: [_]str = [
 	"slice or array access out of bounds",			// 0
 	"type assertion failed",				// 1
-	"out of memory",					// 2
-	"static insert/append exceeds slice capacity",		// 3
-	"execution reached unreachable code (compiler bug)",	// 4
-	"slice allocation capacity smaller than initializer",	// 5
-	"assertion failed",					// 6
-	"error occurred",					// 7
+	"execution reached unreachable code (compiler bug)",	// 2
+	"slice allocation capacity smaller than initializer",	// 3
+	"assertion failed",					// 4
+	"error occurred",					// 5
 ];
 
 export fn abort_fixed(path: *str, line: u64, col: u64, i: u64) void = {

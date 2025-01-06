@@ -31,9 +31,6 @@ export type cancelled = !void;
 // A connection attempt was refused.
 export type refused = !void;
 
-// Unable to allocate sufficient memory for the requested operation.
-export type nomem = !void;
-
 // An operation was interrupted.
 export type interrupted = !void;
 
@@ -55,7 +52,6 @@ export type error = !(
 	timeout |
 	cancelled |
 	refused |
-	nomem |
 	interrupted |
 	again |
 	netunreachable |

@@ -52,7 +52,7 @@ export fn tz(name: str) (locality | tzdberror) = {
 		timescale = &utc,
 		daylength = EARTH_DAY,
 		...
-	});
+	})!;
 	match (load_tzif(&bufstrm, loc)) {
 	case void =>
 		io::close(&bufstrm)?;
@@ -193,7 +193,7 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 		if (buf1[0] == 0x0) { // cannot contain NUL
 			return invalidtzif;
 		};
-		append(footerdata, buf1...);
+		append(footerdata, buf1...)!;
 	};
 	const posix_extend = strings::dup(match (strings::fromutf8(footerdata)) {
 	case let s: str =>
@@ -250,7 +250,7 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 		};
 		zone.abbr = strings::dup(abbr);
 
-		append(zones, zone);
+		append(zones, zone)!;
 	};
 
 	// assemble transitions
@@ -272,7 +272,7 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 		// stdwalldata and normlocaldata have been omitted,
 		// until they show their utility.
 
-		append(transitions, tx);
+		append(transitions, tx)!;
 	};
 
 	// commit and return data
@@ -301,7 +301,7 @@ fn readbytes(
 	for (let i = 0z; i < n; i += 1) {
 		mustread(h, buf)?;
 		const it = buf[0];
-		append(items, it);
+		append(items, it)!;
 	};
 };
 
@@ -314,7 +314,7 @@ fn readitems8(
 	for (let i = 0z; i < n; i += 1) {
 		mustread(h, buf)?;
 		const it = endian::begetu64(buf): i64;
-		append(items, it);
+		append(items, it)!;
 	};
 };
 
@@ -327,6 +327,6 @@ fn readitems4(
 	for (let i = 0z; i < n; i += 1) {
 		mustread(h, buf)?;
 		const it = endian::begetu32(buf): i64;
-		append(items, it);
+		append(items, it)!;
 	};
 };

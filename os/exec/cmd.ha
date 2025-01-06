@@ -40,13 +40,13 @@ export fn cmd(name: str, args: str...) (command | error) = {
 	};
 	let cmd = command {
 		platform = platcmd,
-		argv = alloc([], len(args) + 1),
+		argv = alloc([], len(args) + 1)!,
 		env = strings::dupall(os::getenvs()),
 		files = [],
 		dir = "",
 	};
-	append(cmd.argv, name);
-	append(cmd.argv, args...);
+	append(cmd.argv, name)!;
+	append(cmd.argv, args...)!;
 	return cmd;
 };
 
@@ -111,7 +111,7 @@ export fn unsetenv(cmd: *command, key: str) (void | errors::invalid) = {
 export fn setenv(cmd: *command, key: str, value: str) (void | errors::invalid) = {
 	if (strings::contains(value, '\0')) return errors::invalid;
 	unsetenv(cmd, key)?;
-	append(cmd.env, strings::join("=", key, value));
+	append(cmd.env, strings::join("=", key, value))!;
 };
 
 // Configures a file in the child process's file table, such that the file
@@ -138,7 +138,7 @@ export fn addfile(
 	child: io::file,
 	source: (io::file | nullfd | closefd),
 ) void = {
-	append(cmd.files, (source, child));
+	append(cmd.files, (source, child))!;
 };
 
 // Closes all standard files (stdin, stdout, and stderr) in the child process.

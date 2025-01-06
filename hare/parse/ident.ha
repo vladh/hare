@@ -14,7 +14,7 @@ export fn ident_trailing(lexer: *lex::lexer) ((ast::ident, bool) | error) = {
 	let ident: []str = [];
 	let trailing = false;
 	const tok = want(lexer, ltok::NAME)?;
-	append(ident, tok.1 as str);
+	append(ident, tok.1 as str)!;
 	const loc = tok.2;
 	let z = len(ident[0]);
 	for (true) {
@@ -30,7 +30,7 @@ export fn ident_trailing(lexer: *lex::lexer) ((ast::ident, bool) | error) = {
 			trailing = true;
 			break;
 		};
-		append(ident, name);
+		append(ident, name)!;
 		z += len(name);
 	};
 	if (z > ast::IDENT_MAX) {

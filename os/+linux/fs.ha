@@ -160,7 +160,7 @@ export fn getxattr(path: str, name: str) ([]u8 | fs::error) = {
 		yield s;
 	};
 
-	let buf: []u8 = alloc([0...], attr_size);
+	let buf: []u8 = alloc([0...], attr_size)!;
 	match (rt::getxattr(path, name, buf)) {
 	case let err: rt::errno =>
 		return errno_to_fs(err);

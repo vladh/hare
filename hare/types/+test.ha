@@ -318,8 +318,8 @@ fn resolve(
 	assert(htype._align == st.arch._int);
 	let t = htype.repr as tagged;
 	assert(len(t) == 2);
-	assert(t[0].repr as builtin == builtin::INT);
-	assert(t[1].repr as builtin == builtin::VOID);
+	assert(t[0].repr as builtin == builtin::VOID);
+	assert(t[1].repr as builtin == builtin::INT);
 
 	let atype = parse_type("(int | (int | str | void))");
 	defer ast::type_finish(&atype);
@@ -328,8 +328,8 @@ fn resolve(
 	assert(htype._align == 8);
 	let t = htype.repr as tagged;
 	assert(len(t) == 3);
-	assert(t[0].repr as builtin == builtin::INT);
-	assert(t[1].repr as builtin == builtin::VOID);
+	assert(t[0].repr as builtin == builtin::VOID);
+	assert(t[1].repr as builtin == builtin::INT);
 	assert(t[2].repr as builtin == builtin::STR);
 };
 
@@ -377,6 +377,7 @@ fn resolve(
 		(&builtin_i16, "i16"),
 		(&builtin_i32, "i32"),
 		(&builtin_i64, "i64"),
+		(&builtin_nomem, "nomem"),
 		(&builtin_opaque, "opaque"),
 		(&builtin_rune, "rune"),
 		(&builtin_u8, "u8"),

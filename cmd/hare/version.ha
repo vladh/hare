@@ -58,7 +58,7 @@ fn version(name: str, cmd: *getopt::command) (void | error) = {
 		defer free(toolchains);
 
 		for (let arch .. arches) {
-			append(toolchains, arch.name);
+			append(toolchains, arch.name)!;
 		};
 
 		const toolchains = strings::join(" ", toolchains...);

@@ -119,7 +119,7 @@ export fn query(query: *message, servers: ip::addr...) (*message | error) = {
 	case =>
 		return format;
 	};
-	let tcpbuf: []u8 = alloc([0...], rz);
+	let tcpbuf: []u8 = alloc([0...], rz)!;
 	defer free(tcpbuf);
 
 	match (io::readall(socket, tcpbuf)?) {

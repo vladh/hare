@@ -30,7 +30,7 @@ let exttable: [MIME_BUCKETS][]*mimetype = [[]...];
 // implement new Media Types.
 export fn register(mime: *mimetype...) void = {
 	let i = len(static_db);
-	append(static_db, mime...);
+	append(static_db, mime...)!;
 	for (i < len(static_db); i += 1) {
 		hashtable_insert(static_db[i]);
 	};
@@ -39,12 +39,12 @@ export fn register(mime: *mimetype...) void = {
 fn hashtable_insert(item: *mimetype) void = {
 	const hash = fnv::string(item.mime);
 	let bucket = &mimetable[hash % len(mimetable)];
-	append(bucket, item);
+	append(bucket, item)!;
 
 	for (let ext .. item.exts) {
 		const hash = fnv::string(ext);
 		let bucket = &exttable[hash % len(exttable)];
-		append(bucket, item);
+		append(bucket, item)!;
 	};
 };
 

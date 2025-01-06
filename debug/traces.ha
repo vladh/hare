@@ -36,7 +36,7 @@ export fn trace_store(frame: stackframe) u64 = {
 	const hash = fnv::fnv64a();
 	for (true) {
 		hash::write(&hash, &frame_pc(frame): *[size(uintptr)]u8);
-		append(pc, frame_pc(frame));
+		append(pc, frame_pc(frame))!;
 
 		match (next(frame)) {
 		case let next: stackframe =>
@@ -53,7 +53,7 @@ export fn trace_store(frame: stackframe) u64 = {
 		};
 	};
 
-	let frames: []stackframe = alloc([stackframe { ... }...], len(pc) + 1);
+	let frames: []stackframe = alloc([stackframe { ... }...], len(pc) + 1)!;
 	for (let i = 0z; i < len(pc); i += 1) {
 		frames[i] = mkframe(&frames[i + 1], pc[i]);
 	};
@@ -61,7 +61,7 @@ export fn trace_store(frame: stackframe) u64 = {
 	append(bucket, trace {
 		id = id,
 		frames = &frames[0],
-	});
+	})!;
 
 	return id;
 };

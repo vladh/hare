@@ -10,7 +10,7 @@ export type key = []u8;
 // Creates a new secure key. The caller should clear the secret buffer with
 // [[bytes::zero]] after initialization.
 export fn newkey(buf: []u8, name: str) (key | errors::error) = {
-	return alloc(buf...): []u8: key;
+	return alloc(buf...)!: []u8: key;
 };
 
 // Destroys a secure key.

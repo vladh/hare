@@ -59,13 +59,13 @@ fn parse(conf: *config, in: io::handle) (void | error) = {
 	for (const param => next(&rd)!) {
 		switch (param.name) {
 		case "nameserver" =>
-			append(conf.nameservers, param.value as ip::addr);
+			append(conf.nameservers, param.value as ip::addr)!;
 		case "search" =>
 			strings::freeall(conf.search);
 			conf.search = strings::dupall(param.value as []str);
 		case "sortlist" =>
 			free(conf.sortlist);
-			conf.sortlist = alloc((param.value as []ip::subnet)...);
+			conf.sortlist = alloc((param.value as []ip::subnet)...)!;
 		case "options" =>
 			conf.options = *(param.value as *options);
 		case => void;

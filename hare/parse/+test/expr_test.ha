@@ -50,13 +50,15 @@
 @test fn builtin() void = {
 	roundtrip(`export fn main() void = {
 	align(u32);
-	alloc(1234);
-	alloc(1234...);
-	alloc(4321, 1234);
-	append(x, 10);
-	append(x, [10]...);
-	append(x, [10...], 20);
-	static append(x, 10);
+	alloc(1234)!;
+	let x: (*int | nomem) = alloc(1234...);
+	alloc(4321, 1234)!;
+	append(x, 10)!;
+	append(x, [10]...)!;
+	append(x, [10...], 20)!;
+	static append(x, 10)!;
+	let y: (void | nomem) = append(x, 10);
+	let y: (void | nomem) = static append(x, 10);
 	abort();
 	abort("surprize");
 	static abort();
@@ -71,10 +73,11 @@
 	delete(x.y.z[..]);
 	static delete(x[10]);
 	free(x);
-	insert(x[0], foo);
-	insert(x[0], foo...);
-	insert(x[0], foo, bar);
-	static insert(x[0], foo);
+	let x: (void | nomem) = insert(x[0], foo);
+	let x: (void | nomem) = static insert(x[0], foo);
+	insert(x[0], foo...)!;
+	insert(x[0], foo, bar)!;
+	static insert(x[0], foo)!;
 	len([1, 2, 3, 4]);
 	offset(foo.bar);
 	size(u32);
@@ -346,7 +349,7 @@ export fn main() void = {
 		"export fn main() void = -((2 + 2) * 2);\n\n"
 		"export fn main() void = &(1: uint);\n\n"
 		"export fn main() void = **x;\n\n"
-		"export fn main() void = *alloc(2);\n\n"
+		"export fn main() void = *alloc(2)!;\n\n"
 		"export fn main() void = &(&x);\n\n"
 		"export fn main() void = &*&*&x;\n\n"
 		"export fn main() void = x: int: uint: u8;\n\n"

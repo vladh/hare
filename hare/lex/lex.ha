@@ -390,7 +390,7 @@ fn lex_comment(lexr: *lexer) (void | error) = {
 		};
 	};
 	let bytes = strings::toutf8(lexr.comment);
-	append(bytes, strings::toutf8(memio::string(&buf)!)...);
+	append(bytes, strings::toutf8(memio::string(&buf)!)...)!;
 	lexr.comment = strings::fromutf8(bytes)!;
 };
 
@@ -407,7 +407,7 @@ fn lex_literal(lex: *lexer) (token | error) = {
 	let started = false;
 	let base = strconv::base::DEC;
 	if (r.0 == '0') {
-		append(chars, utf8::encoderune(r.0)...);
+		append(chars, utf8::encoderune(r.0)...)!;
 		r = match (next(lex)?) {
 		case io::EOF =>
 			return (ltok::LIT_ICONST, 0u64, loc);
@@ -487,7 +487,7 @@ fn lex_literal(lex: *lexer) (token | error) = {
 					};
 					unget(lex, r.0);
 					float = true;
-					append(chars, utf8::encoderune('.')...);
+					append(chars, utf8::encoderune('.')...)!;
 				};
 			case 'e', 'E', 'p', 'P' =>
 				if (!started) {
@@ -504,7 +504,7 @@ fn lex_literal(lex: *lexer) (token | error) = {
 					break;
 				} else {
 					if (end == 0) end = len(chars);
-					append(chars, utf8::encoderune(r.0)...);
+					append(chars, utf8::encoderune(r.0)...)!;
 					exp = len(chars);
 					r = match (next(lex)?) {
 					case io::EOF =>
@@ -514,7 +514,7 @@ fn lex_literal(lex: *lexer) (token | error) = {
 					};
 					switch (r.0) {
 					case '+', '-' =>
-						append(chars, utf8::encoderune(r.0)...);
+						append(chars, utf8::encoderune(r.0)...)!;
 					case =>
 						unget(lex, r.0);
 					};
@@ -533,7 +533,7 @@ fn lex_literal(lex: *lexer) (token | error) = {
 				} else {
 					suff = len(chars);
 					if (end == 0) end = len(chars);
-					append(chars, utf8::encoderune(r.0)...);
+					append(chars, utf8::encoderune(r.0)...)!;
 					basechrs = "0123456789";
 				};
 			case '_' =>
@@ -556,7 +556,7 @@ fn lex_literal(lex: *lexer) (token | error) = {
 			};
 		} else {
 			last_rune_was_separator = false;
-			append(chars, utf8::encoderune(r.0)...);
+			append(chars, utf8::encoderune(r.0)...)!;
 		};
 		started = true;
 	};

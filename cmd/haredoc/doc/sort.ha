@@ -36,7 +36,7 @@ export fn sort_decls(decls: []ast::decl) summary = {
 					attrs = f.attrs,
 				},
 				docs = decl.docs,
-			});
+			})!;
 		case let types: []ast::decl_type =>
 			for (let t .. types) {
 				let bucket = &sorted.types;
@@ -47,9 +47,9 @@ export fn sort_decls(decls: []ast::decl) summary = {
 					exported = false,
 					start = decl.start,
 					end = decl.end,
-					decl = alloc([t]),
+					decl = alloc([t])!,
 					docs = decl.docs,
-				});
+				})!;
 			};
 		case let consts: []ast::decl_const =>
 			for (let c .. consts) {
@@ -57,9 +57,9 @@ export fn sort_decls(decls: []ast::decl) summary = {
 					exported = false,
 					start = decl.start,
 					end = decl.end,
-					decl = alloc([c]),
+					decl = alloc([c])!,
 					docs = decl.docs,
-				});
+				})!;
 			};
 		case let globals: []ast::decl_global =>
 			for (let g .. globals) {
@@ -74,9 +74,9 @@ export fn sort_decls(decls: []ast::decl) summary = {
 						ident = g.ident,
 						_type = g._type,
 						init = null,
-					}]),
+					}])!,
 					docs = decl.docs,
-				});
+				})!;
 			};
 		case ast::assert_expr => void;
 		};

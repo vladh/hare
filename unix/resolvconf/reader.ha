@@ -99,7 +99,7 @@ fn parse_subnet_list(rd: *reader, tok: *strings::tokenizer) (value | error) = {
 		};
 
 		const subnet = ip::parsecidr(tok)?;
-		append(rd.subnet_list, subnet);
+		append(rd.subnet_list, subnet)!;
 	};
 
 	return rd.subnet_list;
@@ -112,7 +112,7 @@ fn parse_str_list(rd: *reader, tok: *strings::tokenizer) (value | error) = {
 		if (len(tok) == 0) {
 			continue;
 		};
-		append(rd.str_list, tok);
+		append(rd.str_list, tok)!;
 	};
 
 	return rd.str_list;

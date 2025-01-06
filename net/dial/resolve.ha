@@ -94,7 +94,7 @@ export fn resolve(
 fn resolve_addr(addr: str) ([]ip::addr | error) = {
 	match (ip::parse(addr)) {
 	case let addr: ip::addr =>
-		return alloc([addr]);
+		return alloc([addr])!;
 	case ip::invalid => void;
 	};
 
@@ -167,9 +167,9 @@ fn collect_answers(addrs: *[]ip::addr, answers: *[]dns::rrecord) void = {
 	for (let i = 0z; i < len(answers); i += 1) {
 		match (answers[i].rdata) {
 		case let addr: dns::aaaa =>
-			append(addrs, addr: ip::addr);
+			append(addrs, addr: ip::addr)!;
 		case let addr: dns::a =>
-			append(addrs, addr: ip::addr);
+			append(addrs, addr: ip::addr)!;
 		case => void;
 		};
 	};

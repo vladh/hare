@@ -150,7 +150,7 @@ let pkcs1_signbuf: [PKCS1_SIGNBUFSZ]u8 = [0...];
 		0x65, 0x5f, 0x28, 0x85,
 	];
 
-	let xc = alloc(x);
+	let xc = alloc(x)!;
 	defer free(xc);
 
 	pubexp(&sign3072.pub, xc, pubbuf)!;

@@ -42,7 +42,7 @@ export fn execute(ctx: *context) (str | error) = {
 	sort::sort(q, size(*task), &task_cmp);
 	ctx.total = len(q);
 
-	let jobs: []job = alloc([], ctx.jobs);
+	let jobs: []job = alloc([], ctx.jobs)!;
 	defer free(jobs);
 
 	if (len(os::tryenv("NO_COLOR", "")) == 0
@@ -85,24 +85,24 @@ fn queue(ctx: *context, q: *[]*task, kind: stage, idx: size) *task = {
 		kind = kind,
 		idx = idx,
 		...
-	});
+	})!;
 	switch (kind) {
 	case stage::BIN =>
 		t.ndeps = len(ctx.mods);
 		for (let i = 0z; i < len(ctx.mods); i += 1) {
-			append(queue(ctx, q, stage::O, i).rdeps, t);
+			append(queue(ctx, q, stage::O, i).rdeps, t)!;
 		};
 	case stage::O, stage::S =>
 		t.ndeps = 1;
-		append(queue(ctx, q, kind - 1, idx).rdeps, t);
+		append(queue(ctx, q, kind - 1, idx).rdeps, t)!;
 	case stage::SSA =>
 		t.ndeps = len(ctx.mods[idx].deps);
 		for (let (dep_idx, _) .. ctx.mods[idx].deps) {
-			append(queue(ctx, q, stage::SSA, dep_idx).rdeps, t);
+			append(queue(ctx, q, stage::SSA, dep_idx).rdeps, t)!;
 		};
 	case stage::TD => abort();
 	};
-	append(q, t);
+	append(q, t)!;
 	return t;
 };
 
@@ -192,7 +192,7 @@ fn run_task(ctx: *context, jobs: *[]job, t: *task) (bool | error) = {
 		pid = exec::start(&cmd)?,
 		task = t,
 		lock = lock,
-	});
+	})!;
 	return true;
 };
 

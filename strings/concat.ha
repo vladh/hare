@@ -8,9 +8,9 @@ export fn concat(strs: str...) str = {
 		z += len(s);
 	};
 
-	let new: []u8 = alloc([], z);
+	let new: []u8 = alloc([], z)!;
 	for (let s .. strs) {
-		static append(new, toutf8(s)...);
+		static append(new, toutf8(s)...)!;
 	};
 	return fromutf8_unsafe(new);
 };
@@ -51,11 +51,11 @@ export fn join(delim: str, strs: str...) str = {
 			z += len(delim);
 		};
 	};
-	let new: []u8 = alloc([], z);
+	let new: []u8 = alloc([], z)!;
 	for (let i = 0z; i < len(strs); i += 1) {
-		static append(new, toutf8(strs[i])...);
+		static append(new, toutf8(strs[i])...)!;
 		if (i + 1 < len(strs)) {
-			static append(new, toutf8(delim)...);
+			static append(new, toutf8(delim)...)!;
 		};
 	};
 	return fromutf8_unsafe(new);

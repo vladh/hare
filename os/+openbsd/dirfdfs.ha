@@ -272,12 +272,14 @@ fn fs_iter(fs: *fs::fs, path: str) (*fs::iterator | fs::error) = {
 		yield fd;
 	};
 
+	// TODO: handle allocation failure
 	let buf = match (rt::malloc(fs.getdents_bufsz)) {
 	case let v: *opaque =>
 		yield v: *[*]u8;
 	case null =>
-		return errors::nomem;
+		abort("out of memory");
 	};
+
 	let iter = alloc(os_iterator {
 		iter = fs::iterator {
 			next = &iter_next,
@@ -286,7 +288,7 @@ fn fs_iter(fs: *fs::fs, path: str) (*fs::iterator | fs::error) = {
 		fd = fd,
 		buf = buf[..fs.getdents_bufsz],
 		...
-	});
+	})!;
 	return &iter.iter;
 };
 
@@ -469,7 +471,7 @@ fn fs_close(fs: *fs::fs) void = {
 // Opens a file descriptor as an [[fs::fs]]. This file descriptor must be a
 // directory file. The file will be closed when the fs is closed.
 export fn dirfdopen(fd: io::file) *fs::fs = {
-	let ofs = alloc(os_filesystem { ... });
+	let ofs = alloc(os_filesystem { ... })!;
 	let fs = static_dirfdopen(fd, ofs);
 	fs.close = &fs_close;
 	return fs;

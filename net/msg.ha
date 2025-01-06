@@ -44,7 +44,7 @@ export fn addvector(msg: *msghdr, vec: []u8) void = {
 	append(msg.vectors, rt::iovec {
 		iov_base = vec: *[*]u8,
 		iov_len = len(vec),
-	});
+	})!;
 };
 
 // Sets flags for this message.
@@ -79,7 +79,7 @@ export fn addcontrol(
 ) []u8 = {
 	const prev = len(msg.control);
 	const space = cmsg_space(length);
-	append(msg.control, [0...], space);
+	append(msg.control, [0...], space)!;
 	let newbuf = msg.control[prev..prev + space]: *[*]rt::cmsghdr;
 	newbuf[0].cmsg_len = cmsg_len(length): uint;
 	newbuf[0].cmsg_level = level;

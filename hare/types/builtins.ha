@@ -72,7 +72,7 @@ export const builtin_i64: _type = _type {
 export const builtin_opaque: _type = _type {
 	repr = builtin::OPAQUE,
 	sz = SIZE_UNDEFINED, _align = SIZE_UNDEFINED,
-	id = 1737287038,
+	id = 2843771249,
 	...
 };
 
@@ -84,11 +84,20 @@ export const builtin_never: _type = _type {
 	...
 };
 
+// [[_type]] representation of never.
+export const builtin_nomem: _type = _type {
+	repr = builtin::NOMEM,
+	flags = flag::ERROR,
+	sz = 0, _align = 0,
+	id = 2408538893,
+	...
+};
+
 // [[_type]] representation of rune.
 export const builtin_rune: _type = _type {
 	repr = builtin::RUNE,
 	sz = 4, _align = 4,
-	id = 2843771249,
+	id = 2206074632,
 	...
 };
 
@@ -96,7 +105,7 @@ export const builtin_rune: _type = _type {
 export const builtin_u8: _type = _type {
 	repr = builtin::U8,
 	sz = 1, _align = 1,
-	id = 3181589295,
+	id = 2543892678,
 	...
 };
 
@@ -104,7 +113,7 @@ export const builtin_u8: _type = _type {
 export const builtin_u16: _type = _type {
 	repr = builtin::U16,
 	sz = 2, _align = 2,
-	id = 3481467866,
+	id = 1906196061,
 	...
 };
 
@@ -112,7 +121,7 @@ export const builtin_u16: _type = _type {
 export const builtin_u32: _type = _type {
 	repr = builtin::U32,
 	sz = 4, _align = 4,
-	id = 1906196061,
+	id = 1268499444,
 	...
 };
 
@@ -120,7 +129,7 @@ export const builtin_u32: _type = _type {
 export const builtin_u64: _type = _type {
 	repr = builtin::U64,
 	sz = 8, _align = 8,
-	id = 1268499444,
+	id = 3181589295,
 	...
 };
 
@@ -128,6 +137,6 @@ export const builtin_u64: _type = _type {
 export const builtin_void: _type = _type {
 	repr = builtin::VOID,
 	sz = 0, _align = 0,
-	id = 3012680272,
+	id = 630802827,
 	...
 };

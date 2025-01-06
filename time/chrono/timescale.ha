@@ -43,7 +43,7 @@ export fn convert(i: time::instant, tscs: *timescale...) (time::instant | analyt
 			// try .convto
 			match (a.convto(b, t)) {
 			case let convs: []time::instant =>
-				append(tmps, convs...);
+				append(tmps, convs...)!;
 				continue;
 			case void => void;
 			};
@@ -51,7 +51,7 @@ export fn convert(i: time::instant, tscs: *timescale...) (time::instant | analyt
 			// try .convfrom
 			match (b.convfrom(a, t)) {
 			case let convs: []time::instant =>
-				append(tmps, convs...);
+				append(tmps, convs...)!;
 				continue;
 			case void => void;
 			};
@@ -62,7 +62,7 @@ export fn convert(i: time::instant, tscs: *timescale...) (time::instant | analyt
 			for (let conv .. convs) {
 				append(tmps, (
 					b.convfrom(&tai, conv) as []time::instant
-				)...);
+				)...)!;
 			};
 		};
 
@@ -88,7 +88,7 @@ export const tai: timescale = timescale {
 
 fn tai_conv(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	if (ts == &tai) {
-		return alloc([i]...);
+		return alloc([i]...)!;
 	};
 };
 
@@ -112,7 +112,7 @@ export const utc: timescale = timescale {
 
 fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	if (ts == &utc) {
-		return alloc([i]...);
+		return alloc([i]...)!;
 	} else if (ts == &tai) {
 		let ret: []time::instant = [];
 		if (!utc_isinitialized) {
@@ -129,7 +129,7 @@ fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 			append(ret, time::instant {
 				sec = i.sec + firstleap.1,
 				nsec = i.nsec,
-			});
+			})!;
 			return ret;
 		};
 
@@ -150,7 +150,7 @@ fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 					append(ret, time::instant {
 						sec = i.sec + leapoffset,
 						nsec = i.nsec,
-					});
+					})!;
 					return ret;
 				};
 
@@ -164,7 +164,7 @@ fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 							sec = i.sec + leapoffset,
 							nsec = i.nsec,
 						},
-					]...);
+					]...)!;
 					return ret;
 				};
 
@@ -177,7 +177,7 @@ fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 					append(ret, time::instant {
 						sec = i.sec + leapoffset,
 						nsec = i.nsec,
-					});
+					})!;
 					return ret;
 				};
 
@@ -193,7 +193,7 @@ fn utc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 
 fn utc_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	if (ts == &utc) {
-		return alloc([i]...);
+		return alloc([i]...)!;
 	} else if (ts == &tai) {
 		let ret: []time::instant = [];
 		if (!utc_isinitialized) {
@@ -210,7 +210,7 @@ fn utc_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 			append(ret, time::instant {
 				sec = i.sec - firstleap.1,
 				nsec = i.nsec,
-			});
+			})!;
 			return ret;
 		};
 
@@ -231,7 +231,7 @@ fn utc_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 					append(ret, time::instant {
 						sec = i.sec - leapoffset,
 						nsec = i.nsec,
-					});
+					})!;
 					return ret;
 				};
 
@@ -244,7 +244,7 @@ fn utc_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 					append(ret, time::instant {
 						sec = i.sec - leapoffset,
 						nsec = i.nsec,
-					});
+					})!;
 					return ret;
 				};
 
@@ -273,17 +273,17 @@ def GPS_OFFSET: time::duration = -19 * time::SECOND;
 
 fn gps_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	if (ts == &gps) {
-		return alloc([i]...);
+		return alloc([i]...)!;
 	} else if (ts == &tai) {
-		return alloc([time::add(i, -GPS_OFFSET)]...);
+		return alloc([time::add(i, -GPS_OFFSET)]...)!;
 	};
 };
 
 fn gps_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	if (ts == &gps) {
-		return alloc([i]...);
+		return alloc([i]...)!;
 	} else if (ts == &tai) {
-		return alloc([time::add(i, GPS_OFFSET)]...);
+		return alloc([time::add(i, GPS_OFFSET)]...)!;
 	};
 };
 
@@ -306,18 +306,18 @@ def TT_OFFSET: time::duration = 32184 * time::MILLISECOND; // 32.184 seconds
 
 fn tt_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	if (ts == &tt) {
-		return alloc([i]...);
+		return alloc([i]...)!;
 	} else if (ts == &tai) {
-		return alloc([time::add(i, -TT_OFFSET)]...);
+		return alloc([time::add(i, -TT_OFFSET)]...)!;
 	};
 };
 
 
 fn tt_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	if (ts == &tt) {
-		return alloc([i]...);
+		return alloc([i]...)!;
 	} else if (ts == &tai) {
-		return alloc([time::add(i, TT_OFFSET)]...);
+		return alloc([time::add(i, TT_OFFSET)]...)!;
 	};
 };
 
@@ -358,7 +358,7 @@ def DELTA_JANSIX_ADJUSTMENT: time::duration = 82944 * time::MILLISECOND;
 fn mtc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	let ret: []time::instant = [];
 	if (ts == &mtc) {
-		return alloc([i]...);
+		return alloc([i]...)!;
 	} else if (ts == &tai) {
 		// Change epoch from that of the Mars Sol Date
 		// to the Earth-Mars convergence date 2000 Jan 6th.
@@ -376,13 +376,13 @@ fn mtc_convto(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 
 		// Get the TAI time.
 		// assertion since TT and TAI are continuous.
-		return alloc([(tt.convto(&tai, i) as []time::instant)[0]]...);
+		return alloc([(tt.convto(&tai, i) as []time::instant)[0]]...)!;
 	};
 };
 
 fn mtc_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 	if (ts == &mtc) {
-		return alloc([i]...);
+		return alloc([i]...)!;
 	} else if (ts == &tai) {
 		// Get the "Terrestrial Time".
 		// assertion since TT and TAI are continuous.
@@ -400,7 +400,7 @@ fn mtc_convfrom(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 		i = time::add(i, -DELTA_JANSIX_ADJUSTMENT);
 
 		// Change epoch to that of the Mars Sol Date.
-		return alloc([time::add(i, DELTA_MARSEPOCH_JANSIX)]...);
+		return alloc([time::add(i, DELTA_MARSEPOCH_JANSIX)]...)!;
 	};
 };
 

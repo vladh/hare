@@ -32,12 +32,12 @@ export fn read_debug_info(
 		return;
 	};
 
-	const memrd = alloc(image::section_reader(image, sec));
+	const memrd = alloc(image::section_reader(image, sec))!;
 	io::seek(memrd, offs: io::off, io::whence::SET)?;
 
 	const rd = match (new_table_reader(memrd, true)?) {
 	case let rd: table_reader =>
-		yield alloc(rd);
+		yield alloc(rd)!;
 	case io::EOF =>
 		return;
 	};
@@ -195,7 +195,7 @@ fn read_die(
 		case => return errors::unsupported;
 		};
 
-		append(fields, field);
+		append(fields, field)!;
 	};
 
 	return entry {

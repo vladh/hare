@@ -14,12 +14,12 @@ fn parse_expr(src: str) *ast::expr = {
 	let sc = bufio::newscanner(&stream);
 	defer bufio::finish(&sc);
 	let lexer = lex::init(&sc, "<test>");
-	return alloc(parse::expr(&lexer)!);
+	return alloc(parse::expr(&lexer)!)!;
 };
 
 fn mktestctx() context = context {
 	store = types::store(types::x86_64, null, null),
-	scope = alloc(scope { ... }),
+	scope = alloc(scope { ... })!,
 	...
 };
 

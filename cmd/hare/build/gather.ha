@@ -37,7 +37,7 @@ export fn gather(ctx: *context, input: str) ([]module::module | error) = {
 		append(mods, module::module {
 			path = strings::dup(input),
 			...
-		});
+		})!;
 		yield len(mods) - 1;
 	};
 	return mods;

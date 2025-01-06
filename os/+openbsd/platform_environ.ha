@@ -21,9 +21,9 @@ let args_static: [32]str = [""...];
 			args[i] = c::tostr(rt::argv[i]: *const c::char)!;
 		};
 	} else {
-		args = alloc([], rt::argc);
+		args = alloc([], rt::argc)!;
 		for (let i = 0z; i < rt::argc; i += 1) {
-			append(args, c::tostr(rt::argv[i]: *const c::char)!);
+			append(args, c::tostr(rt::argv[i]: *const c::char)!)!;
 		};
 	};
 };
@@ -41,7 +41,7 @@ export fn getenvs() []str = {
 	};
 	for (let i = 0z; rt::envp[i] != null; i += 1) {
 		let s = c::tostr(rt::envp[i]: *const c::char)!;
-		append(envp, strings::dup(s));
+		append(envp, strings::dup(s))!;
 	};
 	return envp;
 };

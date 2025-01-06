@@ -158,7 +158,7 @@ fn dynamic_write(s: *io::stream, buf: const []u8) (size | io::error) = {
 	s.buf[s.pos..s.pos+bufend] = buf[..bufend];
 	s.pos += bufend;
 	if (bufend < len(buf)) {
-		append(s.buf, buf[bufend..]...);
+		append(s.buf, buf[bufend..]...)!;
 		s.pos += len(buf[bufend..]);
 	};
 	return len(buf);
@@ -229,7 +229,7 @@ fn dynamic_close(s: *io::stream) (void | io::error) = {
 	assert(len(buffer(&s)) == 0);
 	assert(io::writeall(&s, [1, 2, 3]) as size == 3);
 
-	let sl: []u8 = alloc([1, 2, 3]);
+	let sl: []u8 = alloc([1, 2, 3])!;
 	let s = dynamic_from(sl);
 	defer io::close(&s)!;
 	assert(io::writeall(&s, [0, 0]) as size == 2);
@@ -238,7 +238,7 @@ fn dynamic_close(s: *io::stream) (void | io::error) = {
 	assert(bytes::equal(buffer(&s), [0, 0, 3, 4, 5, 6]));
 	assert(io::read(&s, buf[..]) is io::EOF);
 
-	sl = alloc([1, 2]);
+	sl = alloc([1, 2])!;
 	let s = dynamic_from(sl);
 	defer io::close(&s)!;
 	assert(io::read(&s, buf[..1]) as size == 1 && buf[0] == 1);

@@ -148,7 +148,7 @@ fn lookup_remote_enum(ctx: *context, what: ast::ident) (ast::ident | void | erro
 	for (let in .. srcs.ha) {
 		let d = scan(in)?;
 		defer free(d);
-		append(decls, d...);
+		append(decls, d...)!;
 	};
 
 	for (let decl .. decls) {

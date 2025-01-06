@@ -33,8 +33,8 @@ fn expr_testloc(srcs: str...) void = for (let i = 0z; i < len(srcs); i += 1) {
 
 @test fn expr_loc() void = {
 	expr_testloc("foo", "foo[bar]", "foo.bar", "foo.1");
-	expr_testloc("alloc(foo)");
-	expr_testloc("append(foo, bar)", "append(foo, bar, baz)");
+	expr_testloc("alloc(foo)!");
+	expr_testloc("append(foo, bar)!", "append(foo, bar, baz)!");
 	expr_testloc("assert(foo)", `assert(foo, "bar")`, "abort()",
 		`abort("foo")`);
 	expr_testloc("foo is bar", "foo as bar");
@@ -55,7 +55,7 @@ fn expr_testloc(srcs: str...) void = for (let i = 0z; i < len(srcs); i += 1) {
 		"for (let bar = 0; baz; quux) quuux");
 	expr_testloc("free(foo)");
 	expr_testloc("if (foo) bar", "if (foo) bar else baz");
-	expr_testloc("insert(foo[0], bar)", "insert(foo[0], bar, baz)");
+	expr_testloc("insert(foo[0], bar)!", "insert(foo[0], bar, baz)!");
 	expr_testloc("len(foo)");
 	expr_testloc("{ foo; bar; }", "{ defer foo; }",
 		"{ let foo: bar = baz; }", "{ let foo: bar = baz, quux = quuux; }",

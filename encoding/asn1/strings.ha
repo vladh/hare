@@ -249,7 +249,7 @@ fn t61_decoder(s: *utf8stream, buf: []u8) (size | io::EOF | io::error) = {
 		match (dataread(s.d, chr)?) {
 		case let sz: size =>
 			assert(sz == 1);
-			static append(in, chr[0]);
+			static append(in, chr[0])!;
 		case io::EOF =>
 			if (len(in) > 0) return wrap_err(invalid);
 			if (n > 0) return n;

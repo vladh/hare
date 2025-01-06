@@ -71,7 +71,7 @@ fn parse_oids() []entry = {
 			name = strings::dup(name),
 			val = strings::dup(val),
 			...
-		});
+		})!;
 	};
 
 	return oids;
@@ -97,7 +97,7 @@ fn write_db(h: io::handle, oids: []entry) (void | io::error) = {
 
 		let der = oidtoder(e.val);
 		assert(len(der) <= 0xff);
-		insert(der[0], len(der): u8);
+		insert(der[0], len(der): u8)!;
 		defer free(der);
 
 		for (let byte .. der) {
@@ -121,7 +121,7 @@ fn oidtoder(oid: str) []u8 = {
 	let nums = oidtou64s(oid);
 	defer free(nums);
 
-	let der: []u8 = alloc([0...], 1);
+	let der: []u8 = alloc([0...], 1)!;
 	assert(nums[0] <= 6);
 	assert(nums[1] < 40);
 	der[0] = nums[0]: u8 * 40 + nums[1]: u8;
@@ -130,7 +130,7 @@ fn oidtoder(oid: str) []u8 = {
 	for (let i = 2z; i < len(nums); i += 1) {
 		let n = nums[i];
 		if (n == 0) {
-			insert(der[end], 0u8);
+			insert(der[end], 0u8)!;
 			end = len(der);
 			continue;
 		};
@@ -144,7 +144,7 @@ fn oidtoder(oid: str) []u8 = {
 			} else {
 				p |= 0x80;
 			};
-			insert(der[end], p);
+			insert(der[end], p)!;
 		};
 
 		end = len(der);
@@ -158,7 +158,7 @@ fn oidtou64s(oid: str) []u64 = {
 	let intnums: []u64 = [];
 
 	for (let s => strings::next_token(&nums)) {
-		append(intnums, strconv::stou64(s)!);
+		append(intnums, strconv::stou64(s)!)!;
 	};
 
 	return intnums;

@@ -9,11 +9,11 @@ export fn lpad(s: str, p: rune, maxlen: size) str = {
 	if (len(s) >= maxlen) {
 		return dup(s);
 	};
-	let res: []u8 = alloc([], maxlen);
+	let res: []u8 = alloc([], maxlen)!;
 	for (let i = 0z; i < maxlen - len(s); i += 1) {
-		append(res, utf8::encoderune(p)...);
+		append(res, utf8::encoderune(p)...)!;
 	};
-	append(res, toutf8(s)...);
+	append(res, toutf8(s)...)!;
 	return fromutf8_unsafe(res[..maxlen]);
 };
 
@@ -37,10 +37,10 @@ export fn rpad(s: str, p: rune, maxlen: size) str = {
 	if (len(s) >= maxlen) {
 		return dup(s);
 	};
-	let res: []u8 = alloc([], maxlen);
-	append(res, toutf8(s)...);
+	let res: []u8 = alloc([], maxlen)!;
+	append(res, toutf8(s)...)!;
 	for (let i = 0z; i < maxlen - len(s); i += 1) {
-		append(res, utf8::encoderune(p)...);
+		append(res, utf8::encoderune(p)...)!;
 	};
 	return fromutf8_unsafe(res[..maxlen]);
 };

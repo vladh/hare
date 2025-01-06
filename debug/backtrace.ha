@@ -132,7 +132,7 @@ fn printframe(
 			return;
 		};
 	};
-	static append(seen, pc);
+	static append(seen, pc)!;
 	fmt::errorln(): void;
 
 	if (imgstat.mask & fs::stat_mask::MTIME != 0) {

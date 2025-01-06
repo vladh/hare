@@ -30,11 +30,11 @@ fn attr_symbol(lexer: *lex::lexer) (str | error) = {
 export fn define(lexer: *lex::lexer) (ast::decl_const | error) = {
 	const ident = ident(lexer)?;
 	const _type: nullable *ast::_type = match (try(lexer, ltok::COLON)?) {
-	case lex::token => yield alloc(_type(lexer)?);
+	case lex::token => yield alloc(_type(lexer)?)!;
 	case void => yield null;
 	};
 	want(lexer, ltok::EQUAL)?;
-	const init: *ast::expr = alloc(expr(lexer)?);
+	const init: *ast::expr = alloc(expr(lexer)?)!;
 	return ast::decl_const {
 		ident = ident,
 		_type = _type,
@@ -48,7 +48,7 @@ fn decl_const(
 ) ([]ast::decl_const | error) = {
 	let decl: []ast::decl_const = [];
 	for (true) {
-		append(decl, define(lexer)?);
+		append(decl, define(lexer)?)!;
 
 		if (try(lexer, ltok::COMMA)? is void) {
 			break;
@@ -79,14 +79,14 @@ fn decl_global(
 		const _type: nullable *ast::_type =
 			match (try(lexer, ltok::COLON)?) {
 			case lex::token =>
-				yield alloc(_type(lexer)?);
+				yield alloc(_type(lexer)?)!;
 			case void =>
 				yield null;
 			};
 		const init: nullable *ast::expr =
 			match (try(lexer, ltok::EQUAL)?) {
 			case lex::token =>
-				yield alloc(expr(lexer)?);
+				yield alloc(expr(lexer)?)!;
 			case void =>
 				yield null;
 			};
@@ -98,7 +98,7 @@ fn decl_global(
 			ident = ident,
 			_type = _type,
 			init = init,
-		});
+		})!;
 		if (btok is void) {
 			break;
 		};
@@ -115,8 +115,8 @@ fn decl_type(lexer: *lex::lexer) ([]ast::decl_type | error) = {
 		let btok = try(lexer, ltok::COMMA)?;
 		append(decl, ast::decl_type {
 			ident = ident,
-			_type = alloc(_type),
-		});
+			_type = alloc(_type)!,
+		})!;
 		if (btok is void) {
 			break;
 		};
@@ -165,7 +165,7 @@ fn decl_func(lexer: *lex::lexer) (ast::decl_func | error) = {
 				len(param.name) > 0,
 				"Expected parameter name in function declaration")?;
 		};
-		yield alloc(expr(lexer)?);
+		yield alloc(expr(lexer)?)!;
 	case ltok::SEMICOLON =>
 		lex::unlex(lexer, tok);
 		yield null;
@@ -180,7 +180,7 @@ fn decl_func(lexer: *lex::lexer) (ast::decl_func | error) = {
 			end = proto_end,
 			flags = 0,
 			repr = prototype,
-		}),
+		})!,
 		body = body,
 		attrs = attr,
 	};
@@ -243,7 +243,7 @@ export fn decls(lexer: *lex::lexer) ([]ast::decl | error) = {
 	let decls: []ast::decl = [];
 	for (true) {
 		if (peek(lexer, ltok::EOF)? is lex::token) break;
-		append(decls, decl(lexer)?);
+		append(decls, decl(lexer)?)!;
 	};
 	return decls;
 };

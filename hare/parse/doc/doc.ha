@@ -78,16 +78,16 @@ fn _parse(
 		switch (r) {
 		case '\t' =>
 			loc.col = 8;
-			append(doc, scan_code_sample(sc, loc)?);
+			append(doc, scan_code_sample(sc, loc)?)!;
 		case '\n' =>
 			loc.line += 1;
 			loc.col = 0;
 		case '-' =>
 			loc.col += 1;
-			append(doc, scan_list(sc, loc)?);
+			append(doc, scan_list(sc, loc)?)!;
 		case =>
 			bufio::unreadrune(sc, r);
-			append(doc, scan_paragraph(sc, loc)?);
+			append(doc, scan_paragraph(sc, loc)?)!;
 		};
 	};
 
@@ -152,7 +152,7 @@ fn scan_list(
 	for (true) {
 		match (bufio::scan_rune(sc)?) {
 		case io::EOF =>
-			append(li, []);
+			append(li, [])!;
 			break;
 		case let r: rune =>
 			if (r != ' ') {
@@ -160,7 +160,7 @@ fn scan_list(
 			};
 		};
 
-		append(li, scan_paragraph(sc, loc)?);
+		append(li, scan_paragraph(sc, loc)?)!;
 
 		match (bufio::scan_rune(sc)?) {
 		case io::EOF =>
@@ -255,7 +255,7 @@ fn scan_paragraph(
 		loc.col += 1;
 		const part = memio::string(&s)!;
 		if (part != "") {
-			append(p, strings::dup(part));
+			append(p, strings::dup(part))!;
 			memio::reset(&s);
 		};
 
@@ -282,7 +282,7 @@ fn scan_paragraph(
 		};
 		loc.line += lexer.loc.0 - 1;
 
-		append(p, if (mod) ident: mod_ref else ident: decl_ref);
+		append(p, if (mod) ident: mod_ref else ident: decl_ref)!;
 
 		if (lexer.un.0 == lex::ltok::RBRACKET) {
 			match (bufio::scan_rune(sc)?) {
@@ -299,7 +299,7 @@ fn scan_paragraph(
 
 	const part = memio::string(&s)!;
 	if (part != "") {
-		append(p, strings::dup(part));
+		append(p, strings::dup(part))!;
 	};
 	return p;
 };

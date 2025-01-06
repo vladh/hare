@@ -55,9 +55,9 @@ fn _local(path: str, buf: *[MAX]u8) str = {
 
 	for (let byte .. bytes) {
 		if (byte == '/') {
-			static append(buf, SEP);
+			static append(buf, SEP)!;
 		} else {
-			static append(buf, byte);
+			static append(buf, byte)!;
 		};
 	};
 	return strings::fromutf8(buf)!;

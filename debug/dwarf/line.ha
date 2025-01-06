@@ -77,9 +77,9 @@ export fn exec_line_program(
 	case null =>
 		return;
 	};
-	const memrd = alloc(image::section_reader(image, sec));
+	const memrd = alloc(image::section_reader(image, sec))!;
 	io::seek(memrd, offs: io::off, io::whence::SET)?;
-	const rd = alloc(new_table_reader(memrd, true)? as table_reader);
+	const rd = alloc(new_table_reader(memrd, true)? as table_reader)!;
 
 	// Read program header
 	const ver = read_uhalf(rd)!;
@@ -98,7 +98,7 @@ export fn exec_line_program(
 	// Opcode lengths
 	for (let i = 0u8; i < head.opcode_base - 1; i += 1) {
 		const op = read_ubyte(rd)?;
-		append(head.opcode_lengths, op);
+		append(head.opcode_lengths, op)!;
 	};
 
 	// Directories
@@ -107,7 +107,7 @@ export fn exec_line_program(
 		if (len(dir) == 0) {
 			break;
 		};
-		append(head.dirs, dir);
+		append(head.dirs, dir)!;
 	};
 
 	// Files
@@ -124,7 +124,7 @@ export fn exec_line_program(
 			dir = dir,
 			mtime = mtime,
 			length = length,
-		});
+		})!;
 	};
 
 	let prog = line_program {
@@ -208,7 +208,7 @@ export fn line_step(
 				dir = dir,
 				mtime = mtime,
 				length = length,
-			});
+			})!;
 			state.file = len(prog.head.files): uint;
 		case DW_LNE_set_discriminator =>
 			state.discriminator = read_uleb128(prog.rd)?: uint;

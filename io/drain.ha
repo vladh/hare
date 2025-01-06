@@ -8,7 +8,7 @@ export fn drain(in: handle) ([]u8 | error) = {
 	static let buf: [4096]u8 = [0...];
 
 	for (let n => read(in, buf[..])?) {
-		append(sink, buf[..n]...);
+		append(sink, buf[..n]...)!;
 	};
 	return sink;
 };

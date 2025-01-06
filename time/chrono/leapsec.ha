@@ -73,7 +73,7 @@ fn parse_utc_leapsecs(h: io::handle) (void | utf8::invalid | io::error) = {
 
 		let secs = secs as i64 - SECS_1900_1970;
 		let diff = diff as i64;
-		append(utc_leapsecs, (secs, diff));
+		append(utc_leapsecs, (secs, diff))!;
 	};
 };
 

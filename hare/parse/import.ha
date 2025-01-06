@@ -8,7 +8,7 @@ use hare::lex::{ltok};
 fn name_list(lexer: *lex::lexer) (ast::import_members | error) = {
 	let names: []str = [];
 	for (true) {
-		append(names, want(lexer, ltok::NAME)?.1 as str);
+		append(names, want(lexer, ltok::NAME)?.1 as str)!;
 		switch (want(lexer, ltok::COMMA, ltok::RBRACE)?.0) {
 		case ltok::COMMA =>
 			match (try(lexer, ltok::RBRACE)?) {
@@ -35,7 +35,7 @@ export fn imports(lexer: *lex::lexer) ([]ast::import | error) = {
 		append(imports, ast::import {
 			bindings = void,
 			...
-		});
+		})!;
 		let import = &imports[len(imports) - 1];
 		import.start = lex::mkloc(lexer);
 		let (name, trailing) = ident_trailing(lexer)?;

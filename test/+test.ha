@@ -99,11 +99,11 @@ export @symbol("__test_main") fn main() size = {
 	let enabled_tests: []test = [];
 	defer free(enabled_tests);
 	if (len(os::args) == 1) {
-		append(enabled_tests, tests...);
+		append(enabled_tests, tests...)!;
 	} else for (let i = 0z; i < ntest; i += 1) {
 		for (let arg .. os::args) {
 			if (fnmatch::fnmatch(arg, tests[i].name)) {
-				append(enabled_tests, tests[i]);
+				append(enabled_tests, tests[i])!;
 				break;
 			};
 		};
@@ -263,7 +263,7 @@ fn do_test(ctx: *context, test: test) void = {
 			test = test.name,
 			stdout = stdout,
 			stderr = stderr,
-		});
+		})!;
 	} else {
 		free(stdout);
 		free(stderr);
@@ -339,7 +339,7 @@ fn interpret_status(ctx: *context, test: str, status: status) bool = {
 					...
 				},
 				trace = 0,
-			});
+			})!;
 			return true;
 		} else {
 			styled_print(92, "PASS");
@@ -355,7 +355,7 @@ fn interpret_status(ctx: *context, test: str, status: status) bool = {
 				test = test,
 				reason = reason,
 				trace = trace,
-			});
+			})!;
 			return true;
 		};
 	case status::SKIP =>
@@ -363,7 +363,7 @@ fn interpret_status(ctx: *context, test: str, status: status) bool = {
 		append(ctx.skipped, skipped {
 			test = test,
 			reason = reason.msg,
-		});
+		})!;
 		return false;
 	case status::SEGV =>
 		styled_print(91, "FAIL");
@@ -374,7 +374,7 @@ fn interpret_status(ctx: *context, test: str, status: status) bool = {
 				...
 			},
 			trace = trace,
-		});
+		})!;
 		return true;
 	};
 };

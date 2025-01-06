@@ -35,7 +35,7 @@ export fn split(in: const str) ([]str | syntaxerr) = {
 			};
 			if (!first) {
 				const item = memio::string(&s)!;
-				append(slice, strings::dup(item));
+				append(slice, strings::dup(item))!;
 				memio::reset(&s);
 			};
 			dirty = false;
@@ -56,7 +56,7 @@ export fn split(in: const str) ([]str | syntaxerr) = {
 
 	if (dirty) {
 		const item = memio::string(&s)!;
-		append(slice, strings::dup(item));
+		append(slice, strings::dup(item))!;
 	};
 
 	return slice;

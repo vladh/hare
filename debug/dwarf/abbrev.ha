@@ -50,7 +50,7 @@ export fn load_abbrevs(
 		case io::EOF => break;
 		case io::error => return errors::invalid;
 		case let ab: abbrev =>
-			append(abbrevs, ab);
+			append(abbrevs, ab)!;
 		};
 	};
 
@@ -80,7 +80,7 @@ fn read_abbrev(
 		append(fields, afield {
 			attr = name: u32,
 			form = form: u32,
-		});
+		})!;
 	};
 
 	return abbrev {

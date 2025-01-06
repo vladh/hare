@@ -39,7 +39,7 @@ export fn compile(input: str) (template | invalid) = {
 				} else {
 					strings::prev(&iter);
 					const lit = memio::string(&buf)!;
-					append(instrs, strings::dup(lit): literal);
+					append(instrs, strings::dup(lit): literal)!;
 					memio::reset(&buf);
 
 					parse_variable(&instrs, &iter, &buf)?;
@@ -54,7 +54,7 @@ export fn compile(input: str) (template | invalid) = {
 
 	if (len(memio::string(&buf)!) != 0) {
 		const lit = memio::string(&buf)!;
-		append(instrs, strings::dup(lit): literal);
+		append(instrs, strings::dup(lit): literal)!;
 	};
 
 	return instrs;
@@ -149,7 +149,7 @@ fn parse_variable(
 	};
 
 	const var = memio::string(buf)!;
-	append(instrs, strings::dup(var): variable);
+	append(instrs, strings::dup(var): variable)!;
 	memio::reset(buf);
 };
 

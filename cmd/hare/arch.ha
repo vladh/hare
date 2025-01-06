@@ -43,7 +43,7 @@ const arches: [_]build::arch = [
 
 fn set_arch_tags(tags: *[]str, a: *build::arch) void = {
 	merge_tags(tags, "-aarch64-riscv64-x86_64")!;
-	append(tags, a.name);
+	append(tags, a.name)!;
 };
 
 fn get_arch(name: str) (*build::arch | unknown_arch) = {

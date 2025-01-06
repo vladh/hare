@@ -170,7 +170,7 @@ export fn splitn(in: str, delim: str, n: size) []str = {
 	for (let i = 0z; i < n - 1z; i += 1) {
 		match (next_token(&tok)) {
 		case let s: str =>
-			append(toks, s);
+			append(toks, s)!;
 		case done =>
 			return toks;
 		};
@@ -178,7 +178,7 @@ export fn splitn(in: str, delim: str, n: size) []str = {
 	match(peek_token(&tok)) {
 	case done => void;
 	case let s: str =>
-		append(toks, remaining_tokens(&tok));
+		append(toks, remaining_tokens(&tok))!;
 	};
 	return toks;
 };
@@ -194,7 +194,7 @@ export fn rsplitn(in: str, delim: str, n: size) []str = {
 	for (let i = 0z; i < n - 1z; i += 1) {
 		match (next_token(&tok)) {
 		case let s: str =>
-			append(toks, s);
+			append(toks, s)!;
 		case done =>
 			return toks;
 		};
@@ -202,7 +202,7 @@ export fn rsplitn(in: str, delim: str, n: size) []str = {
 	match(peek_token(&tok)) {
 	case done => void;
 	case let s: str =>
-		append(toks, remaining_tokens(&tok));
+		append(toks, remaining_tokens(&tok))!;
 	};
 
 	for (let i = 0z; i < len(toks) / 2; i += 1) {

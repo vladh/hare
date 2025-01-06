@@ -166,7 +166,7 @@ export fn fixedzone(ts: *timescale, daylen: time::duration, z: zone) timezone = 
 		name = z.name,
 		timescale = ts,
 		daylength = daylen,
-		zones = alloc([z]),
+		zones = alloc([z])!,
 		transitions = [],
 		posix_extend = "",
 	};

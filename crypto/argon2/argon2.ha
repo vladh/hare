@@ -5,7 +5,6 @@ use bytes;
 use crypto::blake2b;
 use crypto::math;
 use endian;
-use errors::{nomem};
 use hash;
 use io;
 use memio;
@@ -180,7 +179,7 @@ fn argon2(
 
 		initmemsize = memsize;
 		const memsize = memsize - memsize % (4 * cfg.parallel);
-		yield alloc([0...], memsize * BLOCKSZ): []u64;
+		yield alloc([0...], memsize * BLOCKSZ)!: []u64;
 	};
 
 	let h0: [64]u8 = [0...];

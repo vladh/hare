@@ -60,7 +60,7 @@ export fn tostrn(cstr: *const char, length: size) (const str | utf8::invalid) = 
 // Converts a Hare string to a C string. The result is allocated; the caller
 // must free it when they're done.
 export fn fromstr(s: const str) *char = {
-	let slice: []char = alloc([0...], len(s) + 1);
+	let slice: []char = alloc([0...], len(s) + 1)!;
 	return fromstr_buf(s, slice);
 };
 

@@ -55,7 +55,7 @@ export fn next(rd: *reader) (host | done | error) = {
 			if (len(tok) == 0) {
 				continue;
 			};
-			append(rd.names, tok);
+			append(rd.names, tok)!;
 		};
 
 		if (len(rd.names) == 0) {
@@ -87,7 +87,7 @@ fn _lookup(rd: *reader, name: const str) ([]ip::addr | error) = {
 	for (const host => next(rd)?) {
 		for (const cand .. host.names) {
 			if (cand == name) {
-				append(addrs, host.addr);
+				append(addrs, host.addr)!;
 			};
 		};
 	};

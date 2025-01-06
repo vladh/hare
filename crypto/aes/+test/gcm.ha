@@ -606,7 +606,7 @@ const gcmtestcases: []gcmtestcase = [
 		let result: []u8 = if (len(t.cipher) == 0) {
 			yield [];
 		} else {
-			yield alloc([0...], len(t.cipher));
+			yield alloc([0...], len(t.cipher))!;
 		};
 		defer free(result);
 		let resultbuf = memio::fixed(result);
@@ -634,7 +634,7 @@ const gcmtestcases: []gcmtestcase = [
 		let result: []u8 = if (len(t.cipher) == 0) {
 			yield [];
 		} else {
-			yield alloc([0...], len(t.cipher));
+			yield alloc([0...], len(t.cipher))!;
 		};
 		defer free(result);
 		let cipherbuf = memio::fixed(t.cipher);
@@ -668,7 +668,7 @@ const gcmtestcases: []gcmtestcase = [
 		let result: []u8 = if (len(t.plain) == 0) {
 			yield [];
 		} else {
-			let r: []u8 = alloc([0...], len(t.plain));
+			let r: []u8 = alloc([0...], len(t.plain))!;
 			r[..] = t.plain[..];
 			yield r;
 		};

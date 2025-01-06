@@ -21,7 +21,7 @@ fn process(ctx: *context, subunits: const []ast::subunit) (unit | error) = {
 			case error =>
 				abort(); // TODO
 			};
-			append(unit.decls, decl);
+			append(unit.decls, decl)!;
 		};
 	};
 
@@ -171,7 +171,7 @@ fn process_access(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
 		result = result,
 		expr = ex,
 		terminates = false,
-	});
+	})!;
 };
 
 fn process_binding(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
@@ -199,7 +199,7 @@ fn process_binding(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
 		append(bindings, binding {
 			object = object,
 			init = init,
-		});
+		})!;
 	};
 	return alloc(expr {
 		start = aexpr.start,
@@ -207,17 +207,17 @@ fn process_binding(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
 		result = &types::builtin_void,
 		expr = bindings,
 		...
-	});
+	})!;
 };
 
 fn process_compound(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
 	const compound_expr = aexpr.expr as ast::compound_expr;
 	const scope = scope_push(ctx, scope_class::COMPOUND);
 
-	let exprs: compound = alloc([], len(compound_expr.exprs));
+	let exprs: compound = alloc([], len(compound_expr.exprs))!;
 	let i = 0z;
 	for (i < len(compound_expr.exprs); i += 1) {
-		append(exprs, process_expr(ctx, compound_expr.exprs[i])?);
+		append(exprs, process_expr(ctx, compound_expr.exprs[i])?)!;
 	};
 
 	scope_pop(ctx);
@@ -228,7 +228,7 @@ fn process_compound(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
 		expr = exprs,
 		terminates = exprs[i - 1].terminates,
 		...
-	});
+	})!;
 };
 
 fn process_constant(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
@@ -297,7 +297,7 @@ fn process_constant(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
 		result = result,
 		expr = ex,
 		...
-	});
+	})!;
 };
 
 fn process_return(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
@@ -315,5 +315,5 @@ fn process_return(ctx: *context, aexpr: *ast::expr) (*expr | error) = {
 		terminates = true,
 		result = &types::builtin_void,
 		expr = rval: _return,
-	});
+	})!;
 };

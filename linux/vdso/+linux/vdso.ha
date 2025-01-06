@@ -116,7 +116,7 @@ fn get_vdso_ctx() nullable *vdso_ctx = {
 		hashhdr = hashhdr: *elf::hashhdr,
 		verdef = verdef,
 		versym = versym,
-	});
+	})!;
 	ctx = vctx;
 
 	return ctx;

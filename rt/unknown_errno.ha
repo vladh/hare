@@ -7,17 +7,17 @@ fn unknown_errno(err: errno) str = {
 	let sl = buf[..0];
 
 	const s = *(&"[unknown errno ": *[]u8);
-	static append(sl, s...);
+	static append(sl, s...)!;
 
 	if (err < 0) {
-		static append(sl, '-');
+		static append(sl, '-')!;
 		const s = u64tos(ubuf, -err: u64);
-		static append(sl, *(&s: *[]u8)...);
-		static append(sl, ']');
+		static append(sl, *(&s: *[]u8)...)!;
+		static append(sl, ']')!;
 	} else {
 		const s = u64tos(ubuf, err: u64);
-		static append(sl, *(&s: *[]u8)...);
-		static append(sl, ']');
+		static append(sl, *(&s: *[]u8)...)!;
+		static append(sl, ']')!;
 	};
 
 	return *(&sl: *str);

@@ -190,7 +190,7 @@ const polyaligned: sample = sample {
 };
 
 @test fn rfc() void = {
-	let result: []u8 = alloc(rfcsample.msg...);
+	let result: []u8 = alloc(rfcsample.msg...)!;
 	defer free(result);
 
 	let b = encrypt(&rfcsample.key, &rfcsample.nonce, result[..],
@@ -207,7 +207,7 @@ const polyaligned: sample = sample {
 };
 
 @test fn rfcmultiadditonals() void = {
-	let result: []u8 = alloc(rfcsample.msg...);
+	let result: []u8 = alloc(rfcsample.msg...)!;
 	defer free(result);
 
 	let b = encrypt(&rfcsample.key, &rfcsample.nonce, result[..],
@@ -224,7 +224,7 @@ const polyaligned: sample = sample {
 };
 
 @test fn noadditional() void = {
-	let result: []u8 = alloc(noadsample.msg...);
+	let result: []u8 = alloc(noadsample.msg...)!;
 	defer free(result);
 
 	let b = encrypt(&noadsample.key, &noadsample.nonce, result[..]);
@@ -272,7 +272,7 @@ const polyaligned: sample = sample {
 };
 
 @test fn polyaligned() void = {
-	let result: []u8 = alloc(polyaligned.msg...);
+	let result: []u8 = alloc(polyaligned.msg...)!;
 	defer free(result);
 
 	let b = encrypt(&polyaligned.key, &polyaligned.nonce, result[..],
@@ -295,7 +295,7 @@ const polyaligned: sample = sample {
 	let key = rfcsample.key;
 	key[0] = 0x00;
 
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
 
 	let b: box = (rfcsample.mac, rfcsample.nonce, cipher[..]);
@@ -309,7 +309,7 @@ const polyaligned: sample = sample {
 @test fn invalidcipher() void = {
 	const zero: [114]u8 = [0...];
 
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
 	cipher[0] = 0x00;
 
@@ -323,9 +323,9 @@ const polyaligned: sample = sample {
 
 @test fn invalidcipher2() void = {
 
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
-	append(cipher, 0xff);
+	append(cipher, 0xff)!;
 
 	let b: box = (rfcsample.mac, rfcsample.nonce, cipher[..]);
 
@@ -338,7 +338,7 @@ const polyaligned: sample = sample {
 };
 
 @test fn invalidcipher3() void = {
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
 	delete(cipher[len(cipher) - 1]);
 
@@ -355,10 +355,10 @@ const polyaligned: sample = sample {
 @test fn invalidaddition() void = {
 	const zero: [114]u8 = [0...];
 
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
 
-	let ad: []u8 = alloc(rfcsample.additional...);
+	let ad: []u8 = alloc(rfcsample.additional...)!;
 	defer free(ad);
 	ad[0] = 0x00;
 
@@ -373,12 +373,12 @@ const polyaligned: sample = sample {
 @test fn invalidaddition2() void = {
 	const zero: [114]u8 = [0...];
 
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
 
-	let ad: []u8 = alloc(rfcsample.additional...);
+	let ad: []u8 = alloc(rfcsample.additional...)!;
 	defer free(ad);
-	append(ad, 0xff);
+	append(ad, 0xff)!;
 
 	let b: box = (rfcsample.mac, rfcsample.nonce, cipher[..]);
 
@@ -391,10 +391,10 @@ const polyaligned: sample = sample {
 @test fn invalidaddition3() void = {
 	const zero: [114]u8 = [0...];
 
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
 
-	let ad: []u8 = alloc(rfcsample.additional...);
+	let ad: []u8 = alloc(rfcsample.additional...)!;
 	defer free(ad);
 	delete(ad[len(ad) - 1]);
 
@@ -409,7 +409,7 @@ const polyaligned: sample = sample {
 @test fn invalidaddition4() void = {
 	const zero: [114]u8 = [0...];
 
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
 
 	let b: box = (rfcsample.mac, rfcsample.nonce, cipher[..]);
@@ -423,7 +423,7 @@ const polyaligned: sample = sample {
 @test fn invalidaddition5() void = {
 	const zero: [114]u8 = [0...];
 
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
 
 	let b: box = (rfcsample.mac, rfcsample.nonce, cipher[..]);
@@ -435,7 +435,7 @@ const polyaligned: sample = sample {
 };
 
 @test fn cipheradditionswap() void = {
-	let additional: []u8 = alloc(rfcsample.additional...);
+	let additional: []u8 = alloc(rfcsample.additional...)!;
 	defer free(additional);
 
 	let b: box = (rfcsample.mac, rfcsample.nonce, additional);
@@ -451,7 +451,7 @@ const polyaligned: sample = sample {
 @test fn invalidmac() void = {
 	const zero: [114]u8 = [0...];
 
-	let cipher: []u8 = alloc(rfcsample.cipher...);
+	let cipher: []u8 = alloc(rfcsample.cipher...)!;
 	defer free(cipher);
 
 	let mac: mac = rfcsample.mac;

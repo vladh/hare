@@ -34,6 +34,8 @@ case ast::builtin_type::INT =>
 	yield "int";
 case ast::builtin_type::NEVER =>
 	yield "never";
+case ast::builtin_type::NOMEM =>
+	yield "nomem";
 case ast::builtin_type::NULL =>
 	yield "null";
 case ast::builtin_type::OPAQUE =>

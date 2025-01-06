@@ -556,6 +556,8 @@ fn literal(
 			return syn(ctx, "null", synkind::KEYWORD)?;
 		case done =>
 			return syn(ctx, "done", synkind::KEYWORD)?;
+		case nomem =>
+			return syn(ctx, "nomem", synkind::KEYWORD)?;
 		case let b: bool =>
 			return syn(ctx, if (b) "true" else "false",
 				synkind::KEYWORD)?;
@@ -953,7 +955,7 @@ fn is_plain(e: *ast::expr) bool = {
 };
 
 fn is_postfix(e: *ast::expr) bool = {
-	if (is_plain(e)) {
+	if (is_builtin(e)) {
 		return true;
 	};
 
@@ -974,7 +976,7 @@ fn is_postfix(e: *ast::expr) bool = {
 };
 
 fn is_builtin(e: *ast::expr) bool = {
-	if (is_postfix(e)) {
+	if (is_plain(e)) {
 		return true;
 	};
 
@@ -1005,7 +1007,7 @@ fn is_builtin(e: *ast::expr) bool = {
 };
 
 fn is_unary(e: *ast::expr) bool = {
-	if (is_builtin(e)) {
+	if (is_postfix(e)) {
 		return true;
 	};
 

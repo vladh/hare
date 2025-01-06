@@ -252,7 +252,7 @@ fn assertpkcs1(
 	sig: []u8,
 	algo: pkcs1_hashalgo
 ) void = {
-	let nsig: []u8 = alloc([0...], len(sig));
+	let nsig: []u8 = alloc([0...], len(sig))!;
 	defer free(nsig);
 
 	let msghash = pkcs1_hash(msg, algo);
@@ -290,7 +290,7 @@ fn pkcs1_hash(msg: []u8, algo: pkcs1_hashalgo) []u8 = {
 		abort("unreachable");
 	};
 	defer hash::close(h);
-	let out: []u8 = alloc([0...], hash::sz(h));
+	let out: []u8 = alloc([0...], hash::sz(h))!;
 
 	io::writeall(h, msg)!;
 	hash::sum(h, out);

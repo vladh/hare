@@ -14,7 +14,7 @@ export fn check(
 ) (unit | error) = {
 	let ctx = context {
 		store = store,
-		scope = alloc(scope { class = scope_class::UNIT, ... }),
+		scope = alloc(scope { class = scope_class::UNIT, ... })!,
 		...
 	};
 	scan(&ctx, subunits)?;

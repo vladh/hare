@@ -27,9 +27,9 @@ fn prototype(lexer: *lex::lexer) (ast::func_type | error) = {
 			append(params, ast::func_param {
 				loc = loc,
 				name = "",
-				_type = alloc(name_or_type),
+				_type = alloc(name_or_type)!,
 				default_value = void,
-			});
+			})!;
 		case lex::token =>
 			// Bit of a hack because we can't unlex twice.
 			synassert(loc, name_or_type.repr is ast::alias_type,
@@ -39,9 +39,9 @@ fn prototype(lexer: *lex::lexer) (ast::func_type | error) = {
 			append(params, ast::func_param {
 				loc = loc,
 				name = ns[0],
-				_type = alloc(_type(lexer)?),
+				_type = alloc(_type(lexer)?)!,
 				default_value = void,
-			});
+			})!;
 		};
 		match (try(lexer, ltok::EQUAL)?) {
 		case void =>
@@ -65,7 +65,7 @@ fn prototype(lexer: *lex::lexer) (ast::func_type | error) = {
 	};
 	let t = _type(lexer)?;
 	return ast::func_type {
-		result = alloc(t),
+		result = alloc(t)!,
 		variadism = variadism,
 		params = params,
 	};
@@ -132,6 +132,8 @@ fn primitive_type(lexer: *lex::lexer) (ast::_type | error) = {
 		yield builtin_type::OPAQUE;
 	case ltok::NEVER =>
 		yield builtin_type::NEVER;
+	case ltok::NOMEM =>
+		yield builtin_type::NOMEM;
 	case =>
 		return syntaxerr(lex::mkloc(lexer),
 			"Unexpected {}, was expecting primitive type",
@@ -175,7 +177,7 @@ fn pointer_type(lexer: *lex::lexer) (ast::_type | error) = {
 		end = lex::prevloc(lexer),
 		flags = ast::type_flag::NONE,
 		repr = ast::pointer_type {
-			referent = alloc(_type),
+			referent = alloc(_type)!,
 			flags = flags,
 		},
 	};
@@ -187,9 +189,9 @@ fn tagged_type(
 	start: lex::location
 ) (ast::_type | error) = {
 	let tagged: ast::tagged_type = [];
-	append(tagged, alloc(first));
+	append(tagged, alloc(first)!)!;
 	for (true) {
-		append(tagged, alloc(_type(lexer)?));
+		append(tagged, alloc(_type(lexer)?)!)!;
 
 		match (try(lexer, ltok::BOR)?) {
 		case lex::token =>
@@ -216,9 +218,9 @@ fn tuple_type(
 	start: lex::location
 ) (ast::_type | error) = {
 	let tuple: ast::tuple_type = [];
-	append(tuple, alloc(first));
+	append(tuple, alloc(first)!)!;
 	for (true) {
-		append(tuple, alloc(_type(lexer)?));
+		append(tuple, alloc(_type(lexer)?)!)!;
 		match (try(lexer, ltok::COMMA)?) {
 		case lex::token =>
 			match (try(lexer, ltok::RPAREN)) {
@@ -278,7 +280,7 @@ fn struct_union_type(lexer: *lex::lexer) (ast::_type | error) = {
 			want(lexer, ltok::LPAREN)?;
 			let ex = expr(lexer)?;
 			want(lexer, ltok::RPAREN)?;
-			yield alloc(ex);
+			yield alloc(ex)!;
 		};
 
 		let tok = want(lexer, ltok::NAME, ltok::STRUCT, ltok::UNION)?;
@@ -289,15 +291,15 @@ fn struct_union_type(lexer: *lex::lexer) (ast::_type | error) = {
 		case ltok::NAME =>
 			lex::unlex(lexer, tok);
 			let memb = struct_embed_or_field(lexer, offs, comment)?;
-			append(membs, memb);
+			append(membs, memb)!;
 		case ltok::STRUCT, ltok::UNION =>
 			lex::unlex(lexer, tok);
 			let subtype = struct_union_type(lexer)?;
 			append(membs, ast::struct_member {
 				_offset = offs,
-				member = alloc(subtype),
+				member = alloc(subtype)!,
 				docs = comment,
-			});
+			})!;
 		case => abort();
 		};
 
@@ -347,13 +349,13 @@ fn struct_embed_or_field(
 
 	let id: ast::ident = match (try(lexer, ltok::COLON, ltok::DOUBLE_COLON)?) {
 	case void =>
-		yield alloc([name.1 as str]);
+		yield alloc([name.1 as str])!;
 	case let tok: lex::token =>
 		yield switch (tok.0) {
 		case ltok::COLON =>
 			let field = ast::struct_field {
 				name = name.1 as str,
-				_type = alloc(_type(lexer)?),
+				_type = alloc(_type(lexer)?)!,
 			};
 			return ast::struct_member {
 				_offset = offs,
@@ -362,7 +364,7 @@ fn struct_embed_or_field(
 			};
 		case ltok::DOUBLE_COLON =>
 			let id = ident(lexer)?;
-			insert(id[0], name.1 as str);
+			insert(id[0], name.1 as str)!;
 			yield id;
 		case => abort();
 		};
@@ -381,7 +383,7 @@ fn array_slice_type(lexer: *lex::lexer) (ast::_type | error) = {
 	let length = match (try(lexer, ltok::UNDERSCORE,
 		ltok::TIMES, ltok::RBRACKET)?) {
 	case void =>
-		yield alloc(expr(lexer)?);
+		yield alloc(expr(lexer)?)!;
 	case let tok: lex::token =>
 		yield switch (tok.0) {
 		case ltok::UNDERSCORE =>
@@ -405,7 +407,7 @@ fn array_slice_type(lexer: *lex::lexer) (ast::_type | error) = {
 		flags = ast::type_flag::NONE,
 		repr = ast::list_type {
 			length = length,
-			members = alloc(_type),
+			members = alloc(_type)!,
 		},
 	};
 };
@@ -442,7 +444,7 @@ fn enum_type(lexer: *lex::lexer) (ast::_type | error) = {
 		let comment = strings::dup(lex::comment(lexer));
 		let value: nullable *ast::expr =
 			if (try(lexer, ltok::EQUAL)? is lex::token)
-				alloc(expr(lexer)?)
+				alloc(expr(lexer)?)!
 			else null;
 
 		defer append(membs, ast::enum_field {
@@ -450,7 +452,7 @@ fn enum_type(lexer: *lex::lexer) (ast::_type | error) = {
 			value = value,
 			loc = loc,
 			docs = comment,
-		});
+		})!;
 
 		switch (want(lexer, ltok::COMMA, ltok::RBRACE)?.0) {
 		case ltok::COMMA =>
@@ -494,7 +496,7 @@ export fn _type(lexer: *lex::lexer) (ast::_type | error) = {
 			ltok::I32, ltok::I64, ltok::U8, ltok::U16, ltok::U32,
 			ltok::U64, ltok::INT, ltok::UINT, ltok::UINTPTR,
 			ltok::SIZE, ltok::F32, ltok::F64, ltok::VALIST,
-			ltok::VOID, ltok::OPAQUE, ltok::NEVER =>
+			ltok::VOID, ltok::OPAQUE, ltok::NEVER, ltok::NOMEM =>
 		yield primitive_type(lexer)?;
 	case ltok::ENUM =>
 		yield enum_type(lexer)?;

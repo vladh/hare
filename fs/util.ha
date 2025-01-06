@@ -89,7 +89,7 @@ export fn readdir(fs: *fs, path: str) ([]dirent | error) = {
 	let ents: []dirent = [];
 
 	for (let d => next(i)?) {
-		append(ents, dirent_dup(&d));
+		append(ents, dirent_dup(&d))!;
 	};
 	return ents;
 };

@@ -157,7 +157,7 @@ fn handle_bracket(
 	};
 
 	if (*bracket_idx == -1) {
-		append(charsets, []);
+		append(charsets, [])!;
 	};
 	*bracket_idx += 1;
 
@@ -181,7 +181,7 @@ fn handle_bracket(
 			return `Trailing backslash '\'`: error;
 		} else {
 			append(charsets[len(charsets) - 1],
-				peek1: charset_lit_item);
+				peek1: charset_lit_item)!;
 			strings::next(iter);
 			*r_idx += 1;
 		};
@@ -190,7 +190,7 @@ fn handle_bracket(
 			idx = len(charsets) - 1,
 			is_positive = *is_charset_positive,
 		};
-		append(insts, newinst);
+		append(insts, newinst)!;
 		*in_bracket = false;
 		*bracket_idx = -1;
 		*is_charset_positive = true;
@@ -203,7 +203,7 @@ fn handle_bracket(
 		for (let cc_idx = 0z; cc_idx < n_cc; cc_idx += 1) {
 			if (strings::hasprefix(rest, charclass_map[cc_idx].0)) {
 				append(charsets[len(charsets) - 1],
-					charclass_map[cc_idx]);
+					charclass_map[cc_idx])!;
 				*skip_charclass_rest = true;
 				break;
 			};
@@ -220,13 +220,13 @@ fn handle_bracket(
 		};
 
 		append(charsets[len(charsets) - 1],
-			(start_b, end_b): charset_range_item);
+			(start_b, end_b): charset_range_item)!;
 		strings::next(iter);
 		strings::next(iter);
 		*r_idx += 2;
 	} else {
 		append(charsets[len(charsets) - 1],
-			r: charset_lit_item);
+			r: charset_lit_item)!;
 	};
 
 	*r_idx += 1;
@@ -239,7 +239,7 @@ export fn compile(expr: str) (regex | error) = {
 	let iter = strings::iter(expr);
 	let r_idx = 0z;
 	let jump_idxs: [][]size = [];
-	append(jump_idxs, []);
+	append(jump_idxs, [])!;
 	defer free(jump_idxs);
 	let in_bracket = false;
 	let skip_charclass_rest = false;
@@ -254,7 +254,7 @@ export fn compile(expr: str) (regex | error) = {
 		const next = strings::next(&iter);
 
 		if (r_idx == 0 && next is rune && next: rune != '^') {
-			append(insts, inst_skip);
+			append(insts, inst_skip)!;
 		};
 
 		if (in_bracket) {
@@ -283,7 +283,7 @@ export fn compile(expr: str) (regex | error) = {
 			if (peek1 is done) {
 				return `Trailing backslash '\'`: error;
 			} else {
-				append(insts, (peek1 as rune): inst_lit);
+				append(insts, (peek1 as rune): inst_lit)!;
 				r_idx += 1;
 			};
 		case '^' =>
@@ -304,23 +304,23 @@ export fn compile(expr: str) (regex | error) = {
 				};
 				strings::prev(&iter);
 			};
-			append(insts, true: inst_match);
+			append(insts, true: inst_match)!;
 		case '[' =>
 			in_bracket = true;
 		case ']' =>
-			append(insts, r: inst_lit);
+			append(insts, r: inst_lit)!;
 		case '(' =>
-			append(insts, capture_idx: inst_groupstart);
+			append(insts, capture_idx: inst_groupstart)!;
 			group_level += 1;
 			capture_idx += 1;
 			for (len(jump_idxs) < group_level + 1) {
-				append(jump_idxs, []);
+				append(jump_idxs, [])!;
 			};
 		case ')' =>
 			if (group_level == 0) {
 				return `Unmatched ')'`: error;
 			};
-			append(insts, inst_groupend);
+			append(insts, inst_groupend)!;
 			for (let jump_idx .. jump_idxs[group_level]) {
 				assert(insts[jump_idx] is inst_jump);
 				insts[jump_idx] = (len(insts) - 1): inst_jump;
@@ -328,7 +328,7 @@ export fn compile(expr: str) (regex | error) = {
 			delete(jump_idxs[group_level][..]);
 			group_level -= 1;
 		case '|' =>
-			append(insts, types::SIZE_MAX: inst_jump);
+			append(insts, types::SIZE_MAX: inst_jump)!;
 			const origin = match (find_last_groupstart(insts)) {
 			case error =>
 				yield 0z;
@@ -339,7 +339,7 @@ export fn compile(expr: str) (regex | error) = {
 			// add split after last jump (if any) or at origin
 			const split_idx = if (len(jump_idxs[group_level]) > 0)
 				jump_idxs[group_level][len(jump_idxs[group_level]) - 1] + 1 else origin;
-			insert(insts[split_idx], newinst);
+			insert(insts[split_idx], newinst)!;
 			shift(insts[split_idx + 1..]);
 			// our insertion of our split_idx should never interfere
 			// with an existing jump_idx
@@ -349,13 +349,13 @@ export fn compile(expr: str) (regex | error) = {
 				// incremented
 				assert(jump_idx < split_idx, `Found jump_idx interference. Please report this as a bug`);
 			};
-			append(jump_idxs[group_level], len(insts) - 1);
+			append(jump_idxs[group_level], len(insts) - 1)!;
 			// add skip if it's a whole-expression alternation
 			if (origin == 0) {
 				const peek1 = strings::next(&iter);
 				if (peek1 is rune) {
 					if (peek1 as rune != '^') {
-						append(insts, inst_skip);
+						append(insts, inst_skip)!;
 					};
 					strings::prev(&iter);
 				};
@@ -379,7 +379,7 @@ export fn compile(expr: str) (regex | error) = {
 				// advance to len(insts) + 1 to make space for the `inst_split`
 				// advance to len(insts) + 2 to make space for the `inst_repeat`
 				insert(insts[origin],
-					len(insts) + 2: inst_split);
+					len(insts) + 2: inst_split)!;
 				shift(insts[origin + 1..]);
 				origin += 1;
 			};
@@ -393,7 +393,7 @@ export fn compile(expr: str) (regex | error) = {
 				strings::next(&iter);
 				r_idx += 1;
 			};
-			append(insts, newinst);
+			append(insts, newinst)!;
 			n_reps += 1;
 		case '?' =>
 			if (r_idx == 0 || len(insts) == 0) {
@@ -411,7 +411,7 @@ export fn compile(expr: str) (regex | error) = {
 				return `Misused '?'`: error;
 			};
 			const after_idx = len(insts) + 1;
-			insert(insts[term_start_idx], after_idx: inst_split);
+			insert(insts[term_start_idx], after_idx: inst_split)!;
 			shift(insts[term_start_idx + 1..]);
 		case '*' =>
 			if (r_idx == 0 || len(insts) == 0) {
@@ -433,9 +433,9 @@ export fn compile(expr: str) (regex | error) = {
 			};
 			const split_idx = term_start_idx;
 			term_start_idx += new_inst_offset;
-			insert(insts[split_idx], after_idx: inst_split);
+			insert(insts[split_idx], after_idx: inst_split)!;
 			shift(insts[split_idx + 1..]);
-			append(insts, split_idx: inst_jump);
+			append(insts, split_idx: inst_jump)!;
 		case '+' =>
 			if (r_idx == 0 || len(insts) == 0) {
 				return `Unused '+'`: error;
@@ -451,11 +451,11 @@ export fn compile(expr: str) (regex | error) = {
 			case =>
 				return `Misused '+'`: error;
 			};
-			append(insts, term_start_idx: inst_split);
+			append(insts, term_start_idx: inst_split)!;
 		case '.' =>
-			append(insts, inst_any);
+			append(insts, inst_any)!;
 		case =>
-			append(insts, r: inst_lit);
+			append(insts, r: inst_lit)!;
 		};
 		was_prev_rune_pipe = (r == '|');
 		r_idx += 1;
@@ -468,7 +468,7 @@ export fn compile(expr: str) (regex | error) = {
 	};
 
 	if (len(insts) == 0 || !(insts[len(insts) - 1] is inst_match)) {
-		append(insts, false: inst_match);
+		append(insts, false: inst_match)!;
 	};
 
 	return regex {
@@ -566,10 +566,10 @@ fn add_thread(threads: *[]thread, parent_idx: size, new_pc: size) void = {
 		start_bytesize = threads[parent_idx].start_bytesize,
 		matched = threads[parent_idx].matched,
 		failed = threads[parent_idx].failed,
-		captures = alloc(threads[parent_idx].captures...),
-		rep_counters = alloc(threads[parent_idx].rep_counters...),
+		captures = alloc(threads[parent_idx].captures...)!,
+		rep_counters = alloc(threads[parent_idx].rep_counters...)!,
 		...
-	});
+	})!;
 };
 
 fn run_thread(
@@ -623,7 +623,7 @@ fn run_thread(
 			if (idx >= len(threads[i].captures)) {
 				append(threads[i].captures,
 					[capture { ... }...],
-					idx - len(threads[i].captures) + 1);
+					idx - len(threads[i].captures) + 1)!;
 			};
 			assert(threads[i].captures[idx].end != types::SIZE_MAX);
 			threads[i].captures[idx] = capture {
@@ -737,9 +737,9 @@ fn search(
 ) (void | []capture) = {
 	let threads: []thread = alloc([
 		thread { captures = [], ... }
-	]);
+	])!;
 	if (re.n_reps > 0) {
-		threads[0].rep_counters = alloc([0...], re.n_reps);
+		threads[0].rep_counters = alloc([0...], re.n_reps)!;
 	};
 	defer {
 		for (let i = 0z; i < len(threads); i += 1) {
@@ -800,12 +800,12 @@ fn search(
 				case => void;
 				};
 			};
-			let res: result = alloc([], length);
-			static append(res, threads[best_idx].root_capture);
-			static append(res, threads[best_idx].captures...);
+			let res: result = alloc([], length)!;
+			static append(res, threads[best_idx].root_capture)!;
+			static append(res, threads[best_idx].captures...)!;
 			if (length != len(res)) {
 				static append(res, [capture { ... }...],
-					length - len(res));
+					length - len(res))!;
 			};
 			return res;
 		};
@@ -908,7 +908,7 @@ export fn findall(re: *regex, string: str) []result = {
 			str_bytes[str_bytesize..]);
 		match (search(re, substring, &strm, true)) {
 		case let m: []capture =>
-			append(res, m);
+			append(res, m)!;
 			m[0].start += str_idx;
 			m[0].end += str_idx;
 			m[0].start_bytesize += str_bytesize;
@@ -972,24 +972,24 @@ export fn replacen(
 	defer result_freeall(matches);
 
 	const bytes = strings::toutf8(string);
-	let buf = alloc(bytes[..matches[0][0].start_bytesize]...);
+	let buf = alloc(bytes[..matches[0][0].start_bytesize]...)!;
 
 	const n = if (len(matches) > n) n else len(matches);
 	for (let i = 0z; i < n; i += 1) {
 		for (let j = 0z; j < len(target); j += 1) {
 			match (target[j]) {
 			case let b: []u8 =>
-				append(buf, b...);
+				append(buf, b...)!;
 			case let z: size =>
 				if (z >= len(matches[i])) yield;
 				const b = strings::toutf8(matches[i][z].content);
-				append(buf, b...);
+				append(buf, b...)!;
 			};
 		};
 		const start = matches[i][0].end_bytesize;
 		const end = if (i == n - 1) len(bytes)
 			else matches[i + 1][0].start_bytesize;
-		append(buf, bytes[start..end]...);
+		append(buf, bytes[start..end]...)!;
 	};
 
 	return strings::fromutf8(buf)!;
@@ -997,19 +997,19 @@ export fn replacen(
 
 fn parse_replace_target(targetstr: str) ([]([]u8 | size) | error) = {
 	const bytes = strings::toutf8(targetstr);
-	let target: []([]u8 | size) = alloc([], 1);
+	let target: []([]u8 | size) = alloc([], 1)!;
 	let iter = strings::iter(targetstr);
 	let start = 0z, end = 0z;
 	for (true) match (strings::next(&iter)) {
 	case done =>
 		if (start != end) {
-			append(target, bytes[start..]);
+			append(target, bytes[start..])!;
 		};
 		break;
 	case let r: rune =>
 		if (r == '\\') {
 			if (start != end) {
-				append(target, bytes[start..end]);
+				append(target, bytes[start..end])!;
 			};
 
 			const r = match (strings::next(&iter)) {
@@ -1021,9 +1021,9 @@ fn parse_replace_target(targetstr: str) ([]([]u8 | size) | error) = {
 			};
 
 			if (r == '\\') {
-				append(target, '\\');
+				append(target, '\\')!;
 			} else if (ascii::isdigit(r)) {
-				append(target, r: u32: size - 0x30);
+				append(target, r: u32: size - 0x30)!;
 			} else {
 				free(target);
 				return "Backslash must be followed by positive decimal number or a backslash": error;
@@ -1064,16 +1064,16 @@ export fn rawreplacen(re: *regex, string: str, targetstr: str, n: size) str = {
 	const bytes = strings::toutf8(string);
 	let buf: []u8 = [];
 
-	append(buf, bytes[..matches[0][0].start_bytesize]...);
+	append(buf, bytes[..matches[0][0].start_bytesize]...)!;
 	const n = if (len(matches) > n) n else len(matches);
 	for (let i = 1z; i < n; i += 1) {
-		append(buf, target...);
+		append(buf, target...)!;
 		const start = matches[i - 1][0].end_bytesize;
 		const end = matches[i][0].start_bytesize;
-		append(buf, bytes[start..end]...);
+		append(buf, bytes[start..end]...)!;
 	};
-	append(buf, target...);
-	append(buf, bytes[matches[n - 1][0].end_bytesize..]...);
+	append(buf, target...)!;
+	append(buf, bytes[matches[n - 1][0].end_bytesize..]...)!;
 
 	return strings::fromutf8(buf)!;
 };

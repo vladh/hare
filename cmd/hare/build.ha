@@ -63,7 +63,7 @@ fn build(name: str, cmd: *getopt::command) (void | error) = {
 			let sc = bufio::newscanner(&buf, len(opt.1));
 			defer bufio::finish(&sc);
 			let lexer = lex::init(&sc, "<-D argument>");
-			append(ctx.defines, parse::define(&lexer)?);
+			append(ctx.defines, parse::define(&lexer)?)!;
 		case 'F' =>
 			ctx.freestanding = true;
 		case 'j' =>
@@ -83,9 +83,9 @@ fn build(name: str, cmd: *getopt::command) (void | error) = {
 				fmt::fatal("Number of jobs must be non-zero");
 			};
 		case 'L' =>
-			append(ctx.libdirs, opt.1);
+			append(ctx.libdirs, opt.1)!;
 		case 'l' =>
-			append(ctx.libs, opt.1);
+			append(ctx.libs, opt.1)!;
 		case 'N' =>
 			ast::ident_free(ctx.ns);
 			ctx.ns = [];
@@ -175,7 +175,7 @@ fn build(name: str, cmd: *getopt::command) (void | error) = {
 	const input = if (len(cmd.args) == 0) os::getcwd() else cmd.args[0];
 
 	ctx.mods = build::gather(&ctx, os::realpath(input)?)?;
-	append(ctx.hashes, [[void...]...], len(ctx.mods));
+	append(ctx.hashes, [[void...]...], len(ctx.mods))!;
 
 	let built = build::execute(&ctx)?;
 	defer free(built);

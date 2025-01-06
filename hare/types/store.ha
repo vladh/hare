@@ -40,7 +40,7 @@ export fn store(
 	resolve = resolver,
 	rstate = rstate,
 	...
-});
+})!;
 
 // Frees state associated with a [[typestore]].
 export fn store_free(store: *typestore) void = {
@@ -90,7 +90,7 @@ export fn newalias(
 
 	// Or create a new alias
 	let bucket = &store.map[id % BUCKETS];
-	append(bucket, atype);
+	append(bucket, atype)!;
 	return &bucket[len(bucket) - 1];
 };
 
@@ -151,6 +151,8 @@ export fn lookup(
 			return &builtin_void;
 		case builtin::DONE =>
 			return &builtin_done;
+		case builtin::NOMEM =>
+			return &builtin_nomem;
 		case => void;
 		};
 	case => void;
@@ -165,7 +167,7 @@ export fn lookup(
 		};
 	};
 	ty.id = id;
-	append(bucket, ty);
+	append(bucket, ty)!;
 	return &bucket[len(bucket) - 1];
 };
 
@@ -265,6 +267,9 @@ fn fromast(store: *typestore, atype: *ast::_type) (_type | deferred | error) = {
 			sz = SIZE_UNDEFINED;
 			_align = SIZE_UNDEFINED;
 			yield builtin::NEVER;
+		case ast::builtin_type::NOMEM =>
+			sz = 0; _align = 0;
+			yield builtin::NOMEM;
 		case ast::builtin_type::VALIST =>
 			sz = store.arch.valist_size;
 			_align = store.arch.valist_align;
@@ -368,10 +373,10 @@ fn func_from_ast(
 		case ast::variadism::HARE =>
 			yield variadism::HARE;
 		},
-		params = alloc([], len(ft.params)),
+		params = alloc([], len(ft.params))!,
 	};
 	for (let i = 0z; i < len(ft.params); i += 1) {
-		append(f.params, lookup(store, ft.params[i]._type)?);
+		append(f.params, lookup(store, ft.params[i]._type)?)!;
 	};
 	return f;
 };
@@ -477,7 +482,7 @@ fn _struct_from_ast(
 			name = memb.name,
 			offs = *offs,
 			_type = _type,
-		});
+		})!;
 
 		if (!is_union) {
 			*offs += _type.sz;
@@ -519,7 +524,7 @@ fn tagged_collect(
 	case let ta: ast::tagged_type =>
 		tagged_collect(store, ta, types)?;
 	case =>
-		append(types, lookup(store, atype[i])?);
+		append(types, lookup(store, atype[i])?)!;
 	};
 };
 
@@ -564,7 +569,7 @@ fn tuple_from_ast(
 		append(values, tuple_value {
 			_type = vtype,
 			offs = offs,
-		});
+		})!;
 
 		offs += vtype.sz;
 	};
