@@ -296,6 +296,12 @@ export fn from_str(
 	return realize(v, locs...) as (date | insufficient | invalid);
 };
 
+// Extracts the [[chrono::moment]] of the given [[date]].
+export fn to_moment(d: date) chrono::moment = *(&d: *chrono::moment);
+
+// Extracts the [[time::instant]] of the given [[date]].
+export fn to_instant(d: date) time::instant = *(&d: *time::instant);
+
 @test fn from_str() void = {
 	let testcases: [_](str, str, []locality, (date | error)) = [
 		(STAMPLOC, "2001-02-03 15:16:17.123456789 +0000 UTC UTC", [],

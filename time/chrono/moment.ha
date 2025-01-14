@@ -33,3 +33,6 @@ export fn new(tsc: *timescale, i: time::instant) moment = {
 		tsc = tsc,
 	};
 };
+
+// Extracts the [[time::instant]] of the given [[moment]].
+export fn to_instant(m: moment) time::instant = *(&m: *time::instant);
