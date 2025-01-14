@@ -20,23 +20,18 @@ export type tzdberror = !(invalidtzif | fs::error | io::error);
 // Invalid TZif data.
 export type invalidtzif = !void;
 
-// Finds, loads, and allocates a [[timezone]] from the system's TZif timezone
-// database (TZDB), and returns it as a [[locality]]. Each call returns a new
-// instance. The caller must free the return value; see [[timezone_free]].
+// Loads a [[timezone]] from the system's TZDB (Timezone Database) as a
+// [[locality]]. Each call returns a new instance. The caller must free the
+// return value. See [[timezone_free]].
 //
-// The system TZDB is normally located at [[TZDB_PATH]]. The timezone
-// filepath is resolved by appending the name argument to this prefix path.
-// If [name] is a full filepath (begins with '/'), it is used directly instead.
+// The given "TZID" shall be a TZDB identifier and acts as the relative filepath
+// to a TZif (Time Zone Information Format) file under [[TZDB_PATH]].
+// For example, "Europe/Amsterdam" for "/usr/share/zoneinfo/Europe/Amsterdam".
 //
-// All localities returned default to [[time::chrono::utc]] timescale and
-// [[EARTH_DAY]] day-length.
-export fn tz(name: str) (locality | tzdberror) = {
-	const filepath = if (strings::hasprefix(name, "/")) {
-		yield path::init(name);
-	} else {
-		yield path::init(TZDB_PATH, name);
-	};
-	const filepath = match (filepath) {
+// The loaded timezones are assigned the TZID as its name, the
+// [[time::chrono::utc]] timescale, and the [[EARTH_DAY]] day-length
+export fn tzdb(tzid: str) (locality | tzdberror) = {
+	const filepath = match (path::init(TZDB_PATH, tzid)) {
 	case let buf: path::buffer =>
 		yield buf;
 	case let err: path::error =>
@@ -49,7 +44,7 @@ export fn tz(name: str) (locality | tzdberror) = {
 	const bufstrm = bufio::init(file, buf, []);
 
 	let loc = alloc(timezone {
-		name = strings::dup(name)!,
+		name = strings::dup(tzid)!,
 		tsc = &chrono::utc,
 		daylength = EARTH_DAY,
 		petz = PETZ_EMPTY,
@@ -71,11 +66,11 @@ export fn tz(name: str) (locality | tzdberror) = {
 	};
 };
 
-// Loads data of the TZif "Time Zone Information Format", and initialises the
-// fields "zones", "transitions", and "petz" of the given [[timezone]].
+// Loads TZif (Time Zone Information Format) data onto a given [[timezone]],
+// initializing the fields ".phases", ".transitions", and ".petz".
 //
-// See: https://datatracker.ietf.org/doc/html/rfc8536
-fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
+// Refer to "RFC 8536" for the TZif format.
+export fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 	const buf1: [1]u8 = [0...];
 	const buf4: [4]u8 = [0...];
 	const buf8: [8]u8 = [0...];

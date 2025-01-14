@@ -210,7 +210,7 @@ export const LOCAL: locality = &TZ_UTC;
 		};
 	};
 
-	match (tz(path)) {
+	match (tzdb(path)) {
 	case => void;
 	case let loc: locality =>
 		LOCAL = loc;

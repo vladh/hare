@@ -13,8 +13,8 @@ date/time information, and construct new dates incrementally and safely.
 
 The observer functions ([[year]], [[hour]], etc.) evaluate a date's observed
 chronological values, adjusted for its associated [[locality]]. Use [[in]] to
-localize a date to another locality. Consult your system's TZif timezone
-database using [[tz]].
+localize a date to another locality. Consult your system's timezone database
+using [[tzdb]].
 
 For working with date/time strings, see [[parse]] and [[format]].
 
