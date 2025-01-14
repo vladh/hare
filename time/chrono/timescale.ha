@@ -20,61 +20,60 @@ export type tscmismatch = !(*timescale, *timescale);
 // [[time::instant]] conversion to fail.
 export type discontinuity = !void;
 
-// The analytical result of a [[time::instant]] conversion between two
-// [[timescale]]s at a point of [[discontinuity]].
-//
-// An empty slice represents a nonexistent conversion result.
-// A populated (>1) slice represents an ambiguous conversion result.
-export type analytical = ![]time::instant;
-
 // Converts a [[time::instant]] from one [[timescale]] to the next exhaustively.
 // The final conversion result is returned. For each active pair of timescales,
 // if neither implements conversion from the first to the second, a two-step
 // intermediary TAI conversion will occur. If given zero or one timescales, the
 // given instant is returned.
-export fn convert(i: time::instant, tscs: *timescale...) (time::instant | analytical) = {
-	let ts: []time::instant = [i];
-	let tmps: []time::instant = [];
+export fn convert(m: moment, tscs: *timescale...) []moment = {
+	let t = *(&m: *time::instant);
+	let ms: []moment = [m];
+	let tmps: []moment = [];
 
-	for (let j = 1z; j < len(tscs); j += 1) {
-		let a = tscs[j - 1];
+	for (let j = 0z; j < len(tscs); j += 1) {
+		let a = if (j == 0) m.tsc else tscs[j - 1];
 		let b = tscs[j];
 
-		for (let k = 0z; k < len(ts); k += 1) {
-			const t = ts[k];
+		for (let k = 0z; k < len(ms); k += 1) {
+			const m = ms[k];
 
 			// try .convto
-			match (a.convto(b, t)) {
+			match (a.convto(b, to_instant(m))) {
 			case let convs: []time::instant =>
-				append(tmps, convs...)!;
+				for (let c .. convs) {
+					append(tmps, new(b, c))!;
+				};
 				continue;
 			case void => void;
 			};
 
 			// try .convfrom
-			match (b.convfrom(a, t)) {
+			match (b.convfrom(a, to_instant(m))) {
 			case let convs: []time::instant =>
-				append(tmps, convs...)!;
+				for (let c .. convs) {
+					append(tmps, new(b, c))!;
+				};
 				continue;
 			case void => void;
 			};
 
 			// default to TAI intermediary
-			const convs = a.convto(&tai, t) as []time::instant;
-
-			for (let conv .. convs) {
-				append(tmps, (
-					b.convfrom(&tai, conv) as []time::instant
-				)...)!;
+			const convs = a.convto(&tai, to_instant(m)) as []time::instant;
+			for (let c .. convs) {
+				const convs = b.convfrom(&tai, c) as []time::instant;
+				for (let c .. convs) {
+					append(tmps, new(b, c))!;
+				};
+				continue;
 			};
 		};
 
-		// TODO: sort and deduplicate 'ts' here
-		ts = tmps;
+		// TODO: sort and deduplicate 'ms' here
+		ms = tmps;
 		tmps = [];
 	};
 
-	return if (len(ts) == 1) ts[0] else ts;
+	return ms;
 };
 
 

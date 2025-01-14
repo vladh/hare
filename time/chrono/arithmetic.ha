@@ -73,17 +73,17 @@ fn convertpair(
 	let ib = *(b: *time::instant);
 
 	if (a.tsc != b.tsc) {
-		match (convert(ia, a.tsc, &tai)) {
-		case let i: time::instant =>
-			ia = i;
-		case =>
+		let ms = convert(*a, &tai);
+		if (len(ms) == 1) {
+			ia = *(&ms[0]: *time::instant);
+		} else {
 			return discontinuity;
 		};
 
-		match (convert(ib, b.tsc, &tai)) {
-		case let i: time::instant =>
-			ib = i;
-		case =>
+		let ms = convert(*b, &tai);
+		if (len(ms) == 1) {
+			ib = *(&ms[0]: *time::instant);
+		} else {
 			return discontinuity;
 		};
 	};
