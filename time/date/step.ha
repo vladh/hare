@@ -1,9 +1,6 @@
 // SPDX-License-Identifier: MPL-2.0
 // (c) Hare authors <https://harelang.org>
 
-use time;
-use time::chrono;
-
 // Nominal unitary periods of the Gregorian chronology. Used for chronological
 // arithmetic.
 export type step = enum {
