@@ -3,7 +3,7 @@
 
 // Represents a span of time in the Gregorian chronology, using nominal units of
 // time. Used for chronological arithmetic.
-export type period = struct {
+export type span = struct {
 	years: i64,
 	months: i64,
 	weeks: i64,
@@ -14,8 +14,8 @@ export type period = struct {
 	nanoseconds: i64,
 };
 
-// Returns true if two [[period]]s are numerically equal, false otherwise.
-export fn peq(pa: period, pb: period) bool = {
+// Returns true if two [[span]]s are numerically equal, false otherwise.
+export fn peq(pa: span, pb: span) bool = {
 	return (
 		pa.years          == pb.years
 		&& pa.months      == pb.months
@@ -28,9 +28,9 @@ export fn peq(pa: period, pb: period) bool = {
 	);
 };
 
-// Returns the sum [[period]] of a set of periods.
-export fn sum(ps: period...) period = {
-	let out = period { ... };
+// Returns the sum [[span]] of a set of periods.
+export fn sum(ps: span...) span = {
+	let out = span { ... };
 	for (let p &.. ps) {
 		out.years       += p.years;
 		out.months      += p.months;
@@ -44,8 +44,8 @@ export fn sum(ps: period...) period = {
 	return out;
 };
 
-// Returns a [[period]] with its fields negated.
-export fn neg(p: period) period = period {
+// Returns a [[span]] with its fields negated.
+export fn neg(p: span) span = span {
 	years       = -p.years,
 	months      = -p.months,
 	weeks       = -p.weeks,
@@ -56,8 +56,8 @@ export fn neg(p: period) period = period {
 	nanoseconds = -p.nanoseconds,
 };
 
-// Returns a [[period]] with its fields made absolute and positive.
-export fn abs(p: period) period = period {
+// Returns a [[span]] with its fields made absolute and positive.
+export fn abs(p: span) span = span {
 	years       = if (p.years < 0)       -p.years       else p.years,
 	months      = if (p.months < 0)      -p.months      else p.months,
 	weeks       = if (p.weeks < 0)       -p.weeks       else p.weeks,

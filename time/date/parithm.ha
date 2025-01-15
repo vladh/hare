@@ -21,15 +21,15 @@ export type step = enum {
 	// TODO: consider adding ISOWEEKYEAR, ISOWEEK
 };
 
-// Calculates the [[period]] between two [[date]]s, from A to B.
-// The returned period, provided to [[reckon]] along with A, will produce B,
-// regardless of the [[calculus]] used. All the period's non-zero fields will
+// Calculates the [[span]] between two [[date]]s, from A to B.
+// The returned span, provided to [[reckon]] along with A, will produce B,
+// regardless of the [[calculus]] used. All the span's non-zero fields will
 // have the same sign.
-export fn pdiff(a: date, b: date) period = {
-	let p = period { ... };
+export fn pdiff(a: date, b: date) span = {
+	let s = span { ... };
 
 	if (chrono::compare(&a, &b) == 0) {
-		return p;
+		return s;
 	};
 
 	let reverse = if (chrono::compare(&a, &b) > 0) true else false;
@@ -39,19 +39,19 @@ export fn pdiff(a: date, b: date) period = {
 		b = tmp;
 	};
 
-	p.years = _year(&b) - _year(&a);
+	s.years = _year(&b) - _year(&a);
 
-	p.months = _month(&b) - _month(&a);
-	if (p.months < 0) {
-		p.years -= 1;
-		p.months += 12;
+	s.months = _month(&b) - _month(&a);
+	if (s.months < 0) {
+		s.years -= 1;
+		s.months += 12;
 	};
 
-	p.days = _day(&b) - _day(&a);
+	s.days = _day(&b) - _day(&a);
 	let year = _year(&b);
 	let month = _month(&b);
 	let monthdays = calc_days_in_month(year, month);
-	for (_day(&a) > monthdays || p.days < 0) {
+	for (_day(&a) > monthdays || s.days < 0) {
 		month -= 1;
 		if (month == 0) {
 			year -= 1;
@@ -59,39 +59,39 @@ export fn pdiff(a: date, b: date) period = {
 		};
 		monthdays = calc_days_in_month(year, month);
 
-		p.months -= 1;
-		if (p.months < 0) {
-			p.years -= 1;
-			p.months += 12;
+		s.months -= 1;
+		if (s.months < 0) {
+			s.years -= 1;
+			s.months += 12;
 		};
-		p.days += monthdays;
+		s.days += monthdays;
 	};
 
-	p.hours = _hour(&b) - _hour(&a);
-	if (p.hours < 0) {
-		p.days -= 1;
-		p.hours += 24;
+	s.hours = _hour(&b) - _hour(&a);
+	if (s.hours < 0) {
+		s.days -= 1;
+		s.hours += 24;
 	};
 
-	p.minutes = _minute(&b) - _minute(&a);
-	if (p.minutes < 0) {
-		p.hours -= 1;
-		p.minutes += 60;
+	s.minutes = _minute(&b) - _minute(&a);
+	if (s.minutes < 0) {
+		s.hours -= 1;
+		s.minutes += 60;
 	};
 
-	p.seconds = _second(&b) - _second(&a);
-	if (p.seconds < 0) {
-		p.minutes -= 1;
-		p.seconds += 60;
+	s.seconds = _second(&b) - _second(&a);
+	if (s.seconds < 0) {
+		s.minutes -= 1;
+		s.seconds += 60;
 	};
 
-	p.nanoseconds = _nanosecond(&b) - _nanosecond(&a);
-	if (p.nanoseconds < 0) {
-		p.seconds -= 1;
-		p.nanoseconds += 1000000000; // 10E9
+	s.nanoseconds = _nanosecond(&b) - _nanosecond(&a);
+	if (s.nanoseconds < 0) {
+		s.seconds -= 1;
+		s.nanoseconds += 1000000000; // 10E9
 	};
 
-	return if (reverse) neg(p) else p;
+	return if (reverse) neg(s) else s;
 };
 
 // Calculates the nominal [[step]] difference between two [[date]]s.
@@ -186,7 +186,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
 			new(UTC, 0, 2022, 2, 16, 0, 0, 0, 0)!,
-			period {
+			span {
 				years = 1,
 				months = 1,
 				days = 1,
@@ -196,7 +196,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
 			new(UTC, 0, 2022, 3, 27, 0, 0, 0, 0)!,
-			period {
+			span {
 				years = 1,
 				months = 2,
 				days = 12,
@@ -206,7 +206,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
 			new(UTC, 0, 2022, 3, 14, 0, 0, 0, 0)!,
-			period {
+			span {
 				years = 1,
 				months = 1,
 				days = 27,
@@ -216,7 +216,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
 			new(UTC, 0, 2021, 1, 16, 0, 0, 0, 0)!,
-			period {
+			span {
 				days = 1,
 				...
 			},
@@ -224,7 +224,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
 			new(UTC, 0, 2021, 1, 16, 1, 3, 2, 4)!,
-			period {
+			span {
 				days = 1,
 				hours = 1,
 				minutes = 3,
@@ -236,7 +236,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, 2021, 1, 15, 2, 3, 2, 2)!,
 			new(UTC, 0, 2021, 1, 16, 1, 1, 2, 4)!,
-			period {
+			span {
 				hours = 22,
 				minutes = 58,
 				nanoseconds = 2,
@@ -246,7 +246,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0,  500, 1, 1, 0, 0, 0, 0)!,
 			new(UTC, 0, 3500, 1, 1, 0, 6, 0, 0)!,
-			period {
+			span {
 				years = 3000,
 				minutes = 6,
 				...
@@ -255,7 +255,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, -500, 1, 1, 0, 0, 0, 0)!,
 			new(UTC, 0, 2500, 1, 1, 0, 6, 0, 0)!,
-			period {
+			span {
 				years = 3000,
 				minutes = 6,
 				...
@@ -264,7 +264,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, 2000, 1, 1, 0, 0, 0, 0)!,
 			new(UTC, 0, 2000, 1, 1, 0, 6, 0, 999999999)!,
-			period {
+			span {
 				minutes = 6,
 				nanoseconds = 999999999,
 				...
@@ -273,7 +273,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, 2000, 1, 1, 0, 6, 0, 999999999)!,
 			new(UTC, 0, 2000, 1, 1, 0, 6, 1, 0)!,
-			period {
+			span {
 				nanoseconds = 1,
 				...
 			},
@@ -281,7 +281,7 @@ export fn truncate(d: date, zf: zflag, u: step) (date | invalid | zfunresolved) 
 		(
 			new(UTC, 0, -4000, 1, 1, 0, 6, 0, 999999999)!,
 			new(UTC, 0, 4000,  1, 1, 0, 6, 1, 0)!,
-			period {
+			span {
 				years = 8000,
 				nanoseconds = 1,
 				...
