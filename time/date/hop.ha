@@ -9,22 +9,22 @@ export fn hop(a: date, b: date, u: step) i64 = {
 	case step::ERA =>
 		return era(&b) - era(&a);
 	case step::YEAR =>
-		return pdiff(a, b).years;
+		return traverse(a, b).years;
 	case step::MONTH =>
-		const d = pdiff(a, b);
+		const d = traverse(a, b);
 		return d.years * 12 + d.months;
 	case step::WEEK =>
 		return hop(a, b, step::DAY) / 7;
 	case step::DAY =>
 		return daydate(&b) - daydate(&a);
 	case step::HOUR =>
-		return hop(a, b, step::DAY) * 24 + pdiff(a, b).hours;
+		return hop(a, b, step::DAY) * 24 + traverse(a, b).hours;
 	case step::MINUTE =>
-		return hop(a, b, step::HOUR) * 60 + pdiff(a, b).minutes;
+		return hop(a, b, step::HOUR) * 60 + traverse(a, b).minutes;
 	case step::SECOND =>
-		return hop(a, b, step::MINUTE) * 60 + pdiff(a, b).seconds;
+		return hop(a, b, step::MINUTE) * 60 + traverse(a, b).seconds;
 	case step::NANOSECOND =>
-		return hop(a, b, step::SECOND) * 1000000000 + pdiff(a, b).nanoseconds;
+		return hop(a, b, step::SECOND) * 1000000000 + traverse(a, b).nanoseconds;
 	};
 };
 

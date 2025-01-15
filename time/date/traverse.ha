@@ -7,7 +7,7 @@ use time::chrono;
 // The returned span, provided to [[reckon]] along with A, will produce B,
 // regardless of the [[calculus]] used. All the span's non-zero fields will
 // have the same sign.
-export fn pdiff(a: date, b: date) span = {
+export fn traverse(a: date, b: date) span = {
 	let s = span { ... };
 
 	if (chrono::compare(&a, &b) == 0) {
@@ -76,7 +76,7 @@ export fn pdiff(a: date, b: date) span = {
 	return if (reverse) neg(s) else s;
 };
 
-@test fn pdiff() void = {
+@test fn traverse() void = {
 	const cases = [
 		(
 			new(UTC, 0, 2021, 1, 15, 0, 0, 0, 0)!,
@@ -184,7 +184,7 @@ export fn pdiff(a: date, b: date) span = {
 		),
 	];
 	for (let (da, db, expected) .. cases) {
-		const actual = pdiff(da, db);
-		assert(peq(actual, expected), "pdiff miscalculation");
+		const actual = traverse(da, db);
+		assert(peq(actual, expected), "traverse miscalculation");
 	};
 };
