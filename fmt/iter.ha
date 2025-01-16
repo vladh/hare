@@ -186,9 +186,11 @@ fn scan_sz(it: *iterator) size = {
 	};
 };
 
-fn getrune(it: *iterator) rune = match (strings::next(&it.iter)) {
-case done =>
-	abort("Invalid format string (unterminated '{')");
-case let r: rune =>
-	return r;
+fn getrune(it: *iterator) rune = {
+	match (strings::next(&it.iter)) {
+	case done =>
+		abort("Invalid format string (unterminated '{')");
+	case let r: rune =>
+		return r;
+	};
 };

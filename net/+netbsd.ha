@@ -73,11 +73,13 @@ export fn recvmsg(sock: socket, msg: *msghdr) (size | error) = {
 // details.
 //
 // On NetBSD, this function is an alias for [[io::close]].
-export fn close(sock: socket) (void | error) = match (io::close(sock)) {
-case void => void;
-case io::underread => abort();
-case let err: errors::error =>
-	yield err;
+export fn close(sock: socket) (void | error) = {
+	match (io::close(sock)) {
+	case void => void;
+	case io::underread => abort();
+	case let err: errors::error =>
+		return err;
+	};
 };
 
 // Shuts down part of a full-duplex connection.

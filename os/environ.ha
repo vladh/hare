@@ -39,9 +39,13 @@ export fn getenv(name: const str) (str | void) = {
 
 // Looks up an environment variable and returns its value, or a default value if
 // unset.
-export fn tryenv(name: const str, default: str) str = match (getenv(name)) {
-case let s: str => return s;
-case void => return default;
+export fn tryenv(name: const str, default: str) str = {
+	match (getenv(name)) {
+	case let s: str =>
+		return s;
+	case void =>
+		return default;
+	};
 };
 
 // Sets an environment variable, overwriting it if it's already set. The name

@@ -39,15 +39,19 @@ export fn pop_ext(buf: *buffer) (str | void) = {
 export fn peek_ext(buf: *buffer) (str | void) = split_ext(buf).1;
 
 // helper function, returns (end of non-extension, extension string)
-fn split_ext(buf: *buffer) (size, (str | void)) = match (peek(buf)) {
-case void => return (buf.end, void);
-case let s: str =>
-	const bs = strings::toutf8(s);
-	bs = bytes::ltrim(bs, '.');
-	match (bytes::rindex(bs, '.')) {
-	case void => return (buf.end, void);
-	case let i: size =>
-		return (buf.end - len(bs) + i, strings::fromutf8_unsafe(bs[i+1..]));
+fn split_ext(buf: *buffer) (size, (str | void)) = {
+	match (peek(buf)) {
+	case void =>
+		return (buf.end, void);
+	case let s: str =>
+		const bs = strings::toutf8(s);
+		bs = bytes::ltrim(bs, '.');
+		match (bytes::rindex(bs, '.')) {
+		case void =>
+			return (buf.end, void);
+		case let i: size =>
+			return (buf.end - len(bs) + i, strings::fromutf8_unsafe(bs[i+1..]));
+		};
 	};
 };
 
@@ -68,15 +72,19 @@ export fn pop_exts(buf: *buffer) (str | void) = {
 export fn peek_exts(buf: *buffer) (str | void) = split_exts(buf).1;
 
 // helper function, returns (end of non-extension, extension string)
-fn split_exts(buf: *buffer) (size, (str | void)) = match (peek(buf)) {
-case void => return (buf.end, void);
-case let s: str =>
-	const bs = strings::toutf8(s);
-	bs = bytes::ltrim(bs, '.');
-	match (bytes::index(bs, '.')) {
-	case void => return (buf.end, void);
-	case let i: size =>
-		return (buf.end - len(bs) + i, strings::fromutf8_unsafe(bs[i+1..]));
+fn split_exts(buf: *buffer) (size, (str | void)) = {
+	match (peek(buf)) {
+	case void =>
+		return (buf.end, void);
+	case let s: str =>
+		const bs = strings::toutf8(s);
+		bs = bytes::ltrim(bs, '.');
+		match (bytes::index(bs, '.')) {
+		case void =>
+			return (buf.end, void);
+		case let i: size =>
+			return (buf.end - len(bs) + i, strings::fromutf8_unsafe(bs[i+1..]));
+		};
 	};
 };
 

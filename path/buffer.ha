@@ -31,15 +31,23 @@ export fn string(buf: *buffer) str = {
 };
 
 // Check if a path is an absolute path.
-export fn abs(path: (*buffer | str)) bool = match (path) {
-case let path: str => return strings::hasprefix(path, sepstr);
-case let buf: *buffer => return 0 < buf.end && buf.buf[0] == SEP;
+export fn abs(path: (*buffer | str)) bool = {
+	match (path) {
+	case let path: str =>
+		return strings::hasprefix(path, sepstr);
+	case let buf: *buffer =>
+		return 0 < buf.end && buf.buf[0] == SEP;
+	};
 };
 
 // Check if a path is the root directory.
-export fn isroot(path: (*buffer | str)) bool = match (path) {
-case let path: str => return path == sepstr;
-case let buf: *buffer => return buf.end == 1 && buf.buf[0] == SEP;
+export fn isroot(path: (*buffer | str)) bool = {
+	match (path) {
+	case let path: str =>
+		return path == sepstr;
+	case let buf: *buffer =>
+		return buf.end == 1 && buf.buf[0] == SEP;
+	};
 };
 
 // Replaces all instances of '/' in a string with [[SEP]]. The result is

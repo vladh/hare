@@ -12,8 +12,13 @@ export type not_prefix = !void;
 export type error = !(cant_extend | too_long | not_prefix);
 
 // Convert an [[error]] into a descriptive string.
-export fn strerror(e: error) str = match (e) {
-case cant_extend => return "Can't add extension (filename is root or all dots)";
-case too_long => return "Path buffer overflow";
-case not_prefix => return "Prefix not present";
+export fn strerror(e: error) str = {
+	match (e) {
+	case cant_extend =>
+		return "Can't add extension (filename is root or all dots)";
+	case too_long =>
+		return "Path buffer overflow";
+	case not_prefix =>
+		return "Prefix not present";
+	};
 };

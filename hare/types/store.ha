@@ -107,11 +107,13 @@ export type noresolver = !void;
 export type error = !(noresolver | errors::opaque_);
 
 // Convert an error into a human-friendly string.
-export fn strerror(err: error) const str = match (err) {
-case noresolver =>
-	return "Resolver function not provided, but required";
-case let err: errors::opaque_ =>
-	return errors::strerror(err);
+export fn strerror(err: error) const str = {
+	match (err) {
+	case noresolver =>
+		return "Resolver function not provided, but required";
+	case let err: errors::opaque_ =>
+		return errors::strerror(err);
+	};
 };
 
 // Retrieves a [[_type]] for a given [[hare::ast::_type]].

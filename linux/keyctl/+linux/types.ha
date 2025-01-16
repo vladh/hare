@@ -178,9 +178,11 @@ export type perm = enum u32 {
 };
 
 // Converts an [[error]] into a human-friendly string.
-export fn strerror(err: error) const str = match (err) {
-case nokey =>
-	return "A desired key was not found";
-case let err: errors::error =>
-	return errors::strerror(err);
+export fn strerror(err: error) const str = {
+	match (err) {
+	case nokey =>
+		return "A desired key was not found";
+	case let err: errors::error =>
+		return errors::strerror(err);
+	};
 };

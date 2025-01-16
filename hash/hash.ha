@@ -38,11 +38,13 @@ export fn sum(h: *hash, buf: []u8) void = {
 };
 
 // Resets the hash function to its initial state.
-export fn reset(h: *hash) void = match (h.reset) {
-case let f: *fn(hash: *hash) void =>
-	f(h);
-case null =>
-	abort("this hash cannot be reset");
+export fn reset(h: *hash) void = {
+	match (h.reset) {
+	case let f: *fn(hash: *hash) void =>
+		f(h);
+	case null =>
+		abort("this hash cannot be reset");
+	};
 };
 
 // Returns the size of the hash in bytes. This is consistent regardless

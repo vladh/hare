@@ -11,33 +11,35 @@
 // that modules which return an error type from this module provide their own
 // strerror function which provides more context-appropriate error messages for
 // each of those types.
-export fn strerror(err: error) const str = match (err) {
-case busy =>
-	yield "The requested resource is not available";
-case exists =>
-	yield "An attempt was made to create a resource which already exists";
-case invalid =>
-	yield "A function was called with an invalid combination of arguments";
-case noaccess =>
-	yield "The user does not have permission to use this resource";
-case noentry =>
-	yield "An entry was requested which does not exist";
-case overflow =>
-	yield "The requested operation caused a numeric overflow condition";
-case unsupported =>
-	yield "The requested operation is not supported";
-case timeout =>
-	yield "The requested operation timed out";
-case cancelled =>
-	yield "The requested operation was cancelled";
-case refused =>
-	yield "A connection attempt was refused";
-case interrupted =>
-	yield "Operation interrupted";
-case again =>
-	yield "Try again";
-case netunreachable =>
-	yield "Network unreachable";
-case let op: opaque_ =>
-	yield op.strerror(&op.data);
+export fn strerror(err: error) const str = {
+	match (err) {
+	case busy =>
+		return "The requested resource is not available";
+	case exists =>
+		return "An attempt was made to create a resource which already exists";
+	case invalid =>
+		return "A function was called with an invalid combination of arguments";
+	case noaccess =>
+		return "The user does not have permission to use this resource";
+	case noentry =>
+		return "An entry was requested which does not exist";
+	case overflow =>
+		return "The requested operation caused a numeric overflow condition";
+	case unsupported =>
+		return "The requested operation is not supported";
+	case timeout =>
+		return "The requested operation timed out";
+	case cancelled =>
+		return "The requested operation was cancelled";
+	case refused =>
+		return "A connection attempt was refused";
+	case interrupted =>
+		return "Operation interrupted";
+	case again =>
+		return "Try again";
+	case netunreachable =>
+		return "Network unreachable";
+	case let op: opaque_ =>
+		return op.strerror(&op.data);
+	};
 };

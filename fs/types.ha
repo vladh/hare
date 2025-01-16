@@ -31,27 +31,29 @@ export type error = !(
 	io::error);
 
 // Returns a human-friendly representation of an error.
-export fn strerror(err: error) const str = match (err) {
-case wrongtype =>
-	yield "Wrong entry type for requested operation";
-case cannotrename =>
-	yield "Unable to perform rename operation (try move instead)";
-case errors::noentry =>
-	yield "File or directory not found";
-case errors::noaccess =>
-	yield "Permission denied";
-case errors::exists =>
-	yield "File or directory exists";
-case errors::invalid =>
-	yield "Invalid argument";
-case errors::busy =>
-	yield "Device is busy";
-case errors::unsupported =>
-	yield "Operation not supported";
-case let err: utf8::invalid =>
-	yield utf8::strerror(err);
-case let err: io::error =>
-	yield io::strerror(err);
+export fn strerror(err: error) const str = {
+	match (err) {
+	case wrongtype =>
+		return "Wrong entry type for requested operation";
+	case cannotrename =>
+		return "Unable to perform rename operation (try move instead)";
+	case errors::noentry =>
+		return "File or directory not found";
+	case errors::noaccess =>
+		return "Permission denied";
+	case errors::exists =>
+		return "File or directory exists";
+	case errors::invalid =>
+		return "Invalid argument";
+	case errors::busy =>
+		return "Device is busy";
+	case errors::unsupported =>
+		return "Operation not supported";
+	case let err: utf8::invalid =>
+		return utf8::strerror(err);
+	case let err: io::error =>
+		return io::strerror(err);
+	};
 };
 
 // File mode information. These bits do not necessarily reflect the underlying
