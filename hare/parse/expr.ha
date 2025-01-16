@@ -899,7 +899,7 @@ fn plain_expression(lexer: *lex::lexer) (ast::expr | error) = {
 		return literal(lexer);
 	};
 	switch (tok.0) {
-	case ltok::TRUE, ltok::FALSE, ltok::NULL, ltok::VOID, ltok::DONE =>
+	case ltok::TRUE, ltok::FALSE, ltok::NULL, ltok::VOID, ltok::DONE, ltok::NOMEM =>
 		return literal(lexer);
 	case ltok::LBRACKET =>
 		return plain_array(lexer)?;
