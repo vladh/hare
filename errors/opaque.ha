@@ -20,6 +20,16 @@
 // 		let ptr = &err: *myerr;
 // 		return strerror(*ptr);
 // 	};
+//
+// It is often useful to offer a function which unwraps an opaque error into
+// your module's domain-specific error type, like so:
+//
+// 	export fn unwraperror(err: errors::opaque_) (myerror | void) = {
+// 		if (err.strerror != &opaque_strerror) {
+// 			return;
+// 		};
+// 		return *(&err.data: *myerror);
+// 	};
 export type opaque_ = !struct {
 	strerror: *fn(op: *opaque_data) const str,
 	data: opaque_data,
