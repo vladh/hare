@@ -11,7 +11,7 @@
 // that modules which return an error type from this module provide their own
 // strerror function which provides more context-appropriate error messages for
 // each of those types.
-export fn strerror(err: error) const str = {
+export fn strerror(err: (error | nomem)) const str = {
 	match (err) {
 	case busy =>
 		return "The requested resource is not available";
@@ -41,5 +41,7 @@ export fn strerror(err: error) const str = {
 		return "Network unreachable";
 	case let op: opaque_ =>
 		return op.strerror(&op.data);
+	case nomem =>
+		return "Memory allocation failure";
 	};
 };
