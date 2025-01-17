@@ -158,7 +158,7 @@ fn dynamic_write(s: *io::stream, buf: const []u8) (size | io::error) = {
 	s.buf[s.pos..s.pos+bufend] = buf[..bufend];
 	s.pos += bufend;
 	if (bufend < len(buf)) {
-		append(s.buf, buf[bufend..]...)!;
+		append(s.buf, buf[bufend..]...)?;
 		s.pos += len(buf[bufend..]);
 	};
 	return len(buf);
