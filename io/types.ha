@@ -8,7 +8,7 @@ use errors;
 export type underread = !size;
 
 // Any error which may be returned from an I/O function.
-export type error = !(...errors::error | underread);
+export type error = !(...errors::error | underread | nomem);
 
 // Indicates an end-of-file condition.
 export type EOF = done;
@@ -18,6 +18,8 @@ export fn strerror(err: error) str = {
 	match (err) {
 	case underread =>
 		return "Insufficient data to read entire item";
+	case nomem =>
+		return errors::strerror(nomem);
 	case let err: errors::error =>
 		return errors::strerror(err);
 	};
