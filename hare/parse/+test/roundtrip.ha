@@ -16,6 +16,7 @@ fn roundtrip(src: str) void = {
 	if (unsrc != src) {
 		fmt::errorfln("=== wanted\n{}", src)!;
 		fmt::errorfln("=== got\n{}", unsrc)!;
+		fmt::errorln("=== end\n")!;
 		abort();
 	};
 };
