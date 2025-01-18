@@ -45,7 +45,7 @@ export fn main() void = {
 	let objs = memio::dynamic();
 	defer io::close(&objs)!;
 	for (let i = 0z; i < len(mods); i += 1) {
-		append(ids, (strings::join("_", mods[i].ns...),
+		append(ids, (strings::join("_", mods[i].ns...)!,
 			unparse::identstr(mods[i].ns)))!;
 		fmt::fprintf(&tds, ` HARE_TD_{}=$(HARECACHE)/{}.td`,
 			ids[i].1, ids[i].0)!;

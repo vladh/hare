@@ -61,7 +61,7 @@ fn version(name: str, cmd: *getopt::command) (void | error) = {
 			append(toolchains, arch.name)!;
 		};
 
-		const toolchains = strings::join(" ", toolchains...);
+		const toolchains = strings::join(" ", toolchains...)!;
 		defer free(toolchains);
 		fmt::printfln(`TOOLCHAINS="{}"`, toolchains)!;
 

@@ -43,7 +43,7 @@ export fn concat(strs: str...) (str | nomem) = {
 
 // Joins several strings together by placing a delimiter between them. The
 // caller must free the return value.
-export fn join(delim: str, strs: str...) str = {
+export fn join(delim: str, strs: str...) (str | nomem) = {
 	let z = 0z;
 	for (let i = 0z; i < len(strs); i += 1) {
 		z += len(strs[i]);
@@ -51,7 +51,7 @@ export fn join(delim: str, strs: str...) str = {
 			z += len(delim);
 		};
 	};
-	let new: []u8 = alloc([], z)!;
+	let new: []u8 = alloc([], z)?;
 	for (let i = 0z; i < len(strs); i += 1) {
 		static append(new, toutf8(strs[i])...)!;
 		if (i + 1 < len(strs)) {
@@ -62,19 +62,19 @@ export fn join(delim: str, strs: str...) str = {
 };
 
 @test fn join() void = {
-	let s = join(".", "a", "b", "c");
+	let s = join(".", "a", "b", "c")!;
 	defer free(s);
 	assert(s == "a.b.c");
 
-	let s = join("", "a", "b", "c");
+	let s = join("", "a", "b", "c")!;
 	defer free(s);
 	assert(s == "abc");
 
-	let s = join(".");
+	let s = join(".")!;
 	defer free(s);
 	assert(s == "");
 
-	let s = join(".", "a");
+	let s = join(".", "a")!;
 	defer free(s);
 	assert(s == "a");
 };

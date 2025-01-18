@@ -88,7 +88,7 @@ export fn emit_html(ctx: *context) (void | error) = {
 		fmt::fprintln(ctx.out, "</div>")?;
 	};
 
-	let identpath = strings::join("/", ctx.ident...);
+	let identpath = strings::join("/", ctx.ident...)!;
 	defer free(identpath);
 
 	if (len(ctx.submods) != 0) {
@@ -258,12 +258,12 @@ fn html_decl_ref(ctx: *context, ref: ast::ident) (void | error) = {
 	case symkind::LOCAL =>
 		fmt::fprintf(ctx.out, "<a href='#{0}' class='ref'>{0}</a>", ident)?;
 	case symkind::MODULE =>
-		let ipath = strings::join("/", id...);
+		let ipath = strings::join("/", id...)!;
 		defer free(ipath);
 		fmt::fprintf(ctx.out, "<a href='/{}' class='ref'>{}::</a>",
 			ipath, ident)?;
 	case symkind::SYMBOL =>
-		let ipath = strings::join("/", id[..len(id) - 1]...);
+		let ipath = strings::join("/", id[..len(id) - 1]...)!;
 		defer free(ipath);
 		fmt::fprintf(ctx.out, "<a href='/{}/{}' class='ref'>{}</a>",
 			ipath, id[len(id) - 1], ident)?;
@@ -271,7 +271,7 @@ fn html_decl_ref(ctx: *context, ref: ast::ident) (void | error) = {
 		fmt::fprintf(ctx.out, "<a href='#{}' class='ref'>{}</a>",
 			id[len(id) - 2], ident)?;
 	case symkind::ENUM_REMOTE =>
-		let ipath = strings::join("/", id[..len(id) - 2]...);
+		let ipath = strings::join("/", id[..len(id) - 2]...)!;
 		defer free(ipath);
 		fmt::fprintf(ctx.out, "<a href='/{}#{}' class='ref'>{}</a>",
 			ipath, id[len(id) - 2], ident)?;
@@ -282,7 +282,7 @@ fn html_decl_ref(ctx: *context, ref: ast::ident) (void | error) = {
 fn html_mod_ref(ctx: *context, ref: ast::ident) (void | error) = {
 	const ident = unparse::identstr(ref);
 	defer free(ident);
-	let ipath = strings::join("/", ref...);
+	let ipath = strings::join("/", ref...)!;
 	defer free(ipath);
 	fmt::fprintf(ctx.out, "<a href='/{}' class='ref'>{}::</a>",
 		ipath, ident)?;
@@ -420,7 +420,7 @@ fn breadcrumb(ident: ast::ident) str = {
 	let buf = memio::dynamic();
 	fmt::fprintf(&buf, "<a href='/'>stdlib</a> » ")!;
 	for (let i = 0z; i < len(ident) - 1; i += 1) {
-		let ipath = strings::join("/", ident[..i+1]...);
+		let ipath = strings::join("/", ident[..i+1]...)!;
 		defer free(ipath);
 		fmt::fprintf(&buf, "<a href='/{}'>{}</a>::", ipath, ident[i])!;
 	};

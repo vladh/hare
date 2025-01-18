@@ -11,4 +11,4 @@ export fn parse_domain(in: str) []str = strings::split(in, ".");
 // Converts a DNS name slice (e.g. ["example", "org"]) into a human-readable
 // domain name (e.g. "example.org"). The return value must be freed by the
 // caller.
-export fn unparse_domain(in: []str) str = strings::join(".", in...);
+export fn unparse_domain(in: []str) str = strings::join(".", in...)!;

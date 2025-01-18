@@ -53,7 +53,7 @@ export fn tryenv(name: const str, default: str) str = {
 export fn setenv(name: const str, value: const str) (void | errors::invalid) = {
 	if (strings::contains(value, '\0')) return errors::invalid;
 	unsetenv(name)?;
-	append(envp, strings::join("=", name, value))!;
+	append(envp, strings::join("=", name, value)!)!;
 };
 
 // Unsets an environment variable. Does nothing if the variable isn't set. The

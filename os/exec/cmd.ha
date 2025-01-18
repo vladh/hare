@@ -112,7 +112,7 @@ export fn unsetenv(cmd: *command, key: str) (void | errors::invalid) = {
 export fn setenv(cmd: *command, key: str, value: str) (void | errors::invalid) = {
 	if (strings::contains(value, '\0')) return errors::invalid;
 	unsetenv(cmd, key)?;
-	append(cmd.env, strings::join("=", key, value))!;
+	append(cmd.env, strings::join("=", key, value)!)!;
 };
 
 // Configures a file in the child process's file table, such that the file
