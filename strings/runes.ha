@@ -5,21 +5,21 @@ use encoding::utf8;
 
 // Returns a slice of runes for a string in O(n). The caller must free the
 // return value.
-export fn torunes(s: str) []rune = {
+export fn torunes(s: str) ([]rune | nomem) = {
 	let sl: []rune = [];
 	let iter = iter(s);
 	for (let r => next(&iter)) {
-		append(sl, r)!;
+		append(sl, r)?;
 	};
 	return sl;
 };
 
 // Returns a string from a slice of runes. The caller must free the return value.
-export fn fromrunes(runes: []rune) str = {
+export fn fromrunes(runes: []rune) (str | nomem) = {
 	let bytes: []u8 = [];
 	for (let r .. runes) {
 		const bs = utf8::encoderune(r);
-		append(bytes, bs...)!;
+		append(bytes, bs...)?;
 	};
 	return fromutf8_unsafe(bytes);
 };
@@ -38,11 +38,11 @@ export fn fromrunes(runes: []rune) str = {
 	];
 
 	for (let (string, runes) .. tests) {
-		const s = fromrunes(runes);
+		const s = fromrunes(runes)!;
 		defer free(s);
 		assert(s == string);
 
-		const rs = torunes(s);
+		const rs = torunes(s)!;
 		defer free(rs);
 		assert(len(rs) == len(runes));
 

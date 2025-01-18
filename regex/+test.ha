@@ -657,7 +657,7 @@ fn run_rawreplace_case(
 	for (let (expr, string, should_match, start, end) .. cases) {
 		if (end == -1) {
 			// workaround to get the length in codepoints
-			let runes = strings::torunes(string);
+			let runes = strings::torunes(string)!;
 			defer free(runes);
 			end = len(runes): int;
 		};
