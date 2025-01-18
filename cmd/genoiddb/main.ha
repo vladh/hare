@@ -62,7 +62,7 @@ fn parse_oids() []entry = {
 			continue;
 		};
 
-		const p = strings::split(line, " ");
+		const p = strings::split(line, " ")!;
 		defer free(p);
 		const name = p[0];
 		const val = p[len(p)-1];

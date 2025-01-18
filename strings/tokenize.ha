@@ -163,23 +163,28 @@ fn tokenize_test(
 // of the string, and returning a slice of up to N tokens. The caller must free
 // this slice. The strings within the slice are borrowed from 'in'.
 //
-// The caller must ensure that 'delim' is not an empty string.
-export fn splitn(in: str, delim: str, n: size) []str = {
+// The caller must ensure that 'delim' is not an empty string. The caller must
+// free the result after use.
+export fn splitn(in: str, delim: str, n: size) ([]str | nomem) = {
 	let toks: []str = [];
+	let ok = false;
+	defer if (!ok) freeall(toks);
 	let tok = tokenize(in, delim);
 	for (let i = 0z; i < n - 1z; i += 1) {
 		match (next_token(&tok)) {
 		case let s: str =>
-			append(toks, s)!;
+			append(toks, s)?;
 		case done =>
+			ok = true;
 			return toks;
 		};
 	};
 	match(peek_token(&tok)) {
 	case done => void;
 	case let s: str =>
-		append(toks, remaining_tokens(&tok))!;
+		append(toks, remaining_tokens(&tok))?;
 	};
+	ok = true;
 	return toks;
 };
 
@@ -188,21 +193,24 @@ export fn splitn(in: str, delim: str, n: size) []str = {
 // this slice. The strings within the slice are borrowed from 'in'.
 //
 // The caller must ensure that 'delim' is not an empty string.
-export fn rsplitn(in: str, delim: str, n: size) []str = {
+export fn rsplitn(in: str, delim: str, n: size) ([]str | nomem) = {
 	let toks: []str = [];
 	let tok = rtokenize(in, delim);
+	let ok = false;
+	defer if (!ok) freeall(toks);
 	for (let i = 0z; i < n - 1z; i += 1) {
 		match (next_token(&tok)) {
 		case let s: str =>
-			append(toks, s)!;
+			append(toks, s)?;
 		case done =>
+			ok = true;
 			return toks;
 		};
 	};
 	match(peek_token(&tok)) {
 	case done => void;
 	case let s: str =>
-		append(toks, remaining_tokens(&tok))!;
+		append(toks, remaining_tokens(&tok))?;
 	};
 
 	for (let i = 0z; i < len(toks) / 2; i += 1) {
@@ -211,6 +219,7 @@ export fn rsplitn(in: str, delim: str, n: size) []str = {
 		toks[len(toks) - i - 1] = tmp;
 	};
 
+	ok = true;
 	return toks;
 };
 
@@ -218,11 +227,12 @@ export fn rsplitn(in: str, delim: str, n: size) []str = {
 // returned slice. The strings within the slice are borrowed from 'in'.
 //
 // The caller must ensure that 'delim' is not an empty string.
-export fn split(in: str, delim: str) []str = splitn(in, delim, types::SIZE_MAX);
+export fn split(in: str, delim: str) ([]str | nomem) =
+	splitn(in, delim, types::SIZE_MAX);
 
 @test fn split() void = {
 	const expected = ["Hello,", "my", "name", "is Drew"];
-	const actual = splitn("Hello, my name is Drew", " ", 4z);
+	const actual = splitn("Hello, my name is Drew", " ", 4z)!;
 	assert(len(expected) == len(actual));
 	for (let i = 0z; i < len(expected); i += 1) {
 		assert(expected[i] == actual[i]);
@@ -230,7 +240,7 @@ export fn split(in: str, delim: str) []str = splitn(in, delim, types::SIZE_MAX);
 	free(actual);
 
 	const expected2 = ["Hello,", "my", "name", "is", "Drew"];
-	const actual2 = split("Hello, my name is Drew", " ");
+	const actual2 = split("Hello, my name is Drew", " ")!;
 	assert(len(expected2) == len(actual2));
 	for (let i = 0z; i < len(expected2); i += 1) {
 		assert(expected2[i] == actual2[i]);
@@ -238,7 +248,7 @@ export fn split(in: str, delim: str) []str = splitn(in, delim, types::SIZE_MAX);
 	free(actual2);
 
 	const expected3 = ["one"];
-	const actual3 = splitn("one", "=", 2z);
+	const actual3 = splitn("one", "=", 2z)!;
 	assert(len(expected3) == len(actual3));
 	for (let i = 0z; i < len(expected3); i += 1) {
 		assert(expected3[i] == actual3[i]);
@@ -246,7 +256,7 @@ export fn split(in: str, delim: str) []str = splitn(in, delim, types::SIZE_MAX);
 	free(actual3);
 
 	const expected4 = ["Hello, my", "name", "is", "Drew"];
-	const actual4 = rsplitn("Hello, my name is Drew", " ", 4z);
+	const actual4 = rsplitn("Hello, my name is Drew", " ", 4z)!;
 	assert(len(expected4) == len(actual4));
 	for (let i = 0z; i < len(expected4); i += 1) {
 		assert(expected4[i] == actual4[i]);
