@@ -1032,7 +1032,7 @@ fn struct_field(
 	const tok = want(lexer, ltok::NAME, ltok::STRUCT)?;
 	switch (tok.0) {
 	case ltok::NAME =>
-		const name = strings::dup(tok.1 as str);
+		const name = strings::dup(tok.1 as str)!;
 		const tok = match (try(lexer, ltok::COLON,
 			ltok::DOUBLE_COLON, ltok::EQUAL)?) {
 		case let tok: lex::token =>

@@ -16,7 +16,7 @@ fn insert_uniq(into: *[]str, s: str) void = {
 		i += 1;
 	};
 	if (i == len(into) || into[i] != s) {
-		insert(into[i], strings::dup(s))!;
+		insert(into[i], strings::dup(s)!)!;
 	};
 };
 

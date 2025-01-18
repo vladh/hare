@@ -35,11 +35,11 @@ fn load_systemdb() (void | fs::error | io::error | utf8::invalid) = {
 
 		const tok = strings::tokenize(exts, " ");
 		let entry = alloc(mimetype {
-			mime = strings::dup(mime),
+			mime = strings::dup(mime)!,
 			exts = [],
 		})!;
 		for (let ext => strings::next_token(&tok)) {
-			append(entry.exts, strings::dup(ext))!;
+			append(entry.exts, strings::dup(ext)!)!;
 		};
 		register_heap(entry);
 	};

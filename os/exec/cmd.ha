@@ -42,7 +42,7 @@ export fn cmd(name: str, args: str...) (command | error) = {
 	let cmd = command {
 		platform = platcmd,
 		argv = alloc([], len(args) + 1)!,
-		env = strings::dupall(os::getenvs()),
+		env = strings::dupall(os::getenvs())!,
 		files = [],
 		dir = "",
 	};

@@ -62,7 +62,7 @@ export type location = (*path::buffer | ast::ident);
 export fn locstr(loc: location) str = {
 	match (loc) {
 	case let buf: *path::buffer =>
-		return strings::dup(path::string(buf));
+		return strings::dup(path::string(buf))!;
 	case let id: ast::ident =>
 		return unparse::identstr(id);
 	};

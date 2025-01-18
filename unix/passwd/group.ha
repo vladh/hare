@@ -96,9 +96,9 @@ export fn grents_free(ents: []grent) void = {
 };
 
 fn grent_dup(ent: *grent) void = {
-	ent.name = strings::dup(ent.name);
-	ent.password = strings::dup(ent.password);
-	ent.userlist = strings::dup(ent.userlist);
+	ent.name = strings::dup(ent.name)!;
+	ent.password = strings::dup(ent.password)!;
+	ent.userlist = strings::dup(ent.userlist)!;
 };
 
 // Looks up a group by name in a Unix-like group file. It expects a such file at

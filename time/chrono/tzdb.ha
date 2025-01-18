@@ -48,7 +48,7 @@ export fn tz(name: str) (locality | tzdberror) = {
 	const bufstrm = bufio::init(file, buf, []);
 
 	let loc = alloc(timezone {
-		name = strings::dup(name),
+		name = strings::dup(name)!,
 		timescale = &utc,
 		daylength = EARTH_DAY,
 		...
@@ -200,7 +200,7 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 		yield s;
 	case utf8::invalid =>
 		return invalidtzif;
-	});
+	})!;
 
 	// assemble structured data
 
@@ -248,7 +248,7 @@ fn load_tzif(h: io::handle, tz: *timezone) (void | invalidtzif | io::error) = {
 		case utf8::invalid =>
 			return invalidtzif;
 		};
-		zone.abbr = strings::dup(abbr);
+		zone.abbr = strings::dup(abbr)!;
 
 		append(zones, zone)!;
 	};

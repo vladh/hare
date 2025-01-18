@@ -142,7 +142,7 @@ fn parse_scheme(in: *strings::iterator) (str | invalid) = {
 			};
 		};
 	};
-	let s = strings::dup(strings::slice(&copy, in));
+	let s = strings::dup(strings::slice(&copy, in))!;
 	strings::next(in);
 	return s;
 };
@@ -288,7 +288,7 @@ fn parse_query(in: *strings::iterator) (str | invalid) = {
 			return invalid;
 		};
 	};
-	return strings::dup(strings::slice(&copy, in));
+	return strings::dup(strings::slice(&copy, in))!;
 };
 
 fn parse_fragment(in: *strings::iterator) (str | invalid) = {

@@ -255,7 +255,7 @@ fn scan_paragraph(
 		loc.col += 1;
 		const part = memio::string(&s)!;
 		if (part != "") {
-			append(p, strings::dup(part))!;
+			append(p, strings::dup(part)!)!;
 			memio::reset(&s);
 		};
 
@@ -299,7 +299,7 @@ fn scan_paragraph(
 
 	const part = memio::string(&s)!;
 	if (part != "") {
-		append(p, strings::dup(part))!;
+		append(p, strings::dup(part)!)!;
 	};
 	return p;
 };

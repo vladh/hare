@@ -68,8 +68,8 @@ fn parse_oids() []entry = {
 		const val = p[len(p)-1];
 
 		append(oids, entry {
-			name = strings::dup(name),
-			val = strings::dup(val),
+			name = strings::dup(name)!,
+			val = strings::dup(val)!,
 			...
 		})!;
 	};

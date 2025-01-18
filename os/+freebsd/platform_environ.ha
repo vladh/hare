@@ -42,7 +42,7 @@ export fn getenvs() []str = {
 	};
 	for (let i = 0z; rt::envp[i] != null; i += 1) {
 		let s = c::tostr(rt::envp[i]: *const c::char)!;
-		append(envp, strings::dup(s))!;
+		append(envp, strings::dup(s)!)!;
 	};
 	return envp;
 };

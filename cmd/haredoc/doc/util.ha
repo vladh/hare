@@ -18,7 +18,7 @@ fn trim_comment(s: str) str = {
 	for (let line => strings::next_token(&tok)) {
 		memio::concat(&trimmed, strings::trimprefix(line, " "), "\n")!;
 	};
-	return strings::dup(memio::string(&trimmed)!);
+	return strings::dup(memio::string(&trimmed)!)!;
 };
 
 export fn submodules(path: str, show_undocumented: bool) ([]str | error) = {
@@ -29,7 +29,7 @@ export fn submodules(path: str, show_undocumented: bool) ([]str | error) = {
 	for (let d => module::next(it)?) {
 		path::set(&pathbuf, path, d.name, "README")!;
 		if (show_undocumented || os::exists(path::string(&pathbuf))) {
-			append(submodules, strings::dup(d.name))!;
+			append(submodules, strings::dup(d.name)!)!;
 		};
 	};
 	sort::sort(submodules, size(str), &cmp::strs);

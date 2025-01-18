@@ -82,7 +82,7 @@ export fn find(ctx: *context, loc: location) ((str, srcset) | error) = {
 				return (path::string(&buf), s);
 			case not_found => void;
 			case let e: error =>
-				return attach(strings::dup(path::string(&buf)), e);
+				return attach(strings::dup(path::string(&buf))!, e);
 			};
 		};
 		return attach(locstr(ident), not_found);
@@ -230,7 +230,7 @@ fn _findsrcs(
 		case let tags: []tag =>
 			yield tags;
 		case let e: error =>
-			return attach(strings::dup(path::string(buf)), e);
+			return attach(strings::dup(path::string(buf))!, e);
 		};
 		defer free(wanttags);
 		if (!seentags_compat(in_tags, wanttags, &res.seentags)) {
@@ -249,23 +249,23 @@ fn _findsrcs(
 					strings::freeall(srcs[i].3);
 					srcs[i].3 = [];
 				};
-				append(srcs[i].3, strings::dup(bufstr))!;
+				append(srcs[i].3, strings::dup(bufstr)!)!;
 				return;
 			};
 		};
 
 		append(srcs, (
-			strings::dup(base),
-			strings::dup(ext),
+			strings::dup(base)!,
+			strings::dup(ext)!,
 			ntags,
-			alloc([strings::dup(bufstr)])!,
+			alloc([strings::dup(bufstr)!])!,
 		))!;
 		return;
 	};
 
 	if (!fs::isdir(stat.mode)) return; // ignore special files
 
-	append(res.dirs, strings::dup(pathstr))!;
+	append(res.dirs, strings::dup(pathstr)!)!;
 	if (time::compare(res.mtime, stat.mtime) < 0) {
 		res.mtime = stat.mtime;
 	};
@@ -274,7 +274,7 @@ fn _findsrcs(
 	case let i: *fs::iterator =>
 		yield i;
 	case let e: fs::error =>
-		return attach(strings::dup(pathstr), e);
+		return attach(strings::dup(pathstr)!, e);
 	};
 	defer fs::finish(iter);
 
@@ -290,7 +290,7 @@ fn _findsrcs(
 			case let tags: []tag =>
 				yield tags;
 			case let e: error =>
-				return attach(strings::dup(path::string(buf)), e);
+				return attach(strings::dup(path::string(buf))!, e);
 			};
 			defer free(wanttags);
 			if (!seentags_compat(in_tags, wanttags, &res.seentags)) {

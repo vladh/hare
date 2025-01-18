@@ -32,9 +32,9 @@ export type entry = (const str, const str, const str);
 
 // Duplicates an [[entry]]. Use [[entry_finish]] to get rid of it.
 export fn entry_dup(ent: entry) entry = (
-	strings::dup(ent.0),
-	strings::dup(ent.1),
-	strings::dup(ent.2),
+	strings::dup(ent.0)!,
+	strings::dup(ent.1)!,
+	strings::dup(ent.2)!,
 );
 
 // Frees an [[entry]] previously duplicated with [[entry_dup]].
@@ -63,7 +63,7 @@ export fn next(sc: *scanner) (entry | io::EOF | error) = {
 				return sc.lineno: syntaxerr;
 			};
 			free(sc.section);
-			sc.section = strings::dup(strings::sub(line, 1, end));
+			sc.section = strings::dup(strings::sub(line, 1, end))!;
 			continue;
 		};
 

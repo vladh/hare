@@ -151,7 +151,7 @@ fn decode_name(dec: *decoder) ([]str | format) = {
 			return format;
 		};
 
-		append(names, strings::dup(name))!;
+		append(names, strings::dup(name)!)!;
 	};
 	return format;
 };
@@ -278,8 +278,8 @@ fn decode_caa(dec: *decoder) (rdata | format) = {
 
 	return caa {
 		flags = flags,
-		tag = strings::dup(tag),
-		value = strings::dup(value),
+		tag = strings::dup(tag)!,
+		value = strings::dup(value)!,
 	};
 };
 

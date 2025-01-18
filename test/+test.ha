@@ -125,7 +125,7 @@ export @symbol("__test_main") fn main() size = {
 		stderr = memio::dynamic(),
 		maxname = maxname,
 		default_round = math::getround(),
-		cwd = strings::dup(os::getcwd()),
+		cwd = strings::dup(os::getcwd())!,
 		...
 	};
 	defer finish_context(&ctx);
@@ -305,7 +305,7 @@ fn printable(buf: []u8) str = {
 		let it = strings::iter(s);
 		for (true) match (strings::next(&it)) {
 		case done =>
-			return strings::dup(s);
+			return strings::dup(s)!;
 		case let r: rune =>
 			if (ascii::valid(r) && !ascii::isprint(r)
 					&& r != '\t' && r != '\n') {

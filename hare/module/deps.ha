@@ -35,7 +35,7 @@ export fn parse_deps(files: str...) ([]ast::ident | error) = {
 		case let f: io::file =>
 			yield f;
 		case let e: fs::error =>
-			return attach(strings::dup(file), e);
+			return attach(strings::dup(file)!, e);
 		};
 		defer io::close(handle)!;
 
@@ -220,15 +220,15 @@ fn _gather(
 		if (len(stack) == 0) {
 			return e;
 		};
-		return attach(strings::dup(stack[len(stack) - 1]), e);
+		return attach(strings::dup(stack[len(stack) - 1])!, e);
 	};
-	modpath = strings::dup(modpath);
+	modpath = strings::dup(modpath)!;
 	defer free(modpath);
 
 	for (let j = 0z; j < len(stack); j += 1) {
 		if (modpath == stack[j]) {
 			append(stack, modpath)!;
-			return strings::dupall(stack[j..]): dep_cycle;
+			return strings::dupall(stack[j..])!: dep_cycle;
 		};
 	};
 	for (let j = 0z; j < len(out); j += 1) {
@@ -255,7 +255,7 @@ fn _gather(
 	append(out, module {
 		name = match (mod) {
 		case let mod: *path::buffer =>
-			yield strings::dup(path::string(mod));
+			yield strings::dup(path::string(mod))!;
 		case let mod: ast::ident =>
 			yield unparse::identstr(mod);
 		},
@@ -265,7 +265,7 @@ fn _gather(
 		case let mod: ast::ident =>
 			yield ast::ident_dup(mod);
 		},
-		path = strings::dup(modpath),
+		path = strings::dup(modpath)!,
 		srcs = srcs,
 		deps = deps,
 		is_dep = is_dep,

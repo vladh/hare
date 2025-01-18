@@ -13,7 +13,7 @@ export fn cmdfile(file: io::file, name: str, args: str...) command = {
 	let cmd = command {
 		platform = file,
 		argv = alloc([], len(args) + 1)!,
-		env = strings::dupall(os::getenvs()),
+		env = strings::dupall(os::getenvs())!,
 		files = [],
 		dir = "",
 	};

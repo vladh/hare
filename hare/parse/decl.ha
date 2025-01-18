@@ -191,7 +191,7 @@ export fn decl(lexer: *lex::lexer) (ast::decl | error) = {
 	const start = lex::mkloc(lexer);
 	let comment = "";
 	if (try(lexer, ltok::STATIC)? is lex::token) {
-		comment = strings::dup(lex::comment(lexer));
+		comment = strings::dup(lex::comment(lexer))!;
 		let expr = assert_expr(lexer, true)?;
 		want(lexer, ltok::SEMICOLON)?;
 		return ast::decl {
@@ -206,13 +206,13 @@ export fn decl(lexer: *lex::lexer) (ast::decl | error) = {
 	case void =>
 		yield false;
 	case lex::token =>
-		comment = strings::dup(lex::comment(lexer));
+		comment = strings::dup(lex::comment(lexer))!;
 		yield true;
 	};
 	const toks = [ltok::CONST, ltok::LET, ltok::DEF, ltok::TYPE];
 	const next = try(lexer, toks...)?;
 	if (comment == "") {
-		comment = strings::dup(lex::comment(lexer));
+		comment = strings::dup(lex::comment(lexer))!;
 	};
 	let decl = match (next) {
 	case void =>

@@ -29,4 +29,4 @@ export fn ident_eq(a: ident, b: ident) bool = {
 };
 
 // Duplicates an [[ident]].
-export fn ident_dup(id: ident) ident = strings::dupall(id);
+export fn ident_dup(id: ident) ident = strings::dupall(id)!;

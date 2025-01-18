@@ -962,12 +962,12 @@ export fn replacen(
 	defer free(target);
 	// Check if n == 0 after parse_replace_target so errors are propagated
 	if (n == 0) {
-		return strings::dup(string);
+		return strings::dup(string)!;
 	};
 
 	const matches = findall(re, string);
 	if (len(matches) == 0) {
-		return strings::dup(string);
+		return strings::dup(string)!;
 	};
 	defer result_freeall(matches);
 
@@ -1051,12 +1051,12 @@ export fn rawreplace(re: *regex, string: str, targetstr: str) str = {
 // must free the return value.
 export fn rawreplacen(re: *regex, string: str, targetstr: str, n: size) str = {
 	if (n == 0) {
-		return strings::dup(string);
+		return strings::dup(string)!;
 	};
 
 	const matches = findall(re, string);
 	if (len(matches) == 0) {
-		return strings::dup(string);
+		return strings::dup(string)!;
 	};
 	defer result_freeall(matches);
 

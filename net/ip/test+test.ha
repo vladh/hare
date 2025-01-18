@@ -21,7 +21,7 @@ fn ip_test(s: str, expected: (addr|invalid)) void = {
 	if (ip is addr4) {
 		assert(fmted == s);
 	} else {
-		const dup = strings::dup(fmted);
+		const dup = strings::dup(fmted)!;
 		defer free(dup);
 		assert(dup == string(ipr));
 	};

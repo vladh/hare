@@ -62,7 +62,7 @@ fn parse(conf: *config, in: io::handle) (void | error) = {
 			append(conf.nameservers, param.value as ip::addr)!;
 		case "search" =>
 			strings::freeall(conf.search);
-			conf.search = strings::dupall(param.value as []str);
+			conf.search = strings::dupall(param.value as []str)!;
 		case "sortlist" =>
 			free(conf.sortlist);
 			conf.sortlist = alloc((param.value as []ip::subnet)...)!;

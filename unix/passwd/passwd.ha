@@ -106,11 +106,11 @@ export fn pwent_finish(ent: *pwent) void = {
 };
 
 fn pwent_dup(ent: *pwent) void = {
-	ent.username = strings::dup(ent.username);
-	ent.password = strings::dup(ent.password);
-	ent.comment = strings::dup(ent.comment);
-	ent.homedir = strings::dup(ent.homedir);
-	ent.shell = strings::dup(ent.shell);
+	ent.username = strings::dup(ent.username)!;
+	ent.password = strings::dup(ent.password)!;
+	ent.comment = strings::dup(ent.comment)!;
+	ent.homedir = strings::dup(ent.homedir)!;
+	ent.shell = strings::dup(ent.shell)!;
 };
 
 // Looks up a user by name in a Unix-like password file. It expects a password

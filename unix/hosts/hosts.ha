@@ -103,7 +103,7 @@ fn _lookup(rd: *reader, name: const str) ([]ip::addr | error) = {
 export fn host_dup(src: *host) host = {
 	return host {
 		addr = src.addr,
-		names = strings::dupall(src.names),
+		names = strings::dupall(src.names)!,
 	};
 };
 

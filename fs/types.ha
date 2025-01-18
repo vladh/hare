@@ -166,7 +166,7 @@ export type dirent = struct {
 // later.
 export fn dirent_dup(e: *dirent) dirent = {
 	let new = *e;
-	new.name = strings::dup(e.name);
+	new.name = strings::dup(e.name)!;
 	return new;
 };
 

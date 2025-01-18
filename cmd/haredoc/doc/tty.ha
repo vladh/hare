@@ -135,7 +135,7 @@ fn emit_submodules_tty(ctx: *context) (void | error) = {
 				defer free(s);
 				yield strings::concat(s, "::", submodule)!;
 			} else {
-				yield strings::dup(submodule);
+				yield strings::dup(submodule)!;
 			};
 			defer free(submodule);
 

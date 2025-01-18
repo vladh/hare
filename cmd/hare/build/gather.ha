@@ -35,7 +35,7 @@ export fn gather(ctx: *context, input: str) ([]module::module | error) = {
 		// add a dummy module so the driver knows where in the cache to
 		// put the test runner binary
 		append(mods, module::module {
-			path = strings::dup(input),
+			path = strings::dup(input)!,
 			...
 		})!;
 		yield len(mods) - 1;

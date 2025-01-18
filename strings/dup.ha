@@ -4,7 +4,7 @@
 use types;
 
 // Duplicates a string. Aborts on allocation failure.
-export fn dup(s: const str) str = {
+export fn dup(s: const str) (str | nomem) = {
 	const in = &s: *types::string;
 	const id = match (in.data) {
 	case null =>
@@ -12,7 +12,7 @@ export fn dup(s: const str) str = {
 	case let b: *[*]u8 =>
 		yield b;
 	};
-	let buf: []u8 = alloc(id[..in.length], in.length)!;
+	let buf: []u8 = alloc(id[..in.length], in.length)?;
 	let out = types::string {
 		data = buf: *[*]u8,
 		length = in.length,
@@ -23,11 +23,14 @@ export fn dup(s: const str) str = {
 
 // Creates a copy of a []str slice with all the strings duplicated. The result
 // must be freed using [[freeall]].
-export fn dupall(strs: []str) []str = {
-	let newsl: []str = alloc([], len(strs))!;
+export fn dupall(strs: []str) ([]str | nomem) = {
+	let newsl: []str = alloc([], len(strs))?;
+	let ok = false;
+	defer if (!ok) freeall(newsl);
 	for (let s .. strs) {
-		static append(newsl, dup(s))!;
+		static append(newsl, dup(s)?)!;
 	};
+	ok = true;
 	return newsl;
 };
 
@@ -40,11 +43,11 @@ export fn freeall(s: []str) void = {
 };
 
 @test fn dup() void = {
-	let s = dup("");
+	let s = dup("")!;
 	defer free(s);
 	assert(s == "");
 
-	let s = dup("hello");
+	let s = dup("hello")!;
 	defer free(s);
 	assert(s == "hello");
 };
@@ -52,7 +55,7 @@ export fn freeall(s: []str) void = {
 @test fn dupall() void = {
 	const payload: []str = [];
 
-	let s = dupall(payload);
+	let s = dupall(payload)!;
 	defer freeall(s);
 	assert(len(s) == len(payload));
 	for (let i = 0z; i < len(s); i += 1) {
@@ -61,7 +64,7 @@ export fn freeall(s: []str) void = {
 
 	const payload: []str = ["a", "aaa"];
 
-	let s = dupall(payload);
+	let s = dupall(payload)!;
 	defer freeall(s);
 	assert(len(s) == len(payload));
 	for (let i = 0z; i < len(s); i += 1) {

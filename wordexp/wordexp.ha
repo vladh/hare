@@ -55,7 +55,7 @@ export fn wordexp(s: str, flags: flag = flag::NONE) ([]str | error) = {
 		match (bufio::scan_string(&scan, "\0")?) {
 		case io::EOF => break;
 		case let word: const str =>
-			append(words, strings::dup(word))!;
+			append(words, strings::dup(word)!)!;
 		};
 	};
 

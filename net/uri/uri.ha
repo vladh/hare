@@ -20,20 +20,20 @@ export type uri = struct {
 // Duplicates a [[uri]].
 export fn dup(u: *uri) uri = {
 	return uri {
-		scheme = strings::dup(u.scheme),
+		scheme = strings::dup(u.scheme)!,
 
 		host = match (u.host) {
 		case let host: str =>
-			yield strings::dup(host);
+			yield strings::dup(host)!;
 		case let ip: ip::addr =>
 			yield ip;
 		},
 		port = u.port,
-		userinfo = strings::dup(u.userinfo),
+		userinfo = strings::dup(u.userinfo)!,
 
-		path = strings::dup(u.path),
-		query = strings::dup(u.query),
-		fragment = strings::dup(u.fragment),
+		path = strings::dup(u.path)!,
+		query = strings::dup(u.query)!,
+		fragment = strings::dup(u.fragment)!,
 	};
 };
 

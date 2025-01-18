@@ -7,7 +7,7 @@ use encoding::utf8;
 // 'maxlen'. The caller must free the return value.
 export fn lpad(s: str, p: rune, maxlen: size) str = {
 	if (len(s) >= maxlen) {
-		return dup(s);
+		return dup(s)!;
 	};
 	let res: []u8 = alloc([], maxlen)!;
 	for (let i = 0z; i < maxlen - len(s); i += 1) {
@@ -35,7 +35,7 @@ export fn lpad(s: str, p: rune, maxlen: size) str = {
 // 'maxlen'. The caller must free the return value.
 export fn rpad(s: str, p: rune, maxlen: size) str = {
 	if (len(s) >= maxlen) {
-		return dup(s);
+		return dup(s)!;
 	};
 	let res: []u8 = alloc([], maxlen)!;
 	append(res, toutf8(s)...)!;

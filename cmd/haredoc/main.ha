@@ -108,7 +108,7 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 
 	if (len(cmd.args) == 0) {
 		let (p, s) = module::find(&ctx, []: ast::ident)?;
-		modpath = strings::dup(p);
+		modpath = strings::dup(p)!;
 		modsrcs = s;
 	} else match (parseident(cmd.args[0])) {
 	case let ident: (ast::ident, bool) =>
@@ -118,7 +118,7 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 			// check if it's an ident inside a module
 			match (module::find(&ctx, id[..len(id)-1])) {
 			case let s: (str, module::srcset) =>
-				declpath = strings::dup(s.0);
+				declpath = strings::dup(s.0)!;
 				declsrcs = s.1;
 			case let e: module::error =>
 				module::finish_error(e);
@@ -127,7 +127,7 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 		// check if it's a module
 		match (module::find(&ctx, id)) {
 		case let s: (str, module::srcset) =>
-			modpath = strings::dup(s.0);
+			modpath = strings::dup(s.0)!;
 			modsrcs = s.1;
 		case let e: module::error =>
 			module::finish_error(e);
@@ -140,7 +140,7 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 	case void =>
 		let buf = path::init(cmd.args[0])?;
 		let (p, s) = module::find(&ctx, &buf)?;
-		modpath = strings::dup(p);
+		modpath = strings::dup(p)!;
 		modsrcs = s;
 	};
 
@@ -171,7 +171,7 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 				};
 				match (err) {
 				case let err: lex::syntax =>
-					const msg = strings::dup(err.1);
+					const msg = strings::dup(err.1)!;
 					append(parse_errs, (err.0, msg))!;
 					continue;
 				case =>
@@ -231,7 +231,7 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 				};
 				match (err) {
 				case let err: lex::syntax =>
-					const msg = strings::dup(err.1);
+					const msg = strings::dup(err.1)!;
 					append(parse_errs, (err.0, msg))!;
 					continue;
 				case =>
@@ -320,7 +320,7 @@ fn parseident(in: str) ((ast::ident, bool) | void) = {
 		const name = if (tok.0 == lex::ltok::NAME) {
 			yield tok.1 as str;
 		} else if (tok.0 < lex::ltok::LAST_KEYWORD) {
-			yield strings::dup(lex::tokstr(tok));
+			yield strings::dup(lex::tokstr(tok))!;
 		} else if (tok.0 == lex::ltok::EOF && len(ident) > 0) {
 			trailing = true;
 			break;
