@@ -24,11 +24,14 @@ export fn strerror(err: invalid) str = "Template string has invalid format";
 
 // Compiles a template string. The return value must be freed with [[finish]]
 // after use.
-export fn compile(input: str) (template | invalid) = {
+export fn compile(input: str) (template | invalid | nomem) = {
 	let buf = memio::dynamic();
 	defer io::close(&buf)!;
 
 	let instrs: []instruction = [];
+	let ok = false;
+	defer if (!ok) finish(&instrs);
+
 	const iter = strings::iter(input);
 	for (let rn => strings::next(&iter)) {
 		if (rn == '$') {
@@ -39,7 +42,7 @@ export fn compile(input: str) (template | invalid) = {
 				} else {
 					strings::prev(&iter);
 					const lit = memio::string(&buf)!;
-					append(instrs, strings::dup(lit): literal)!;
+					append(instrs, strings::dup(lit)?: literal)?;
 					memio::reset(&buf);
 
 					parse_variable(&instrs, &iter, &buf)?;
@@ -54,9 +57,10 @@ export fn compile(input: str) (template | invalid) = {
 
 	if (len(memio::string(&buf)!) != 0) {
 		const lit = memio::string(&buf)!;
-		append(instrs, strings::dup(lit): literal)!;
+		append(instrs, strings::dup(lit)?: literal)?;
 	};
 
+	ok = true;
 	return instrs;
 };
 
@@ -109,7 +113,7 @@ fn parse_variable(
 	instrs: *[]instruction,
 	iter: *strings::iterator,
 	buf: *memio::stream,
-) (void | invalid) = {
+) (void | invalid | nomem) = {
 	let brace = false;
 	match (strings::next(iter)) {
 	case let rn: rune =>
@@ -149,7 +153,7 @@ fn parse_variable(
 	};
 
 	const var = memio::string(buf)!;
-	append(instrs, strings::dup(var): variable)!;
+	append(instrs, strings::dup(var)?: variable)?;
 	memio::reset(buf);
 };
 
