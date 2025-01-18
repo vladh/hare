@@ -122,7 +122,7 @@ fn get_flags(ctx: *context, t: *task) ([]str | error) = {
 	for (let i = 0z; i < len(mod.ns); i += 1) {
 		path::pop(&buf);
 	};
-	append(flags, strings::concat(path::string(&buf), "/"))!;
+	append(flags, strings::concat(path::string(&buf), "/")!)!;
 
 	path::set(&buf, mod.path)?;
 	let test = ctx.test && t.idx == ctx.top;
@@ -172,7 +172,7 @@ fn get_hash(
 		for (let dep .. ctx.mods[t.idx].deps) {
 			let ns = unparse::identstr(dep.1);
 			defer free(ns);
-			let var = strings::concat("HARE_TD_", ns);
+			let var = strings::concat("HARE_TD_", ns)!;
 			defer free(var);
 			let path = match (os::getenv(var)) {
 			case void =>
@@ -218,7 +218,7 @@ fn get_args(ctx: *context, tmp: str, flags: []str, t: *task) []str = {
 		let td = get_cache(ctx, t.idx, stage::SSA)!;
 		defer free(td);
 		append(args, strings::dup("-t"))!;
-		append(args, strings::concat(td, ".td.tmp"))!;
+		append(args, strings::concat(td, ".td.tmp")!)!;
 		yield ctx.mods[t.idx].srcs.ha;
 	case stage::S =>
 		append(args, get_cache(ctx, t.idx, stage::SSA)!)!;

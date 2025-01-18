@@ -261,7 +261,7 @@ fn cleanup_task(ctx: *context, t: *task) (void | error) = {
 		cleanup_ssa_task(ctx, t, out)?;
 	};
 
-	let tmp = strings::concat(out, ".tmp");
+	let tmp = strings::concat(out, ".tmp")!;
 	defer free(tmp);
 	os::move(tmp, out)?;
 };
@@ -271,7 +271,7 @@ fn cleanup_ssa_task(ctx: *context, t: *task, out: str) (void | error) = {
 	// for other types of outputs, but it gets us better caching behavior
 	// for tds since we need to include the dependency tds in the ssa hash
 	// see design.txt for more details
-	let tmp = strings::concat(out, ".td.tmp");
+	let tmp = strings::concat(out, ".td.tmp")!;
 	defer free(tmp);
 
 	let f = match (os::create(tmp, 0o644, fs::flag::RDWR)) {
@@ -287,7 +287,7 @@ fn cleanup_ssa_task(ctx: *context, t: *task, out: str) (void | error) = {
 	hash::sum(&h, prefix);
 	ctx.hashes[t.idx][stage::TD] = prefix;
 
-	let ptr = strings::concat(out, ".td");
+	let ptr = strings::concat(out, ".td")!;
 	defer free(ptr);
 	let ptr = os::create(ptr, 0o644)?;
 	defer io::close(ptr)!;
@@ -306,7 +306,7 @@ fn cleanup_ssa_task(ctx: *context, t: *task, out: str) (void | error) = {
 fn get_td(ctx: *context, idx: size) (void | error) = {
 	let ssa = get_cache(ctx, idx, stage::SSA)?;
 	defer free(ssa);
-	let ptr = strings::concat(ssa, ".td");
+	let ptr = strings::concat(ssa, ".td")!;
 	defer free(ptr);
 	let ptr = match (os::open(ptr)) {
 	case fs::error =>
@@ -332,7 +332,7 @@ fn update_env(ctx: *context, idx: size) (str | error) = {
 	if (ctx.mode == output::VVERBOSE) {
 		fmt::errorfln("# HARE_TD_{}={}", ns, path)?;
 	};
-	let var = strings::concat("HARE_TD_", ns);
+	let var = strings::concat("HARE_TD_", ns)!;
 	defer free(var);
 	os::setenv(var, path)!;
 	return path;

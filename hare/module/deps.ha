@@ -163,7 +163,7 @@ export fn gather_submodules(
 	};
 
 	let subpath = strings::concat(path::string(&srcdir), ":",
-		ctx.harepath);
+		ctx.harepath)!;
 	defer free(subpath);
 
 	let subctx = context {

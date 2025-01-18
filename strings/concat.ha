@@ -2,13 +2,13 @@
 // (c) Hare authors <https://harelang.org>
 
 // Concatenates multiple strings. The caller must free the return value.
-export fn concat(strs: str...) str = {
+export fn concat(strs: str...) (str | nomem) = {
 	let z = 0z;
 	for (let s .. strs) {
 		z += len(s);
 	};
 
-	let new: []u8 = alloc([], z)!;
+	let new: []u8 = alloc([], z)?;
 	for (let s .. strs) {
 		static append(new, toutf8(s)...)!;
 	};
@@ -16,27 +16,27 @@ export fn concat(strs: str...) str = {
 };
 
 @test fn concat() void = {
-	let s = concat("hello ", "world");
+	let s = concat("hello ", "world")!;
 	defer free(s);
 	assert(s == "hello world");
 
-	let s = concat("hello", " ", "world");
+	let s = concat("hello", " ", "world")!;
 	defer free(s);
 	assert(s == "hello world");
 
-	let s = concat("hello", "", "world");
+	let s = concat("hello", "", "world")!;
 	defer free(s);
 	assert(s == "helloworld");
 
-	let s = concat("", "");
+	let s = concat("", "")!;
 	defer free(s);
 	assert(s == "");
 
-	let s = concat();
+	let s = concat()!;
 	defer free(s);
 	assert(s == "");
 
-	let s = concat("hello");
+	let s = concat("hello")!;
 	defer free(s);
 	assert(s == "hello");
 };

@@ -133,7 +133,7 @@ fn emit_submodules_tty(ctx: *context) (void | error) = {
 			let submodule = if (len(ctx.ident) != 0) {
 				const s = unparse::identstr(ctx.ident);
 				defer free(s);
-				yield strings::concat(s, "::", submodule);
+				yield strings::concat(s, "::", submodule)!;
 			} else {
 				yield strings::dup(submodule);
 			};
