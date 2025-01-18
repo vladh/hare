@@ -563,7 +563,7 @@ fn literal(
 				synkind::KEYWORD)?;
 		case let s: str =>
 			const s = strings::multireplace(s,
-				(`\`, `\\`), (`"`, `\"`));
+				(`\`, `\\`), (`"`, `\"`))!;
 			defer free(s);
 			const s = fmt::asprintf(`"{}"`, s);
 			defer free(s);

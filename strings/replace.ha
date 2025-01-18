@@ -5,7 +5,7 @@ use bytes;
 
 // Returns a new string duplicated from 's', but with all instances of 'needle'
 // replaced with 'target'. The caller must free the return value.
-export fn replace(s: str, needle: str, target: str) str = {
+export fn replace(s: str, needle: str, target: str) (str | nomem) = {
 	return multireplace(s, (needle, target));
 };
 
@@ -18,17 +18,19 @@ export fn replace(s: str, needle: str, target: str) str = {
 // 	assert(multireplace("hello there", ("ell", "eww"), ("e", "a")) == "hewwo thara");
 //
 // The caller must free the return value.
-export fn multireplace(s: str, repls: (str, str)...) str = {
+export fn multireplace(s: str, repls: (str, str)...) (str | nomem) = {
 	let b = toutf8(s);
 	let res: []u8 = [];
+	let ok = false;
+	defer if (!ok) free(res);
 	let i = 0z;
 	let prev = 0z; // end of previous match, so we can append in chunks
 	for :step (i < len(b)) {
 		for (let (replace, with) .. repls) {
 			const replb = (toutf8(replace), toutf8(with));
 			if (bytes::hasprefix(b[i..], replb.0)) {
-				append(res, b[prev..i]...)!;
-				append(res, replb.1...)!;
+				append(res, b[prev..i]...)?;
+				append(res, replb.1...)?;
 				i += len(replb.0);
 				prev = i;
 				continue :step;
@@ -36,48 +38,49 @@ export fn multireplace(s: str, repls: (str, str)...) str = {
 		};
 		i += 1;
 	};
-	append(res, b[prev..i]...)!;
+	append(res, b[prev..i]...)?;
+	ok = true;
 	return fromutf8_unsafe(res);
 };
 
 @test fn replace() void = {
-	const s = replace("Hello world!", "world", "there");
+	const s = replace("Hello world!", "world", "there")!;
 	defer free(s);
 	assert(s == "Hello there!");
 
-	const s = replace("I like dogs, dogs, birds, dogs", "dogs", "cats");
+	const s = replace("I like dogs, dogs, birds, dogs", "dogs", "cats")!;
 	defer free(s);
 	assert(s == "I like cats, cats, birds, cats");
 
-	const s = replace("aaaaaa", "aa", "a");
+	const s = replace("aaaaaa", "aa", "a")!;
 	defer free(s);
 	assert(s == "aaa");
 
-	const s = replace("aaa", "a", "aa");
+	const s = replace("aaa", "a", "aa")!;
 	defer free(s);
 	assert(s == "aaaaaa");
 
-	const s = replace("こんにちは", "にち", "ばん");
+	const s = replace("こんにちは", "にち", "ばん")!;
 	defer free(s);
 	assert(s == "こんばんは");
 };
 
 @test fn multireplace() void = {
 	const s = multireplace("Hello world",
-		("Hello", "Greetings"), ("world", "globe"));
+		("Hello", "Greetings"), ("world", "globe"))!;
 	defer free(s);
 	assert(s == "Greetings globe");
 
-	const s = multireplace("ababa", ("a", "ba"), ("b", "a"), ("a", "c"));
+	const s = multireplace("ababa", ("a", "ba"), ("b", "a"), ("a", "c"))!;
 	defer free(s);
 	assert(s == "baabaaba");
 
 	const s = multireplace("hello there", ("e", "a"),
-		("a", "x"), ("ell", "eww"));
+		("a", "x"), ("ell", "eww"))!;
 	defer free(s);
 	assert(s == "hallo thara");
 
-	const s = multireplace("hello there", ("ell", "eww"), ("e", "a"));
+	const s = multireplace("hello there", ("ell", "eww"), ("e", "a"))!;
 	defer free(s);
 	assert(s == "hewwo thara");
 };
