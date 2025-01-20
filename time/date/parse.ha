@@ -26,39 +26,41 @@ type parsed_done = !void;
 // 	date::parse(&v, "%H:%M:%S.%N", "22:07:08.000000000");
 // 	date::parse(&v, "%z %Z %L",    "+0100 CET Europe/Amsterdam");
 //
-// Parse will return [[parsefail]] if an invalid format specifier is encountered
-// or if given string 's' does not match the layout.
-export fn parse(v: *virtual, layout: str, s: str) (void | parsefail) = {
-	const liter = strings::iter(layout);
-	const siter = strings::iter(s);
+// Parse will return [[parsefail]] if an invalid layout format specifier is
+// encountered or if given info string does not match the layout.
+export fn parse(v: *virtual, layout: str, info: str) (void | parsefail) = {
+	// TODO: specify if extraneous text is ignored. also for from_str().
+
+	const layout_iter = strings::iter(layout);
+	const info_iter = strings::iter(info);
 	let escaped = false;
 
-	for (let lr => strings::next(&liter)) {
+	for (let lr => strings::next(&layout_iter)) {
 		if (!escaped && lr == '%') {
 			escaped = true;
 			continue;
 		};
 
 		if (!escaped) {
-			const sr = match (strings::next(&siter)) {
+			const ir = match (strings::next(&info_iter)) {
 			case done =>
-				return (liter.dec.offs, lr): parsefail;
-			case let sr: rune =>
-				yield sr;
+				return (layout_iter.dec.offs, lr): parsefail;
+			case let ir: rune =>
+				yield ir;
 			};
-			if (sr != lr) {
-				return (liter.dec.offs, lr): parsefail;
+			if (ir != lr) {
+				return (layout_iter.dec.offs, lr): parsefail;
 			};
 			continue;
 		};
 
 		escaped = false;
 
-		match (parse_specifier(v, &siter, lr)) {
+		match (parse_specifier(v, &info_iter, lr)) {
 		case parsed_done =>
 			void;
 		case parsed_err =>
-			return (liter.dec.offs, lr): parsefail;
+			return (layout_iter.dec.offs, lr): parsefail;
 		};
 	};
 

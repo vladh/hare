@@ -21,10 +21,10 @@ export fn zone(d: *date) zonephase = {
 
 // Observes a [[date]]'s observed daydate (day number since epoch).
 //
-// For dates with [[locality]]s based on the [[utc]], [[tai]], [[gps]], and
-// similar timescales, their epoch date should be interpreted as the Unix epoch
-// (1970 Janurary 1st). Other timescales may suggest their own interpretations
-// applicable to other chronologies.
+// For dates with a [[locality]] based on the UTC, TAI, GPS, and similar
+// [[time::chrono::timescale]]s, their epoch date should be interpreted as the
+// Unix epoch (1970 Janurary 1st). Other timescales may suggest their own
+// interpretations applicable to other chronologies.
 export fn daydate(d: *date) i64 = {
 	match (d.daydate) {
 	case let dd: i64 =>

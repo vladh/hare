@@ -7,32 +7,27 @@ use time::chrono;
 // Invalid [[date]].
 export type invalid = !void;
 
-// A date/time object; a [[time::chrono::moment]] wrapper optimized for the
-// Gregorian chronology, and by extension a [[time::instant]] wrapper.
+// A "datetime" object, optimized for the Gregorian chronology. All instantiated
+// dates are valid, pertain to a [[locality]], and directly convertible to a
+// [[time::chrono::moment]] or [[time::instant]].
 //
-// This object should be treated as private and immutable. Directly mutating its
-// fields causes undefined behaviour when used with module functions. Likewise,
-// interrogating the fields' type and value (e.g. using match statements) is
-// also improper.
+// A date observes various chronological values, which are cached in its
+// "observer" fields. To evaluate and obtain these values, use the various
+// observer functions, documented inline.
 //
-// A date observes various chronological values, cached in its fields. To
-// evaluate and obtain these values, use the various observer functions
-// ([[year]], [[hour]], etc.). These values are derived from the embedded moment
-// information, and thus are guaranteed to be valid.
-//
-// See [[virtual]] for an public, mutable, intermediary representation of a
-// date, which waives guarantees of validity.
+// Unless interfaced via a [[virtual]], dates should be treated as immutable.
+// Mutating or interrogating fields directly results in undefined behaviour.
 export type date = struct {
 	chrono::moment,
-	// The [[locality]] with which to interpret this moment.
+	// The [[locality]] with which to interpret this date.
 	loc: locality,
-	// The observed [[zone]].
+	// The observed [[zonephase]]. Observe with [[zone]].
 	zonephase: nullable *zonephase,
 	// The observed [[daydate]] (scalar day number)
 	// since an abitrary epoch (e.g. the Unix epoch 1970-01-01).
 	daydate: (void | i64),
 	// The observed [[daytime]] (amount of daytime progressed in a day),
-	// comparable with [[time::duration]].
+	// assessed as a [[time::duration]].
 	daytime: (void | i64),
 	// The observed [[era]].
 	era:         (void | int),
@@ -111,8 +106,8 @@ fn all(d: *date) *date = {
 	return d;
 };
 
-// Creates a new [[date]]. Accepts a [[time::chrono::locality]], a zone-offset,
-// and up to seven nominal fields applied in the following order:
+// Creates a new [[date]]. Accepts a [[locality]], a zone-offset, and up to
+// seven chronological fields applied in the following order:
 //
 // - year
 // - month
@@ -140,17 +135,17 @@ fn all(d: *date) *date = {
 // 		2000,  1,  2,  15,  4,  5, 600000000);
 //
 // 	// 2000-01-02 15:00:00.000000000 +0100 CET Europe/Amsterdam
-// 	date::new(time::chrono::tz("Europe/Amsterdam")!,
+// 	date::new(date::tzdb("Europe/Amsterdam")!,
 // 		1 * time::HOUR, // standard time in January
 // 		2000,  1,  2,  15);
 //
 // 	// Could return [[zfunresolved]] by encountering a timezone transition.
-// 	date::new(time::chrono::tz("Europe/Amsterdam")!,
+// 	date::new(date::tzdb("Europe/Amsterdam")!,
 // 		date::zflag::CONTIG,
 // 		fields...);
 //
 // 	// Will never return [[zfunresolved]].
-// 	date::new(time::chrono::tz("Europe/Amsterdam")!,
+// 	date::new(date::tzdb("Europe/Amsterdam")!,
 // 		date::zflag::LAP_EARLY | date::zflag::GAP_END,
 // 		fields...);
 //
@@ -158,12 +153,12 @@ fn all(d: *date) *date = {
 // 	// 02:30 is never observed. Note the difference in zone-offset.
 // 	//
 // 	// 2000-03-26 01:59:59.999999999 +0100 CET Europe/Amsterdam
-// 	date::new(time::chrono::tz("Europe/Amsterdam")!,
+// 	date::new(date::tzdb("Europe/Amsterdam")!,
 // 		date::zflag::GAP_START,
 // 		2000,  3, 26,   2, 30);
 // 	//
 // 	// 2000-03-26 03:00:00.000000000 +0200 CET Europe/Amsterdam
-// 	date::new(time::chrono::tz("Europe/Amsterdam")!,
+// 	date::new(date::tzdb("Europe/Amsterdam")!,
 // 		date::zflag::GAP_END,
 // 		2000,  3, 26,   2, 30);
 //
@@ -171,12 +166,12 @@ fn all(d: *date) *date = {
 // 	// 02:30 is observed twice. Note the difference in zone-offset.
 // 	//
 // 	// 2000-10-29 02:30:00.000000000 +0200 CET Europe/Amsterdam
-// 	date::new(time::chrono::tz("Europe/Amsterdam")!,
+// 	date::new(date::tzdb("Europe/Amsterdam")!,
 // 		date::zflag::LAP_EARLY,
 // 		2000, 10, 29,   2, 30);
 // 	//
 // 	// 2000-10-29 02:30:00.000000000 +0100 CET Europe/Amsterdam
-// 	date::new(time::chrono::tz("Europe/Amsterdam")!,
+// 	date::new(date::tzdb("Europe/Amsterdam")!,
 // 		date::zflag::LAP_LATE,
 // 		2000, 10, 29,   2, 30);
 //
@@ -241,7 +236,7 @@ export fn now() date = {
 };
 
 // Returns a [[date]] of the current system time using
-// [[time::clock::REALTIME]], in the [[time::chrono::LOCAL]] locality.
+// [[time::clock::REALTIME]], in the [[LOCAL]] locality.
 export fn localnow() date = {
 	return from_instant(LOCAL, time::now(time::clock::REALTIME));
 };
@@ -263,9 +258,9 @@ export fn from_moment(loc: locality, m: chrono::moment) (date | chrono::tscmisma
 	return d;
 };
 
-// Creates a [[date]] from a [[time::instant]] in a [[time::chrono::locality]].
-export fn from_instant(loc: locality, i: time::instant) date = {
-	return from_moment(loc, chrono::new(loc.tsc, i))!;
+// Creates a [[date]] from a [[time::instant]] in a [[locality]].
+export fn from_instant(loc: locality, t: time::instant) date = {
+	return from_moment(loc, chrono::new(loc.tsc, t))!;
 };
 
 // Creates a [[date]] from a given [[locality]], zone-offset, daydate, and
@@ -290,18 +285,19 @@ export fn from_datetime(
 //
 // At least a complete calendar date has to be provided. If the hour, minute,
 // second, or nanosecond values are not provided, they default to 0.
-// If the zone-offset or zone-abbreviation are not provided, the [[zflags]]s
+// If the zone-offset or zone-abbreviation are not provided, the [[zflag]]s
 // LAP_EARLY and GAP_END are used.
 //
-// The date's [[time::chrono::locality]] will be selected from the provided
-// locality arguments. The 'name' field of these localities will be matched
-// against the parsed result of the %L specifier. If %L is not specified,
-// or if no locality is provided, [[UTC]] is used.
+// The date's [[locality]] will be selected from the provided locality
+// arguments. The 'name' field of these localities will be matched against the
+// parsed result of the %L specifier. If %L is not specified, or if no locality
+// is provided, [[UTC]] is used.
 export fn from_str(
 	layout: str,
 	s: str,
 	locs: locality...
 ) (date | parsefail | insufficient | invalid) = {
+	// TODO: consider having defaults for year, month, day.
 	const v = newvirtual();
 	v.zoff = zflag::LAP_EARLY | zflag::GAP_END;
 	v.hour = 0;
@@ -318,7 +314,7 @@ export fn from_str(
 	return realize(v, locs...) as (date | insufficient | invalid);
 };
 
-// Extracts the [[chrono::moment]] of the given [[date]].
+// Extracts the [[time::chrono::moment]] of the given [[date]].
 export fn to_moment(d: date) chrono::moment = *(&d: *chrono::moment);
 
 // Extracts the [[time::instant]] of the given [[date]].
@@ -337,14 +333,14 @@ export fn coincident(a: *date, b: *date) bool = {
 // [[locality]] at a particular zone-offset.
 fn calc_datetime(
 	loc: locality,
-	inst: time::instant,
+	t: time::instant,
 	zoff: time::duration,
 ) (i64, time::duration) = {
-	const i = time::add(inst, zoff);
+	const t = time::add(t, zoff);
 	const day = loc.daylength;
 	const daysec = day / time::SECOND;
-	const dd = if (i.sec >= 0) i.sec / daysec else (i.sec + 1) / daysec - 1;
-	const dt = ((i.sec % daysec + daysec) * time::SECOND + i.nsec) % day;
+	const dd = if (t.sec >= 0) t.sec / daysec else (t.sec + 1) / daysec - 1;
+	const dt = ((t.sec % daysec + daysec) * time::SECOND + t.nsec) % day;
 	return (dd, dt);
 };
 
@@ -356,14 +352,14 @@ fn calc_instant(
 ) time::instant = {
 	const daysec = (day / time::SECOND): i64;
 	const dayrem = day % time::SECOND;
-	let i = time::instant {
+	let t = time::instant {
 		sec = dd * daysec,
 		nsec = 0,
 	};
-	i = time::add(i, dd * dayrem);
-	i = time::add(i, dt);
-	i = time::add(i, -zo);
-	return i;
+	t = time::add(t, dd * dayrem);
+	t = time::add(t, dt);
+	t = time::add(t, -zo);
+	return t;
 };
 
 @test fn from_str() void = {

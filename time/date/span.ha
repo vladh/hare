@@ -4,8 +4,8 @@
 use fmt;
 use io;
 
-// Represents a span of time in the Gregorian chronology, using nominal units of
-// time. Used for chronological arithmetic.
+// Represents a span of time in the Gregorian chronology; a set of nominal
+// periods of time. Used for chronological arithmetic.
 export type span = struct {
 	years: i64,
 	months: i64,
@@ -78,7 +78,7 @@ export fn abs(x: span) span = span {
 //
 // where each '?' is replaced with the appopriate span field values in order of
 // decreasing significance, and the inbetween spaces are replaced with the given
-// sep parameter.
+// sep argument.
 export fn formatspan(s: span, sep: rune = ' ') str = {
 	static let buf: [128]u8 = [0...];
 	return fmt::bsprintf(buf, "{}Y{}{}M{}{}W{}{}D{}{}h{}{}m{}{}s{}{}n",

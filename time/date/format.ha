@@ -58,6 +58,9 @@ export def QUARTZZOFF: str = "%s.%N%z";
 // and locality.
 export def QUARTZLOC: str = "%s.%N:%L";
 
+// TODO: consider adding specifier for timescale name, and "QUARTZTSC" layout.
+// e.g. "%s.%N!%C" -> 123456789123.000000000!UTC
+
 def WEEKDAYS: [_]str = [
 	"Monday",
 	"Tuesday",
@@ -94,11 +97,7 @@ def MONTHS_SHORT: [_]str = [
 
 // Formats a [[date]] and writes it into a caller supplied buffer.
 // The returned string is borrowed from this buffer.
-export fn bsformat(
-	buf: []u8,
-	layout: str,
-	d: *date,
-) (str | io::error) = {
+export fn bsformat(buf: []u8, layout: str, d: *date) (str | io::error) = {
 	let sink = memio::fixed(buf);
 	format(&sink, layout, d)?;
 	return memio::string(&sink)!;
@@ -158,11 +157,7 @@ export fn asformat(layout: str, d: *date) (str | io::error) = {
 //        Years before the Common Era have a minus sign prefix. ("2000").
 // - %z : The observed zone offset. ("+0100").
 // - %Z : The observed zone abbreviation. ("CET").
-export fn format(
-	h: io::handle,
-	layout: str,
-	d: *date
-) (size | io::error) = {
+export fn format(h: io::handle, layout: str, d: *date) (size | io::error) = {
 	let iter = strings::iter(layout);
 	let z = 0z;
 	for (let r => strings::next(&iter)) {
@@ -250,6 +245,8 @@ fn fmtspec(out: io::handle, r: rune, d: *date) (size | io::error) = {
 };
 
 fn fmtzoff(h: io::handle, zoff: time::duration) (size | io::error) = {
+	// TODO: formatting & parsing: account for all possible styles for zoffs
+	// (+NN, +NNNN, +NN:NN, +NN:NN:NN, +NN:NN:NN.NNNNNNNNN).
 	const (sign, zo) =
 		if (zoff >= 0)
 			('+', calc_hmsn(zoff))

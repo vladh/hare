@@ -2,20 +2,28 @@ The time::date module implements the common international Gregorian chronology,
 based on the astronomically numbered proleptic Gregorian calendar and the ISO
 week-numbering calendar, as per the ISO 8601 standard, and the common 24 hour
 clock. It provides [[date]], a representation of civil date/time and a optimized
-extension of the [[time::chrono::moment]] type. The [[time::chrono::]] module
-has many useful functions which interoperate with dates. Any [[time::chrono::]]
-function which accepts *moment also accepts *date.
+extension of the [[time::chrono::moment]] type.
+
+The [[time::chrono::]] module has many useful functions which interoperate with
+dates. Any [[time::chrono::]] function which accepts *moment also accepts *date.
 
 Dates are created using [[new]], [[now]], [[localnow]], or a "from_" function.
-Alternatively, the [[virtual]]/[[realize]] interface can handle uncertain or
-invalid date/time information, and construct new dates incrementally and safely.
-The observer functions ([[year]], [[hour]], etc.) evaluate a date's observed
-chronological values, adjusted for its associated [[time::chrono::locality]].
-Use [[in]] to localize a date to another locality; consult [[time::chrono::tz]].
-See [[parse]] and [[format]] for working with date/time strings.
+Alternatively, the [[virtual]]+[[realize]] interface can handle indeterminate
+date/time information, and construct new dates incrementally and safely.
 
-Date arithmetic operations are categorized into "timescalar" or "chronological".
-Timescalar uses [[time::duration]]; see [[add]], [[time::chrono::diff]].
-Chronological uses [[period]]; see [[reckon]], [[pdiff]], [[unitdiff]],
-[[truncate]]. Note that calendrical arithmetic is highly irregular due to field
-overflows and timezone discontinuities, so think carefully about what you want.
+The observer functions ([[year]], [[hour]], etc.) evaluate a date's observed
+chronological values, adjusted for its associated [[locality]]. Use [[in]] to
+localize a date to another locality. Consult your system's TZif timezone
+database using [[tz]].
+
+For working with date/time strings, see [[parse]] and [[format]].
+
+Date arithmetic is categorized into two:
+
+- Timescalar, using [[time::duration]]: See [[add]], [[time::chrono::diff]].
+- Chronological, using [[span]], [[step]]: See [[reckon]], [[traverse]], [[hop]],
+  [[truncate]].
+
+Chronologies are irregular due to field overflows and timezone discontinuities.
+These effects are mitigated with [[zflag]] and [[rflag]], which deserve careful
+consideration.

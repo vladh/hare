@@ -6,7 +6,7 @@ use strconv;
 use strings;
 use time;
 
-// Invalid POSIX extend TZ string.
+// Invalid POSIX extending TZ string.
 export type invalidpetzstr = !void;
 
 // A POSIX "extending timezone" of the "TZ" environment variable format.
@@ -236,7 +236,9 @@ fn petz_is_twophased(p: petz) bool = {
 	return p.dst_abbr != "";
 };
 
-export fn lookupzone_posix(loc: locality, d: *date) *zonephase = {
+// Determines the correct zonephase/zone-offset for a date. Used for dates
+// outside the range of zonephase transitions a date's timezone has.
+fn lookupzone_posix(loc: locality, d: *date) *zonephase = {
 	let p = loc.petz;
 
 	if (!petz_is_twophased(p)) {

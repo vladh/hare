@@ -22,11 +22,11 @@ fn check_timescales(a: *timescale, b: *timescale) (void | tscmismatch) = {
 	};
 };
 
-// Converts a [[time::instant]] from one [[timescale]] to the next exhaustively.
-// The final conversion result is returned. For each active pair of timescales,
-// if neither implements conversion from the first to the second, a two-step
-// intermediary TAI conversion will occur. If given zero or one timescales, the
-// given instant is returned.
+// Converts a [[moment]] from one [[timescale]] to the next exhaustively.
+// The final conversion result is returned. For each considered pair of
+// timescales, if neither implements conversion from the first to the second, a
+// two-step intermediary [[tai]] conversion will occur. If given zero
+// timescales, the given moment is returned.
 export fn convert(m: moment, tscs: *timescale...) []moment = {
 	let t = *(&m: *time::instant);
 	let ms: []moment = [m];
@@ -104,7 +104,7 @@ fn tai_conv(ts: *timescale, i: time::instant) ([]time::instant | void) = {
 // Discontinuous (has leap seconds).
 //
 // During a program's initialization, this timescale initializes by loading its
-// UTC/TAI leap second data from [[UTC_LEAPSECS_PATH]]; otherwise, fails
+// UTC/TAI leapsecond data from [[UTC_LEAPSECS_PATH]]; otherwise, fails
 // silently. If failed, any attempt to consult UTC leapsec data (e.g. calling
 // [[convert]] on UTC) causes an abort. This includes [[time::date::in]].
 export const utc: timescale = timescale {

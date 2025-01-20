@@ -4,7 +4,7 @@
 use time;
 use time::chrono;
 
-// Creates an equivalent [[date]] with a different [[locality]].
+// Creates a simultaneous [[date]] with a different [[locality]].
 //
 // [[time::chrono::tscmismatch]] is returned if the [[time::chrono::timescale]]s
 // of the given moment and the target [[locality]] are different.

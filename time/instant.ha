@@ -3,10 +3,9 @@
 
 use types;
 
-// Represents a specific instant in time as seconds (+nanoseconds) since an
+// Represents a specific instant in time as seconds (and nanoseconds) since an
 // arbitrary epoch. Instants may only be meaningfully compared with other
-// instants sourced from the same [[clock]], or handled by the same
-// [[time::chrono::timescale]]
+// instants sourced from the same [[clock]].
 export type instant = struct {
 	sec: i64,
 	nsec: i64,

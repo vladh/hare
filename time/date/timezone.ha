@@ -13,54 +13,56 @@ export def EARTH_DAY: time::duration = 86400 * time::SECOND;
 
 // The duration of a solar day on Mars, in Martian seconds.
 export def MARS_SOL_MARTIAN: time::duration = 86400 * time::SECOND;
+// TODO: remove
 
 // The duration of a solar day on Mars, in terrestrial (SI) seconds.
 export def MARS_SOL_TERRESTRIAL: time::duration = 88775244147000 * time::NANOSECOND;
+// TODO: remove
 
-// The locality of a [[moment]]. Contains information about how to calculate a
+// The locality of a [[date]]. Contains information about how to calculate a
 // moment's observed chronological values.
 export type locality = *timezone;
 
 // A timezone; a political or otherwise theoretical region with a ruleset
 // regarding offsets for calculating localized date/time.
 export type timezone = struct {
-	// The textual identifier ("Europe/Amsterdam")
-	name: str,
-
-	// The base timescale (time::chrono::utc)
+	// The base timescale (e.g. time::chrono::utc).
 	tsc: *chrono::timescale,
 
-	// The duration of a day in this timezone (24 * time::HOUR)
+	// The textual identifier (e.g. "Europe/Amsterdam").
+	name: str,
+
+	// The duration of a day in this timezone (e.g. 24 * time::HOUR).
 	daylength: time::duration,
 
 	// The possible zonephases a locality with this timezone can observe
-	// (CET, CEST, ...)
+	// (e.g. CET, CEST, ...).
 	phases: []zonephase,
 
-	// The transitions between this timezone's zonephases
+	// The transitions between this timezone's zonephases.
 	transitions: []zonetransition,
 
+	// The function to calculate the correct [[zonephase]] to observe.
+	// If null, defaults to an internal function.
 	lookupzone: nullable *zonelookuper,
 
-	// A timezone specifier in the POSIX "extend" TZ format.
-	// See https://pubs.opengroup.org/onlinepubs/9699919799/basedefs/V1_chap08.html
-	//
 	// Used for extending calculations beyond the last known transition.
+	// See [[petz]].
 	petz: petz,
 };
 
 // A [[timezone]] state, with an offset for calculating localized date/time.
 export type zonephase = struct {
-	// The offset from the normal timezone (2 * time::HOUR)
+	// The offset from the normal timezone (e.g. 2 * time::HOUR).
 	zoff: time::duration,
 
-	// The full descriptive name ("Central European Summer Time")
+	// The full descriptive name (e.g. "Central European Summer Time").
 	name: str,
 
-	// The abbreviated name ("CEST")
+	// The abbreviated name (e.g. "CEST").
 	abbr: str,
 
-	// Indicator of Daylight Saving Time
+	// Indicator of Daylight Saving Time.
 	dst: bool, // true
 };
 
@@ -70,6 +72,7 @@ export type zonetransition = struct {
 	zoneindex: size,
 };
 
+// Determines the correct [[zonephase]] to observe for a given [[date]].
 export type zonelookuper = fn(locality, *date) *zonephase;
 
 // Frees a [[timezone]]. A [[locality]] argument can be passed.
@@ -90,10 +93,10 @@ export fn zone_finish(z: *zonephase) void = {
 	free(z.abbr);
 };
 
-// Finds and returns a [[moment]]'s currently observed [[zonephase]].
+// Calculates and returns a [[date]]'s observed [[zonephase]].
 fn lookupzone(loc: locality, d: *date) *zonephase = {
 	if (len(loc.phases) == 0) {
-		abort("time::chrono: Timezone has no zonephases");
+		abort("Timezone has no zonephases");
 	};
 
 	if (len(loc.phases) == 1) {
@@ -117,7 +120,7 @@ fn lookupzone(loc: locality, d: *date) *zonephase = {
 	let z = &loc.phases[trs[idx].zoneindex];
 
 	// if we've reached the end of the locality's transitions,
-	// try its POSIX "extend" TZ string.
+	// try its POSIX "extending" TZ string.
 	if (idx == len(trs) - 1) {
 		z = lookupzone_posix(loc, d);
 	};
@@ -212,6 +215,7 @@ export const LOCAL: locality = &TZ_UTC;
 };
 
 // The UTC (Coordinated Universal Time) "Zulu" [[timezone]] as a [[locality]].
+// Uses the [[time::chrono::utc]] timescale.
 export const UTC: locality = &TZ_UTC;
 
 const TZ_UTC: timezone = timezone {
@@ -232,6 +236,7 @@ const TZ_UTC: timezone = timezone {
 };
 
 // The TAI (International Atomic Time) "Zulu" [[timezone]] as a [[locality]].
+// Uses the [[time::chrono::tai]] timescale.
 export const TAI: locality = &TZ_TAI;
 
 const TZ_TAI: timezone = timezone {
@@ -252,6 +257,7 @@ const TZ_TAI: timezone = timezone {
 };
 
 // The GPS (Global Positioning System) "Zulu" [[timezone]] as a [[locality]].
+// Uses the [[time::chrono::gps]] timescale.
 export const GPS: locality = &TZ_GPS;
 
 const TZ_GPS: timezone = timezone {
@@ -272,6 +278,7 @@ const TZ_GPS: timezone = timezone {
 };
 
 // The TT (Terrestrial Time) "Zulu" [[timezone]] as a [[locality]].
+// Uses the [[time::chrono::tt]] timescale.
 export const TT: locality = &TZ_TT;
 
 const TZ_TT: timezone = timezone {
@@ -292,6 +299,7 @@ const TZ_TT: timezone = timezone {
 };
 
 // The MTC (Coordinated Mars Time) "Zulu" [[timezone]] as a [[locality]].
+// Uses the [[time::chrono::mtc]] timescale.
 export const MTC: locality = &TZ_MTC;
 
 const TZ_MTC: timezone = timezone {

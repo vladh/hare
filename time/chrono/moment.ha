@@ -3,30 +3,18 @@
 
 use time;
 
-// A moment in time within a [[locality]]. Create one with [[new]]. This type
-// extends the [[time::instant]] type and couples it with a [[timescale]] via
-// its [[locality]] field.
-//
-// This object should be treated as private and immutable. Directly mutating its
-// fields causes undefined behavour when used with module functions. Likewise,
-// interrogating the fields' type and value (e.g. using match statements) is
-// also improper.
-//
-// Moments observe a daydate, time-of-day, and [[zone]], which are evaluated,
-// cached and obtained with the observer functions [[daydate]], [[daytime]], and
-// [[ozone]]. These values are derived from the embedded instant and locality
-// information, and thus are guaranteed to be valid.
+// A precise moment in time, in reference to a specific timescale.
+// An extension of [[time::instant]] coupled with a [[timescale]].
 export type moment = struct {
 	time::instant,
 	tsc: *timescale,
 };
 
-// Creates a new [[moment]]. Uses a given [[time::instant]] with a [[timescale]]
-// associated with a given [[locality]].
-export fn new(tsc: *timescale, i: time::instant) moment = {
+// Creates a new [[moment]].
+export fn new(tsc: *timescale, t: time::instant) moment = {
 	return moment {
-		sec = i.sec,
-		nsec = i.nsec,
+		sec = t.sec,
+		nsec = t.nsec,
 		tsc = tsc,
 	};
 };

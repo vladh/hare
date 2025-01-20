@@ -20,7 +20,7 @@ export type tzdberror = !(invalidtzif | fs::error | io::error);
 // Invalid TZif data.
 export type invalidtzif = !void;
 
-// Finds, loads, and allocates a [[timezone]] from the system's Timezone
+// Finds, loads, and allocates a [[timezone]] from the system's TZif timezone
 // database (TZDB), and returns it as a [[locality]]. Each call returns a new
 // instance. The caller must free the return value; see [[timezone_free]].
 //
@@ -28,7 +28,7 @@ export type invalidtzif = !void;
 // filepath is resolved by appending the name argument to this prefix path.
 // If [name] is a full filepath (begins with '/'), it is used directly instead.
 //
-// All localities returned default to the [[utc]] [[timescale]] and
+// All localities returned default to [[time::chrono::utc]] timescale and
 // [[EARTH_DAY]] day-length.
 export fn tz(name: str) (locality | tzdberror) = {
 	const filepath = if (strings::hasprefix(name, "/")) {

@@ -33,7 +33,7 @@ export type utciniterror = !(fs::error | io::error | utf8::invalid);
 
 // The number of seconds between the years 1900 and 1970.
 //
-// This number is hypothetical since timekeeping before atomic clocks was not
+// This number is notinal since timekeeping before atomic clocks was not
 // accurate enough to account for small changes in time.
 def SECONDS_1900_1970: i64 = 2208988800;
 
@@ -53,8 +53,8 @@ fn utc_init_leapsecs() (void | utciniterror) = {
 	utc_parse_leapsecs(file)?;
 };
 
-// Parse UTC/TAI leap second data from [[UTC_LEAPSECS_PATH]].
-// See file for format details.
+// Parse UTC/TAI leapsecond data from [[UTC_LEAPSECS_PATH]].
+// See that file for format details.
 fn utc_parse_leapsecs(h: io::handle) (void | utf8::invalid | io::error) = {
 	const scan = bufio::newscanner(h);
 	defer bufio::finish(&scan);
