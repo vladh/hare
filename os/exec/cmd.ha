@@ -173,7 +173,6 @@ fn lookup_open(name: str) (platform_cmd | void | error) = {
 	// Try to open file directly
 	if (strings::contains(name, "/")) {
 		match (open(name)) {
-		case (errors::noaccess | errors::noentry) => void;
 		case let err: error =>
 			return err;
 		case let p: platform_cmd =>
@@ -219,7 +218,9 @@ export fn lookup(name: str) (str | void) = {
 			if (exec) {
 				return name;
 			};
-		case => void; // Keep looking
+			return;
+		case =>
+			return;
 		};
 	};
 
