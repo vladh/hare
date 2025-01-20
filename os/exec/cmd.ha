@@ -2,6 +2,7 @@
 // (c) Hare authors <https://harelang.org>
 
 use errors;
+use fs;
 use io;
 use os;
 use path;
@@ -207,7 +208,7 @@ fn lookup_open(name: str) (platform_cmd | void | error) = {
 //
 // The use of this function is lightly discouraged if [[cmd]] is suitable;
 // otherwise you may have a TOCTOU issue.
-export fn lookup(name: str) (str | void) = {
+export fn lookup(name: str) (str | fs::error) = {
 	static let buf = path::buffer { ... };
 	path::set(&buf)!;
 
@@ -218,17 +219,17 @@ export fn lookup(name: str) (str | void) = {
 			if (exec) {
 				return name;
 			};
-			return;
+			return errors::noaccess;
 		case =>
-			return;
+			return errors::noentry;
 		};
 	};
 
 	const path = match (os::getenv("PATH")) {
-	case void =>
-		return;
 	case let s: str =>
 		yield s;
+	case void =>
+		return errors::noentry;
 	};
 
 	let tok = strings::tokenize(path, ":");
@@ -243,4 +244,6 @@ export fn lookup(name: str) (str | void) = {
 		case => void; // Keep looking
 		};
 	};
+
+	return errors::noentry;
 };

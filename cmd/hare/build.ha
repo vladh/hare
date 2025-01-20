@@ -158,7 +158,7 @@ fn build(name: str, cmd: *getopt::command) (void | error) = {
 		const cmd_path = match (exec::lookup(ctx.cmds[i])) {
 		case let cmd_path: str =>
 			yield cmd_path;
-		case void =>
+		case =>
 			fmt::fatalf("Error: Command not found: {}", ctx.cmds[i]);
 		};
 
