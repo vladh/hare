@@ -217,7 +217,8 @@ export fn lookup(name: str) (str | fs::error) = {
 		match (os::access(name, os::amode::X_OK)) {
 		case let exec: bool =>
 			if (exec) {
-				return name;
+				path::set(&buf, name)!;
+				return path::string(&buf);
 			};
 			return errors::noaccess;
 		case =>
