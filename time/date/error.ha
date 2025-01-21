@@ -23,18 +23,8 @@ export type error = !(
 export fn strerror(err: error) const str = {
 	static let buf: [92]u8 = [0...];
 	match (err) {
-	case let lack: insufficient =>
-		return strings::rtrim(fmt::bsprint(buf,
-			"Insufficient date information, could not calculate:",
-			if (lack & insufficient::LOCALITY: u8 == 0) "" else
-				"locality",
-			if (lack & insufficient::DAYDATE: u8 == 0) "" else
-				"daydate",
-			if (lack & insufficient::DAYTIME: u8 == 0) "" else
-				"time-of-day",
-			if (lack & insufficient::ZOFF: u8 == 0) "" else
-				"zone-offset",
-		));
+	case insufficient =>
+		return "Insufficient date information";
 	case invalid =>
 		return "Invalid date information";
 	case let e: zfunresolved =>

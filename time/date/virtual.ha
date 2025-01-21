@@ -115,14 +115,7 @@ export type zferror = enum {
 
 // A [[virtual]] date does not have enough information from which to create a
 // valid [[date]].
-export type insufficient = !lack; // TODO: drop alias workaround
-
-export type lack = enum u8 {
-	LOCALITY = 1 << 0, // could not deduce locality
-	DAYDATE = 1 << 1,  // could not deduce daydate
-	DAYTIME = 1 << 2,  // could not deduce time-of-day
-	ZOFF = 1 << 3,     // could not deduce zone offset
-};
+export type insufficient = !void;
 
 // A virtual date of undetermined validity; a [[date]] wrapper interface. It is
 // meant as an intermediary container for date information to be resolved with
@@ -272,9 +265,35 @@ export fn realize(
 	v: virtual,
 	locs: locality...
 ) (date | insufficient | invalid | zfunresolved) = {
+	// determine .loc
+	if (v.vloc is locality) {
+		v.loc = v.vloc as locality;
+	} else if (v.locname is str) {
+		for (let loc .. locs) {
+			if (loc.name == v.locname as str) {
+				v.loc = loc;
+				break;
+			};
+		};
+	} else {
+		return insufficient;
+	};
+
+	// try using .vsec .vnsec
+	if (v.vsec is i64 && v.vnsec is i64) {
+		return from_instant(
+			v.loc,
+			time::instant{
+				sec = v.vsec as i64,
+				nsec = v.vnsec as i64,
+			},
+		);
+	};
+
+	// try using .daydate, .daytime, .zoff
 	match (v.zoff) {
 	case void =>
-		return lack::ZOFF;
+		return insufficient;
 	case time::duration =>
 		return realize_validzoff(v, locs...);
 	case let zf: zflag =>
@@ -323,40 +342,13 @@ fn realize_datetimezoff(
 	v: virtual,
 	locs: locality...
 ) (date | insufficient | invalid) = {
-	let lacking = 0u8;
-
-	// determine .loc
-	if (v.vloc is locality) {
-		v.loc = v.vloc as locality;
-	} else if (v.locname is str) {
-		for (let loc .. locs) {
-			if (loc.name == v.locname as str) {
-				v.loc = loc;
-				break;
-			};
-		};
-	} else {
-		lacking |= insufficient::LOCALITY;
-	};
-
-	// try using .vsec .vnsec
-	if (v.vsec is i64 && v.vnsec is i64) {
-		return from_instant(
-			v.loc,
-			time::instant{
-				sec = v.vsec as i64,
-				nsec = v.vnsec as i64,
-			},
-		);
-	};
-
-	// try using .daydate, .daytime, .zoff
+	let lacking = false;
 
 	// determine zone offset
 	if (v.zoff is i64) {
 		void;
 	} else {
-		lacking |= insufficient::ZOFF;
+		lacking = true;
 	};
 
 	// determine .daydate
@@ -412,7 +404,7 @@ fn realize_datetimezoff(
 			)?;
 		} else {
 			// cannot deduce daydate
-			lacking |= insufficient::DAYDATE;
+			lacking = true;
 		};
 	};
 
@@ -428,7 +420,7 @@ fn realize_datetimezoff(
 				const pm = v.ampm as bool;
 				yield if (pm) hr * 2 else hr;
 			} else {
-				lacking |= insufficient::DAYTIME;
+				lacking = true;
 				yield :daytime;
 			};
 
@@ -444,12 +436,12 @@ fn realize_datetimezoff(
 				v.nanosecond as int,
 			)?;
 		} else {
-			lacking |= insufficient::DAYTIME;
+			lacking = true;
 		};
 	};
 
-	if (lacking != 0u8) {
-		return lacking: insufficient;
+	if (lacking) {
+		return insufficient;
 	};
 
 	// determine .sec, .nsec
@@ -478,21 +470,6 @@ fn realize_validzoffs(
 	v.zoff = void;
 
 	let dates: []date = [];
-
-	// determine .loc
-	if (v.vloc is locality) {
-		v.loc = v.vloc as locality;
-	} else if (v.locname is str) {
-		for (let loc .. locs) {
-			if (loc.name == v.locname as str) {
-				v.loc = loc;
-				v.vloc = loc;
-				break;
-			};
-		};
-	} else {
-		return insufficient::LOCALITY;
-	};
 
 	// try matching zone abbreviation
 	if (v.zabbr is str) {
@@ -550,7 +527,7 @@ fn cmpdates(a: const *opaque, b: const *opaque) int = {
 };
 
 fn realize_gapbounds(v: virtual) (date, date) = {
-	let loc = v.vloc as locality;
+	let loc = v.loc;
 
 	let zlo: time::duration = 2 *  loc.daylength;
 	let zhi: time::duration = 2 * -loc.daylength;
