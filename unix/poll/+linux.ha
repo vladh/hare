@@ -37,7 +37,7 @@ export def NONBLOCK: time::duration = 0;
 // those which have revents set to a nonzero value.
 export fn poll(
 	fds: []pollfd,
-	timeout: time::duration,
+	timeout: time::duration = INDEF,
 ) (uint | error) = {
 	let ts = time::duration_to_timespec(timeout);
 	let ts = if (timeout == INDEF) null else &ts;
