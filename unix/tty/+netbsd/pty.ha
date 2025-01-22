@@ -53,7 +53,7 @@ export fn ptsname(master: io::file) (str | error) = {
 		};
 	case => void;
 	};
-	return strings::dup(c::tostr(&pm.sn: *const c::char)!);
+	return strings::dup(c::tostr(&pm.sn: *const c::char)!)!;
 };
 
 // Sets the dimensions of the underlying pseudoterminal for an [[io::file]].
