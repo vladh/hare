@@ -22,7 +22,7 @@ export type pollfd = struct {
 	revents: i16,
 };
 
-// Pass this [[time::duration]] to [[poll]] to cause it wait indefinitely for
+// Pass this [[time::duration]] to [[poll]] to cause it to wait indefinitely for
 // the next event.
 export def INDEF: time::duration = -1;
 
