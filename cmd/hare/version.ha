@@ -20,7 +20,7 @@ fn version(name: str, cmd: *getopt::command) (void | error) = {
 
 	let build_arch = os::arch_name(os::architecture());
 	let build_arch = get_arch(build_arch)!;
-	let build_platform = ascii::strlower(os::sysname());
+	let build_platform = ascii::strlower(os::sysname())!;
 
 	switch (verbose) {
 	case 0 =>
@@ -66,7 +66,7 @@ fn version(name: str, cmd: *getopt::command) (void | error) = {
 		fmt::printfln(`TOOLCHAINS="{}"`, toolchains)!;
 
 		for (let arch .. arches) {
-			const name = ascii::strupper(arch.name);
+			const name = ascii::strupper(arch.name)!;
 			const as_cmd = shlex::quotestr(arch.as_cmd);
 			const cc_cmd = shlex::quotestr(arch.cc_cmd);
 			const ld_cmd = shlex::quotestr(arch.ld_cmd);

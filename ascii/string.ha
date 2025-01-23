@@ -8,21 +8,21 @@ use strings;
 // Converts all ASCII uppercase characters in a string to their lowercase
 // representation, returning a new string. The return value must be freed by the
 // caller.
-export fn strlower(s: str) str = {
-	let new: []u8 = alloc([], len(s))!;
+export fn strlower(s: str) (str | nomem) = {
+	let new: []u8 = alloc([], len(s))?;
 	return strlower_buf(s, new);
 };
 
 // Converts all ASCII uppercase characters in a string to their lowercase
 // representation, returning a new string. The new string data is stored in the
 // supplied buffer (overwriting any existing contents). The buffer is permitted
-// to exactly overlap the string. This function will abort if the buffer's
-// capacity is too small to fit the entire string.
-export fn strlower_buf(s: str, buf: []u8) str = {
+// to exactly overlap the string. This function will return [[nomem]] if the
+// buffer's capacity is too small to fit the entire string.
+export fn strlower_buf(s: str, buf: []u8) (str | nomem) = {
 	let buf = buf[..0];
 	let it = strings::iter(s);
 	for (let r => strings::next(&it)) {
-		static append(buf, utf8::encoderune(tolower(r))...)!;
+		static append(buf, utf8::encoderune(tolower(r))...)?;
 	};
 	return strings::fromutf8(buf)!;
 };
@@ -30,7 +30,7 @@ export fn strlower_buf(s: str, buf: []u8) str = {
 // Converts all ASCII lowercase characters in a string to their uppercase
 // representation, returning a new string. The return value must be freed by the
 // caller.
-export fn strupper(s: str) str = {
+export fn strupper(s: str) (str | nomem) = {
 	let new: []u8 = alloc([], len(s))!;
 	return strupper_buf(s, new);
 };
@@ -38,13 +38,13 @@ export fn strupper(s: str) str = {
 // Converts all ASCII lowercase characters in a string to their uppercase
 // representation, returning a new string. The new string data is stored in the
 // supplied buffer (overwriting any existing contents). The buffer is permitted
-// to exactly overlap the string. This function will abort if the buffer's
-// capacity is too small to fit the entire string.
-export fn strupper_buf(s: str, buf: []u8) str = {
+// to exactly overlap the string. This function will return nomem if the
+// buffer's capacity is too small to fit the entire string.
+export fn strupper_buf(s: str, buf: []u8) (str | nomem) = {
 	let buf = buf[..0];
 	let it = strings::iter(s);
 	for (let r => strings::next(&it)) {
-		static append(buf, utf8::encoderune(toupper(r))...)!;
+		static append(buf, utf8::encoderune(toupper(r))...)?;
 	};
 	return strings::fromutf8(buf)!;
 };
@@ -68,35 +68,35 @@ export fn strcasecmp(a: str, b: str) int = {
 };
 
 @test fn strcasecmp() void = {
-	let s = strupper("ABC");
+	let s = strupper("ABC")!;
 	defer free(s);
 	assert(s == "ABC");
 
-	let s = strlower("ABC");
+	let s = strlower("ABC")!;
 	defer free(s);
 	assert(s == "abc");
 
-	let s = strupper("abc");
+	let s = strupper("abc")!;
 	defer free(s);
 	assert(s == "ABC");
 
-	let s = strlower("abc");
+	let s = strlower("abc")!;
 	defer free(s);
 	assert(s == "abc");
 
-	let s = strupper("[[[");
+	let s = strupper("[[[")!;
 	defer free(s);
 	assert(s == "[[[");
 
-	let s = strlower("[[[");
+	let s = strlower("[[[")!;
 	defer free(s);
 	assert(s == "[[[");
 
-	let s = strupper("こ");
+	let s = strupper("こ")!;
 	defer free(s);
 	assert(s == "こ");
 
-	let s = strlower("こ");
+	let s = strlower("こ")!;
 	defer free(s);
 	assert(s == "こ");
 
