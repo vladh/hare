@@ -8,7 +8,7 @@ export type key = keyctl::serial;
 
 // Creates a new secure key. The caller should clear the secret buffer with
 // [[bytes::zero]] after initialization.
-export fn newkey(buf: []u8, name: str) (key | errors::error) = {
+export fn newkey(buf: []u8, name: str) (key | nomem | errors::error) = {
 	match (keyctl::add_key("user", name, buf, keyctl::PROCESS_KEYRING)) {
 	case keyctl::nokey => abort();
 	case let err: errors::error =>
