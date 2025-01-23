@@ -179,7 +179,7 @@ fn argon2(
 
 		initmemsize = memsize;
 		const memsize = memsize - memsize % (4 * cfg.parallel);
-		yield alloc([0...], memsize * BLOCKSZ)!: []u64;
+		yield alloc([0...], memsize * BLOCKSZ)?: []u64;
 	};
 
 	let h0: [64]u8 = [0...];
