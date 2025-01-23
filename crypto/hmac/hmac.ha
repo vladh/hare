@@ -93,5 +93,5 @@ fn gensum(mac: *mac::mac, dest: []u8) void = {
 fn finish(mac: *mac::mac) void = {
 	let hm = mac: *state;
 	bytes::zero(hm.keypad);
-	io::close(hm.h)!;
+	hash::close(hm.h);
 };
