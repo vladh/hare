@@ -26,7 +26,7 @@ export type flag = enum uint {
 //
 // Pass the return value to [[strings::freeall]] to free resources associated
 // with the return value.
-export fn wordexp(s: str, flags: flag = flag::NONE) ([]str | error) = {
+export fn wordexp(s: str, flags: flag = flag::NONE) ([]str | nomem | error) = {
 	const (rd, wr) = exec::pipe();
 
 	// "x" is added to handle the list of expanded words being empty
@@ -40,6 +40,8 @@ export fn wordexp(s: str, flags: flag = flag::NONE) ([]str | error) = {
 	};
 	const child = exec::start(&cmd)!;
 	io::close(wr)!;
+	let rddone = false;
+	defer if (!rddone) io::close(rd)!;
 
 	const scan = bufio::newscanner(rd);
 	defer bufio::finish(&scan);
@@ -51,20 +53,31 @@ export fn wordexp(s: str, flags: flag = flag::NONE) ([]str | error) = {
 	};
 
 	let words: []str = [];
+	let ok = false;
+	defer if (!ok) strings::freeall(words);
 	for (true) {
 		match (bufio::scan_string(&scan, "\0")?) {
 		case io::EOF => break;
 		case let word: const str =>
-			append(words, strings::dup(word)!)!;
+			let w = strings::dup(word)?;
+			match (append(words, w)) {
+			case void => void;
+			case nomem =>
+				free(w);
+				return nomem;
+			};
 		};
 	};
 
+	rddone = true;
 	io::close(rd)!;
+
 	const st = exec::wait(&child)!;
 	match (exec::check(&st)) {
 	case !exec::exit_status =>
 		return sh_error;
 	case void =>
+		ok = true;
 		return words;
 	};
 };
