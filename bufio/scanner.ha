@@ -76,7 +76,7 @@ export fn newscanner(
 	return scanner {
 		stream = &scanner_vtable,
 		src = src,
-		buffer = alloc([0...], BUFSZ)!,
+		buffer = [],
 		maxread = maxread,
 		start = 0,
 		pending = [],
