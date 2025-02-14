@@ -11,7 +11,7 @@ use path;
 export fn addr_to_line(
 	image: *image::image,
 	addr: uintptr,
-) ((const str, uint, uint) | void | io::error) = {
+) ((const str, uint, uint) | void | io::error | nomem) = {
 	const dinfo_offs = match (arange_lookup(image, addr)) {
 	case let offs: u64 =>
 		yield offs;
@@ -32,6 +32,8 @@ export fn addr_to_line(
 		const entry = match (debug_info_next(&dinfo)) {
 		case io::EOF =>
 			return;
+		case nomem =>
+			return nomem;
 		case let ent: entry =>
 			yield ent;
 		};

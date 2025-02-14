@@ -24,7 +24,7 @@ export type debug_info_reader = struct {
 export fn read_debug_info(
 	image: *image::image,
 	offs: u64,
-) (debug_info_reader | void | io::error) = {
+) (debug_info_reader | void | io::error | nomem) = {
 	const sec = match (image::section_byname(image, ".debug_info")) {
 	case let sec: *elf::section64 =>
 		yield sec;
@@ -32,15 +32,20 @@ export fn read_debug_info(
 		return;
 	};
 
-	const memrd = alloc(image::section_reader(image, sec))!;
+	let ok = false;
+
+	const memrd = alloc(image::section_reader(image, sec))?;
+	defer if (!ok) free(memrd);
+
 	io::seek(memrd, offs: io::off, io::whence::SET)?;
 
-	const rd = match (new_table_reader(memrd, true)?) {
+	const rd = match (new_table_reader(memrd, true)) {
 	case let rd: table_reader =>
-		yield alloc(rd)!;
+		yield alloc(rd)?;
 	case io::EOF =>
 		return;
 	};
+	defer if (!ok) free(rd);
 
 	const ver = read_uhalf(rd)!;
 	const abbrev_offs = read_secword(rd)!;
@@ -49,11 +54,13 @@ export fn read_debug_info(
 	assert(asize == 8, "debug::dwarf: unsupported address size in .debug_info");
 
 	const abbrevs = match (load_abbrevs(image, abbrev_offs)?) {
-	case void => return;
 	case let tab: abbrev_table =>
 		yield tab;
+	case void =>
+		return;
 	};
 
+	ok = true;
 	return debug_info_reader {
 		image = image,
 		abbrev = abbrevs,
@@ -65,7 +72,7 @@ export fn read_debug_info(
 
 // Returns the next debug info [[entry]] (DIE) from a [[debug_info_reader]].
 // Pass the return value to [[entry_finish]] when done.
-export fn debug_info_next(di: *debug_info_reader) (entry | io::EOF) = {
+export fn debug_info_next(di: *debug_info_reader) (entry | io::EOF | nomem) = {
 	if (read_iseof(di.rd)) {
 		return io::EOF;
 	};
@@ -80,7 +87,13 @@ export fn debug_info_next(di: *debug_info_reader) (entry | io::EOF) = {
 
 	const ref = get_abbrev(&di.abbrev, code);
 	assert(ref != null, "debug::dwarf: unknown abbreviated tag");
-	return read_die(di, di.rd, ref as *abbrev)!;
+
+	match (read_die(di, di.rd, ref as *abbrev)) {
+	case io::error => abort();
+	case nomem => return nomem;
+	case let ent: entry =>
+		return ent;
+	};
 };
 
 // Frees resources associated with a [[debug_info_reader]].
@@ -123,6 +136,11 @@ fn read_die(
 	abbrev: *abbrev,
 ) (entry | io::error) = {
 	let fields: []field = [];
+	let ok = false;
+	defer if (!ok) {
+		free(fields);
+	};
+
 	for (const abf &.. abbrev.fields) {
 		let field = field {
 			attr = abf.attr,
@@ -195,7 +213,7 @@ fn read_die(
 		case => return errors::unsupported;
 		};
 
-		append(fields, field)!;
+		append(fields, field)?;
 	};
 
 	return entry {

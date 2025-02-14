@@ -32,7 +32,7 @@ export type afield = struct {
 export fn load_abbrevs(
 	image: *image::image,
 	offs: u64,
-) (abbrev_table | void | errors::invalid) = {
+) (abbrev_table | void | errors::invalid | nomem) = {
 	const sec = match (image::section_byname(image, ".debug_abbrev")) {
 	case let sec: *elf::section64 =>
 		yield sec;
@@ -45,15 +45,22 @@ export fn load_abbrevs(
 	const rd = new_table_reader(&rd, false)! as table_reader;
 
 	let abbrevs: []abbrev = [];
+	let ok = false;
+	defer if (!ok) {
+		free(abbrevs);
+	};
+
 	for (true) {
 		match (read_abbrev(&rd)) {
 		case io::EOF => break;
 		case io::error => return errors::invalid;
+		case nomem => return nomem;
 		case let ab: abbrev =>
-			append(abbrevs, ab)!;
+			append(abbrevs, ab)?;
 		};
 	};
 
+	ok = true;
 	return abbrev_table {
 		items = abbrevs,
 	};
@@ -62,7 +69,7 @@ export fn load_abbrevs(
 // Reads an entry from an abbreviation table.
 fn read_abbrev(
 	rd: *table_reader,
-) (abbrev | io::EOF | io::error) = {
+) (abbrev | io::EOF | io::error | nomem) = {
 	const code = read_uleb128(rd)?;
 	if (code == 0) {
 		return io::EOF;
@@ -71,6 +78,11 @@ fn read_abbrev(
 	const children = read_ubyte(rd)? != 0;
 
 	let fields: []afield = [];
+	let ok = false;
+	defer if (!ok) {
+		free(fields);
+	};
+
 	for (true) {
 		const name = read_uleb128(rd)?;
 		const form = read_uleb128(rd)?;
@@ -80,8 +92,10 @@ fn read_abbrev(
 		append(fields, afield {
 			attr = name: u32,
 			form = form: u32,
-		})!;
+		})?;
 	};
+
+	ok = true;
 
 	return abbrev {
 		code = code,

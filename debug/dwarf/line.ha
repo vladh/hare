@@ -70,16 +70,25 @@ export type line_program = struct {
 export fn exec_line_program(
 	image: *image::image,
 	offs: u64,
-) (line_program | void | io::error) = {
+) (line_program | void | io::error | nomem) = {
 	const sec = match (image::section_byname(image, ".debug_line")) {
 	case let sec: *elf::section64 =>
 		yield sec;
 	case null =>
 		return;
 	};
-	const memrd = alloc(image::section_reader(image, sec))!;
+	const memrd = alloc(image::section_reader(image, sec))?;
 	io::seek(memrd, offs: io::off, io::whence::SET)?;
-	const rd = alloc(new_table_reader(memrd, true)? as table_reader)!;
+
+	const rd = alloc(new_table_reader(memrd, true)? as table_reader);
+	if (rd is nomem) free(memrd);
+	const rd = rd?;
+
+	let ok = false;
+	defer if (!ok) {
+		free(memrd);
+		free(rd);
+	};
 
 	// Read program header
 	const ver = read_uhalf(rd)!;
@@ -87,6 +96,12 @@ export fn exec_line_program(
 		"debug::dwarf: unsupported .debug_line version");
 
 	let head = line_header { ... };
+	defer if (!ok) {
+		free(head.opcode_lengths);
+		free(head.dirs);
+		free(head.files);
+	};
+
 	const head_len = read_secword(rd)?;
 	head.min_instr_length = read_ubyte(rd)?;
 	head.max_ops_per_instr = 1; // Non-VLIW architectures only
@@ -98,7 +113,7 @@ export fn exec_line_program(
 	// Opcode lengths
 	for (let i = 0u8; i < head.opcode_base - 1; i += 1) {
 		const op = read_ubyte(rd)?;
-		append(head.opcode_lengths, op)!;
+		append(head.opcode_lengths, op)?;
 	};
 
 	// Directories
@@ -107,7 +122,7 @@ export fn exec_line_program(
 		if (len(dir) == 0) {
 			break;
 		};
-		append(head.dirs, dir)!;
+		append(head.dirs, dir)?;
 	};
 
 	// Files
@@ -124,8 +139,10 @@ export fn exec_line_program(
 			dir = dir,
 			mtime = mtime,
 			length = length,
-		})!;
+		})?;
 	};
+
+	ok = true;
 
 	let prog = line_program {
 		mem = memrd,
@@ -162,7 +179,9 @@ export fn line_program_finish(prog: *line_program) void = {
 };
 
 // Runs the line number state machine until the next COPY instruction.
-export fn line_next(prog: *line_program) (line_state | io::EOF | io::error) = {
+export fn line_next(
+	prog: *line_program,
+) (line_state | io::EOF | io::error | nomem) = {
 	for (true) {
 		match (line_step(prog)?) {
 		case let state: line_state =>
@@ -179,7 +198,7 @@ export fn line_next(prog: *line_program) (line_state | io::EOF | io::error) = {
 // otherwise.
 export fn line_step(
 	prog: *line_program,
-) (line_state | void | io::EOF | io::error) = {
+) (line_state | void | io::EOF | io::error | nomem) = {
 	let state = &prog.state;
 	if (read_iseof(prog.rd)) {
 		return io::EOF;
@@ -208,7 +227,7 @@ export fn line_step(
 				dir = dir,
 				mtime = mtime,
 				length = length,
-			})!;
+			})?;
 			state.file = len(prog.head.files): uint;
 		case DW_LNE_set_discriminator =>
 			state.discriminator = read_uleb128(prog.rd)?: uint;

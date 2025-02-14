@@ -406,7 +406,7 @@ fn onabort(
 		frame = debug::next(frame) as debug::stackframe;
 		frame = debug::next(frame) as debug::stackframe;
 
-		trace = debug::trace_store(frame);
+		trace = debug::trace_store(frame)!;
 		reason = abort_reason {
 			path = path,
 			line = line,
