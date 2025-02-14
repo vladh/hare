@@ -5,10 +5,15 @@
 // Note that this function will never return if the handle is infinite.
 export fn drain(in: handle) ([]u8 | error) = {
 	let sink: []u8 = [];
+	let ok = false;
+	defer if (!ok) free(sink);
+
 	static let buf: [4096]u8 = [0...];
 
 	for (let n => read(in, buf[..])?) {
 		append(sink, buf[..n]...)?;
 	};
+
+	ok = true;
 	return sink;
 };
