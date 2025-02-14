@@ -55,20 +55,20 @@ fn splitprefix(buf: *buffer, prefix: str) (size | error) = {
 	const buf = init("a")!;
 
 	// relative
-	assert(prepend(&buf, "apple")! == local("apple/a"));
+	assert(prepend(&buf, "apple")! == local("apple/a")!);
 	assert(popprefix(&buf, "b") is error);
 	assert(popprefix(&buf, "appl") is error);
-	assert(popprefix(&buf, local("/")) is error);
-	assert(popprefix(&buf, ".")! == local("apple/a"));
+	assert(popprefix(&buf, local("/")!) is error);
+	assert(popprefix(&buf, ".")! == local("apple/a")!);
 	assert(popprefix(&buf, "apple")! == "a");
 	assert(popprefix(&buf, "a")! == ".");
 
 	// absolute
-	assert(prepend(&buf, local("/apple/a"))! == local("/apple/a"));
-	assert(popprefix(&buf, local("/b")) is error);
-	assert(popprefix(&buf, local("/appl")) is error);
+	assert(prepend(&buf, local("/apple/a")!)! == local("/apple/a")!);
+	assert(popprefix(&buf, local("/b")!) is error);
+	assert(popprefix(&buf, local("/appl")!) is error);
 	assert(popprefix(&buf, ".") is error);
-	assert(popprefix(&buf, local("/"))! == local("apple/a"));
-	assert(prepend(&buf, local("/"))! == local("/apple/a"));
-	assert(popprefix(&buf, local("/apple/a"))! == ".");
+	assert(popprefix(&buf, local("/")!)! == local("apple/a")!);
+	assert(prepend(&buf, local("/")!)! == local("/apple/a")!);
+	assert(popprefix(&buf, local("/apple/a")!)! == ".");
 };

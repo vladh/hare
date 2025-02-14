@@ -65,8 +65,8 @@ export fn basename(path: const str) const str = {
 	];
 	for (let i = 0z; i < len(table); i += 1) {
 		let input: [MAX]u8 = [0...];
-		const input = _local(table[i][0], &input);
-		assert(dirname(input) == local(table[i][1]));
-		assert(basename(input) == local(table[i][2]));
+		const input = _local(table[i][0], &input)!;
+		assert(dirname(input) == local(table[i][1])!);
+		assert(basename(input) == local(table[i][2])!);
 	};
 };

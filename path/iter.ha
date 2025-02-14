@@ -74,9 +74,9 @@ fn split_iter(it: *iterator) ([]u8, []u8) = {
 export fn iterrem(it: *iterator) str = strings::fromutf8_unsafe(it.cur);
 
 @test fn iter() void = {
-	const buf = init(local("/foo/bar/baz"))!;
+	const buf = init(local("/foo/bar/baz")!)!;
 	let i = iter(&buf);
-	assert(nextiter(&i) as str == local("/"));
+	assert(nextiter(&i) as str == local("/")!);
 	assert(nextiter(&i) as str == "foo");
 	assert(nextiter(&i) as str == "bar");
 	assert(nextiter(&i) as str == "baz");
@@ -85,10 +85,10 @@ export fn iterrem(it: *iterator) str = strings::fromutf8_unsafe(it.cur);
 	assert(nextiter(&i) as str == "baz");
 	assert(nextiter(&i) as str == "bar");
 	assert(nextiter(&i) as str == "foo");
-	assert(nextiter(&i) as str == local("/"));
+	assert(nextiter(&i) as str == local("/")!);
 	assert(nextiter(&i) is done);
 
-	set(&buf, local("foo/bar/baz"))!;
+	set(&buf, local("foo/bar/baz")!)!;
 	i = iter(&buf);
 	assert(nextiter(&i) as str == "foo");
 	assert(nextiter(&i) as str == "bar");
@@ -108,11 +108,11 @@ export fn iterrem(it: *iterator) str = strings::fromutf8_unsafe(it.cur);
 	assert(nextiter(&i) as str == "foo");
 	assert(nextiter(&i) is done);
 
-	set(&buf, local("/"))!;
+	set(&buf, local("/")!)!;
 	i = iter(&buf);
-	assert(nextiter(&i) as str == local("/"));
+	assert(nextiter(&i) as str == local("/")!);
 	assert(nextiter(&i) is done);
 	i = riter(&buf);
-	assert(nextiter(&i) as str == local("/"));
+	assert(nextiter(&i) as str == local("/")!);
 	assert(nextiter(&i) is done);
 };

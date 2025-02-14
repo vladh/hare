@@ -86,36 +86,36 @@ fn appendlit(buf: *buffer, bs: []u8) (size | error) = {
 	assert(push(&buf, "..")! == "..");
 	assert(push(&buf, "")! == "..");
 	assert(push(&buf, ".")! == "..");
-	assert(push(&buf, local("/"))! == "..");
+	assert(push(&buf, local("/")!)! == "..");
 
 	assert(set(&buf)! == ".");
 	// root dir invariants
-	assert(push(&buf, local("/"))! == local("/"));
-	assert(push(&buf, "")! == local("/"));
-	assert(push(&buf, ".")! == local("/"));
-	assert(push(&buf, "..")! == local("/"));
-	assert(push(&buf, local("/"))! == local("/"));
+	assert(push(&buf, local("/")!)! == local("/")!);
+	assert(push(&buf, "")! == local("/")!);
+	assert(push(&buf, ".")! == local("/")!);
+	assert(push(&buf, "..")! == local("/")!);
+	assert(push(&buf, local("/")!)! == local("/")!);
 
 	assert(set(&buf)! == ".");
 	// regular path and parent
 	assert(push(&buf, "foo")! == "foo");
 	assert(push(&buf, ".")! == "foo");
-	assert(push(&buf, local("/"))! == "foo");
+	assert(push(&buf, local("/")!)! == "foo");
 	assert(push(&buf, "..")! == ".");
 
 	// multiple segments
-	assert(push(&buf, "a", "b")! == local("a/b"));
-	assert(push(&buf, "..", "c")! == local("a/c"));
+	assert(push(&buf, "a", "b")! == local("a/b")!);
+	assert(push(&buf, "..", "c")! == local("a/c")!);
 	assert(push(&buf, "..")! == "a");
-	assert(push(&buf, local("/d"))! == local("a/d"));
+	assert(push(&buf, local("/d")!)! == local("a/d")!);
 	assert(push(&buf, "..", "..")! == ".");
 
 	// multiple segments, absolute
-	assert(push(&buf, local("/"), "a", "b")! == local("/a/b"));
-	assert(push(&buf, "..", "c")! == local("/a/c"));
-	assert(push(&buf, "..")! == local("/a"));
-	assert(push(&buf, local("/d"))! == local("/a/d"));
-	assert(push(&buf, "..", "..", "..")! == local("/"));
+	assert(push(&buf, local("/")!, "a", "b")! == local("/a/b")!);
+	assert(push(&buf, "..", "c")! == local("/a/c")!);
+	assert(push(&buf, "..")! == local("/a")!);
+	assert(push(&buf, local("/d")!)! == local("/a/d")!);
+	assert(push(&buf, "..", "..", "..")! == local("/")!);
 };
 
 // Examine the final path segment in a buffer.
@@ -152,9 +152,9 @@ fn split(buf: *buffer) (size, (str | void)) = {
 
 	// root dir
 	buf.end = 0;
-	push(&buf, local("/"))!;
+	push(&buf, local("/")!)!;
 	assert(pop(&buf) is void);
-	assert(string(&buf) == local("/"));
+	assert(string(&buf) == local("/")!);
 
 	// relative file
 	buf.end = 0;
@@ -164,9 +164,9 @@ fn split(buf: *buffer) (size, (str | void)) = {
 
 	// abs file
 	buf.end = 0;
-	push(&buf, local("/foo"))!;
+	push(&buf, local("/foo")!)!;
 	assert(pop(&buf) as str == "foo");
-	assert(string(&buf) == local("/"));
+	assert(string(&buf) == local("/")!);
 };
 
 // Returns the parent directory for a given path, without modifying the buffer.
