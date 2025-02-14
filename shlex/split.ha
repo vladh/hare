@@ -13,15 +13,20 @@ export fn strerror(err: syntaxerr) str = "Invalid shell syntax";
 
 // Splits a string of arguments according to shell quoting. The result must be
 // freed using [[strings::freeall]] when the caller is done processing it.
-export fn split(in: const str) ([]str | syntaxerr) = {
+export fn split(in: const str) ([]str | syntaxerr | nomem) = {
 	let iter = strings::iter(in);
 
 	let s = memio::dynamic();
 	defer io::close(&s)!;
 
-	let slice: []str = [];
 	let first = true;
 	let dirty = false;
+
+	let slice: []str = [];
+	let ok = false;
+	defer if (!ok) {
+		strings::freeall(slice);
+	};
 
 	for (let r => strings::next(&iter)) {
 		dirty = true;
@@ -35,7 +40,14 @@ export fn split(in: const str) ([]str | syntaxerr) = {
 			};
 			if (!first) {
 				const item = memio::string(&s)!;
-				append(slice, strings::dup(item)!)!;
+				const item = strings::dup(item)?;
+				match (append(slice, item)) {
+				case void => void;
+				case nomem =>
+					free(item);
+					return nomem;
+				};
+
 				memio::reset(&s);
 			};
 			dirty = false;
@@ -46,7 +58,9 @@ export fn split(in: const str) ([]str | syntaxerr) = {
 		case '\'' =>
 			scan_single(&s, &iter)?;
 		case =>
-			memio::appendrune(&s, r)!;
+			if (memio::appendrune(&s, r) is nomem) {
+				return nomem;
+			};
 		};
 
 		if (first) {
@@ -56,13 +70,23 @@ export fn split(in: const str) ([]str | syntaxerr) = {
 
 	if (dirty) {
 		const item = memio::string(&s)!;
-		append(slice, strings::dup(item)!)!;
+		const item = strings::dup(item)?;
+		match (append(slice, item)) {
+		case void => void;
+		case nomem =>
+			free(item);
+			return nomem;
+		};
 	};
 
+	ok = true;
 	return slice;
 };
 
-fn scan_backslash(out: io::handle, in: *strings::iterator) (void | syntaxerr) = {
+fn scan_backslash(
+	out: io::handle,
+	in: *strings::iterator,
+) (void | syntaxerr | nomem) = {
 	const r = match (strings::next(in)) {
 	case let r: rune =>
 		yield r;
@@ -78,10 +102,15 @@ fn scan_backslash(out: io::handle, in: *strings::iterator) (void | syntaxerr) = 
 		return;
 	};
 
-	memio::appendrune(out, r)!;
+	if (memio::appendrune(out, r) is nomem) {
+		return nomem;
+	};
 };
 
-fn scan_double(out: io::handle, in: *strings::iterator) (void | syntaxerr) = {
+fn scan_double(
+	out: io::handle,
+	in: *strings::iterator,
+) (void | syntaxerr | nomem) = {
 	for (true) {
 		const r = match (strings::next(in)) {
 		case let r: rune =>
@@ -96,12 +125,17 @@ fn scan_double(out: io::handle, in: *strings::iterator) (void | syntaxerr) = {
 		case '\\' =>
 			scan_backslash(out, in)?;
 		case =>
-			memio::appendrune(out, r)!;
+			if (memio::appendrune(out, r) is nomem) {
+				return nomem;
+			};
 		};
 	};
 };
 
-fn scan_single(out: io::handle, in: *strings::iterator) (void | syntaxerr) = {
+fn scan_single(
+	out: io::handle,
+	in: *strings::iterator,
+) (void | syntaxerr | nomem) = {
 	for (true) {
 		const r = match (strings::next(in)) {
 		case let r: rune =>
@@ -113,6 +147,9 @@ fn scan_single(out: io::handle, in: *strings::iterator) (void | syntaxerr) = {
 		if (r == '\'') {
 			break;
 		};
-		memio::appendrune(out, r)!;
+
+		if (memio::appendrune(out, r) is nomem) {
+			return nomem;
+		};
 	};
 };
