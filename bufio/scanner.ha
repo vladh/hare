@@ -325,6 +325,8 @@ export fn read_byte(h: io::handle) (u8 | io::EOF | io::error) = {
 // it is read from the handle. The return value must be freed by the caller.
 export fn read_tok(h: io::handle, delim: u8...) ([]u8 | io::EOF | io::error) = {
 	let buf: []u8 = [];
+	let ok = false;
+	defer if (!ok) free(buf);
 
 	for (true) {
 		match (read_byte(h)?) {
@@ -341,6 +343,7 @@ export fn read_tok(h: io::handle, delim: u8...) ([]u8 | io::EOF | io::error) = {
 		};
 	};
 
+	ok = true;
 	return buf;
 };
 
