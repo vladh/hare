@@ -31,11 +31,16 @@ export fn finish(sc: *scanner) void = {
 export type entry = (const str, const str, const str);
 
 // Duplicates an [[entry]]. Use [[entry_finish]] to get rid of it.
-export fn entry_dup(ent: entry) entry = (
-	strings::dup(ent.0)!,
-	strings::dup(ent.1)!,
-	strings::dup(ent.2)!,
-);
+export fn entry_dup(ent: entry) (entry | nomem) = {
+	let dup: entry = ("", "", "");
+	let ok = false;
+	defer if (!ok) entry_finish(dup);
+	ent.0 = strings::dup(ent.0)?;
+	ent.1 = strings::dup(ent.1)?;
+	ent.2 = strings::dup(ent.2)?;
+	ok = true;
+	return dup;
+};
 
 // Frees an [[entry]] previously duplicated with [[entry_dup]].
 export fn entry_finish(ent: entry) void = {
@@ -46,7 +51,7 @@ export fn entry_finish(ent: entry) void = {
 
 // Returns the next entry from an INI file. The return value is borrowed from
 // the [[scanner]]. Use [[entry_dup]] to retain a copy.
-export fn next(sc: *scanner) (entry | io::EOF | error) = {
+export fn next(sc: *scanner) (entry | io::EOF | error | nomem) = {
 	for (const line => bufio::scan_line(&sc.scan)?) {
 		defer sc.lineno += 1;
 
@@ -62,8 +67,17 @@ export fn next(sc: *scanner) (entry | io::EOF | error) = {
 			case void =>
 				return sc.lineno: syntaxerr;
 			};
-			free(sc.section);
-			sc.section = strings::dup(strings::sub(line, 1, end))!;
+			match (strings::dup(strings::sub(line, 1, end))) {
+			case let s: str =>
+				free(sc.section);
+				sc.section = s;
+			case nomem =>
+				// XXX maybe add a bufio::unread_line?
+				bufio::unread(&sc.scan, ['\n': u8]);
+				bufio::unread(&sc.scan, strings::toutf8(line));
+				sc.lineno -= 1;
+				return nomem;
+			};
 			continue;
 		};
 
