@@ -104,3 +104,33 @@ export fn chown(id: serial, uid: uint, gid: uint) (void | error) = {
 export fn setperm(id: serial, perm: perm) (void | error) = {
 	keyctl(command::SETPERM, id: u64, perm, 0, 0)?;
 };
+
+// Moves a secret key from one keyring to another.
+export fn move(
+	id: serial,
+	from_ring_id: serial,
+	to_ring_id: serial,
+	flags: uint,
+) (void | error) = {
+	keyctl(command::MOVE,
+		id: u64,
+		from_ring_id: u64,
+		to_ring_id: u64,
+		flags: u64)?;
+};
+
+// Adds a secret key to a keyring.
+export fn link(
+	keyring: serial,
+	key: serial,
+) (void | error) = {
+	keyctl(command::LINK, keyring: u64, key: u64, 0, 0)?;
+};
+
+// Removes a secret key from a keyring.
+export fn unlink(
+	keyring: serial,
+	key: serial,
+) (void | error) = {
+	keyctl(command::UNLINK, keyring: u64, key: u64, 0, 0)?;
+};
