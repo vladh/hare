@@ -2,7 +2,9 @@
 // (c) Hare authors <https://harelang.org>
 
 use crypto::sha256;
+use errors;
 use fmt;
+use fs;
 use hare::ast;
 use hare::module;
 use hare::unparse;
@@ -117,14 +119,34 @@ fn get_flags(ctx: *context, t: *task) ([]str | error) = {
 	} else if (ctx.libc) {
 		append(flags, strings::dup("-m.main")!)!;
 	};
-	append(flags, strings::dup("-M")!)!;
-	path::set(&buf, mod.path)?;
-	for (let i = 0z; i < len(mod.ns); i += 1) {
-		path::pop(&buf);
-	};
-	append(flags, strings::concat(path::string(&buf), "/")!)!;
 
 	path::set(&buf, mod.path)?;
+	const prefix = :blk {
+		if (path::trimprefix(&buf, os::getcwd()) is str) {
+			yield :blk, os::getcwd();
+		};
+
+		let tok = strings::tokenize(ctx.ctx.harepath, ":");
+		for (let s => strings::next_token(&tok)) {
+			match (os::realpath(s)) {
+			case errors::noaccess => void;
+			case errors::noentry => void;
+			case let err: fs::error =>
+				return err;
+			case let s: str =>
+				if (path::trimprefix(&buf, s) is str) {
+					yield :blk, s;
+				};
+			};
+		};
+	};
+	match (prefix) {
+	case let s: str =>
+		append(flags, strings::dup("-M")!)!;
+		append(flags, fmt::asprintf("{}{}", s, path::SEP: rune)!)!;
+	case void => void;
+	};
+
 	let test = ctx.test && t.idx == ctx.top;
 	test ||= path::trimprefix(&buf, os::getcwd()) is str && ctx.submods;
 	if (test) {
