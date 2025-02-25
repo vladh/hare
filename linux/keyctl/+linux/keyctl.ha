@@ -134,3 +134,12 @@ export fn unlink(
 ) (void | error) = {
 	keyctl(command::UNLINK, keyring: u64, key: u64, 0, 0)?;
 };
+
+// Sets the timeout on a secret key, such that it will be removed from the
+// keyring once expired. Setting the timeout to zero cancels the expiration.
+export fn set_timeout(
+	key: serial,
+	seconds: uint,
+) (void | error) = {
+	keyctl(command::SET_TIMEOUT, key: u64, seconds: u64, 0, 0)?;
+};
