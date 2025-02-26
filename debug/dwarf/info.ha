@@ -138,6 +138,7 @@ fn read_die(
 	let fields: []field = [];
 	let ok = false;
 	defer if (!ok) {
+		fields = [];
 		free(fields);
 	};
 
