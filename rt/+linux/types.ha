@@ -440,6 +440,13 @@ export type clone_args = struct {
 	cgroup: u64,
 };
 
+export type idtype = enum {
+	P_ALL = 0,
+	P_PID = 1,
+	P_PGID = 2,
+	P_PIDFD = 3,
+};
+
 export def SIG_BLOCK: int = 0;
 export def SIG_UNBLOCK: int = 1;
 export def SIG_SETMASK: int = 2;

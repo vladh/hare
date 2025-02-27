@@ -318,6 +318,18 @@ export fn wait4(
 		options: u64, rusage: uintptr: u64))?: pid_t;
 };
 
+export fn waitid(
+	idtype: int,
+	id: id_t,
+	info: *siginfo,
+	options: int,
+	rusage: nullable *rusage,
+) (void | errno) = {
+	wrap_return(syscall5(SYS_waitid,
+		idtype: u64, id: u64, info: uintptr: u64,
+		options: u64, rusage: uintptr: u64))?;
+};
+
 export fn sendfile(
 	out: int,
 	in: int,
