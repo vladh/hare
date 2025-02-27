@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MPL-2.0
 // (c) Hare authors <https://harelang.org>
 
+use errors;
 use fmt;
 use io;
 use os;
@@ -93,14 +94,21 @@ export fn parse(args: []str, help: help...) command = {
 		};
 		printusage(os::stderr, e.0, e.1)!;
 		os::exit(os::status::FAILURE);
+	case nomem =>
+		fmt::errorln(errors::strerror(nomem))!;
+		os::exit(os::status::FAILURE);
 	};
 };
 
 // Parses command line arguments and returns a [[command]], or an [[error]]
 // if an error occurs. The argument list must include the command name as
 // the first item; [[os::args]] fulfills this criteria.
-export fn tryparse(args: []str, help: help...) (command | error) = {
+export fn tryparse(args: []str, help: help...) (command | error | nomem) = {
+	let ok = false;
+
 	let opts: [](rune, str) = [];
+	defer if (!ok) free(opts);
+
 	let i = 1z;
 	for :arg (i < len(args); i += 1) {
 		const arg = args[i];
@@ -120,7 +128,7 @@ export fn tryparse(args: []str, help: help...) (command | error) = {
 			for (let j = 0z; j < len(help); j += 1) match (help[j]) {
 			case let f: flag_help =>
 				if (r == f.0) {
-					append(opts, (r, ""))!;
+					append(opts, (r, ""))?;
 					found = true;
 					break;
 				};
@@ -129,13 +137,12 @@ export fn tryparse(args: []str, help: help...) (command | error) = {
 					let value = strings::iterstr(&iter);
 					if (len(value) == 0) {
 						if (i == len(args) - 1) {
-							free(opts);
 							return (args[0], help, r: requires_arg): error;
 						};
 						i += 1;
-						append(opts, (r, args[i]))!;
+						append(opts, (r, args[i]))?;
 					} else {
-						append(opts, (r, value))!;
+						append(opts, (r, value))?;
 					};
 					continue :arg;
 				};
@@ -147,11 +154,13 @@ export fn tryparse(args: []str, help: help...) (command | error) = {
 				printhelp(os::stderr, args[0], help)!;
 				os::exit(os::status::SUCCESS);
 			};
-			free(opts);
 			return (args[0], help, r: unknown_option): error;
 		};
 	};
 	let subcmd: (void | (str, *command)) = void;
+	defer if (!ok && subcmd is (str, *command))
+		free((subcmd as (str, *command)).1);
+
 	if (i < len(args)) {
 		let expects_subcmd = false;
 		for (let j = 0z; j < len(help); j += 1) match (help[j]) {
@@ -159,18 +168,18 @@ export fn tryparse(args: []str, help: help...) (command | error) = {
 			expects_subcmd = true;
 			if (s.0 == args[i]) match (tryparse(args[i..], s.1...)) {
 			case let c: command =>
-				subcmd = (s.0, alloc(c)!);
+				subcmd = (s.0, alloc(c)?);
 			case let e: error =>
-				free(opts);
 				return e;
 			};
 		case => continue;
 		};
 		if (expects_subcmd && subcmd is void) {
-			free(opts);
 			return (args[0], help, args[i]: unknown_subcmd): error;
 		};
 	};
+
+	ok = true;
 	return command {
 		opts = opts,
 		subcmd = subcmd,
