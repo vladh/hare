@@ -64,9 +64,16 @@ export fn strerror(err: failure) str = {
 
 // Returns a generator of pathnames matching a pattern. The result must be
 // freed using [[finish]].
-export fn glob(pattern: str, flags: flag = flag::NONE) generator = {
+export fn glob(pattern: str, flags: flag = flag::NONE) (generator | nomem) = {
 	let ss = strstack_init();
-	memio::concat(strstack_push(&ss), pattern)!;
+	const pushed = strstack_push(&ss)?;
+	match (memio::concat(pushed, pattern)) {
+	case io::error =>
+		strstack_free(&ss);
+		return nomem;
+	case size => yield;
+	};
+
 	return generator {
 		pats = ss,
 		matc = 0,
@@ -83,8 +90,10 @@ export fn finish(gen: *generator) void = {
 
 // Returns a generated pathname. The returned string is valid until [[next]]
 // is called again. If, during the search, a directory is encountered that
-// cannot be opened or read, a [[failure]] object is returned instead.
-export fn next(gen: *generator) (str | done | failure) = {
+// cannot be opened or read, a [[failure]] object is returned instead. If an
+// error is returned, the generator should be considered invalid and cannot be
+// used again, only freed using [[finish]].
+export fn next(gen: *generator) (str | done | failure | nomem) = {
 	const init = strstack_size(&gen.pats) == 1
 		&& len(memio::string(&gen.tmpp.dir)!) == 0
 		&& len(memio::string(&gen.tmpp.pat)!) == 0
@@ -100,7 +109,7 @@ export fn next(gen: *generator) (str | done | failure) = {
 	return done;
 };
 
-fn next_match(gen: *generator) (str | void | failure) = {
+fn next_match(gen: *generator) (str | void | failure | nomem) = {
 	match (strstack_pop(&gen.pats)) {
 	case void =>
 		return;
@@ -109,7 +118,7 @@ fn next_match(gen: *generator) (str | void | failure) = {
 			gen.matc -= 1;
 			return s;
 		};
-		pattern_parse(&gen.tmpp, s, gen.flgs & flag::NOESCAPE != 0);
+		pattern_parse(&gen.tmpp, s, gen.flgs & flag::NOESCAPE != 0)?;
 	};
 	const l = strstack_size(&gen.pats);
 
@@ -151,12 +160,18 @@ fn next_match(gen: *generator) (str | void | failure) = {
 			continue;
 		};
 
-		let b = strstack_push(&gen.pats);
+		let b = strstack_push(&gen.pats)?;
 		if (len(rem) > 0) {
-			memio::concat(b, dir, de.name, "/", rem)!;
+			match (memio::concat(b, dir, de.name, "/", rem)) {
+			case io::error => return nomem;
+			case size => yield;
+			};
 			continue;
 		};
-		memio::concat(b, dir, de.name)!;
+		match (memio::concat(b, dir, de.name)) {
+		case io::error => return nomem;
+		case size => yield;
+		};
 		if (patm || gen.flgs & flag::MARK != 0) {
 			let m = fs::isdir(de.ftype);
 			// POSIX does not specify the behavior when a pathname
@@ -175,7 +190,10 @@ fn next_match(gen: *generator) (str | void | failure) = {
 				};
 			};
 			if (m) {
-				memio::concat(b, "/")!;
+				match (memio::concat(b, "/")) {
+				case io::error => return nomem;
+				case size => yield;
+				};
 			} else if (patm) {
 				strstack_pop(&gen.pats);
 				continue;
@@ -219,7 +237,7 @@ fn pattern_pat(p: *pattern) str = memio::string(&p.pat)!;
 
 fn pattern_rem(p: *pattern) str = memio::string(&p.rem)!;
 
-fn pattern_parse(p: *pattern, pstr: str, noesc: bool) void = {
+fn pattern_parse(p: *pattern, pstr: str, noesc: bool) (void | nomem) = {
 	pattern_reset(p);
 
 	let itdir = strings::iter(pstr);
@@ -230,7 +248,10 @@ fn pattern_parse(p: *pattern, pstr: str, noesc: bool) void = {
 	for (let brk = false, esc = false; true) {
 		const r = match (strings::next(&itdir)) {
 		case done =>
-			memio::concat(&p.dir, memio::string(&p.pat)!)!;
+			match (memio::concat(&p.dir, memio::string(&p.pat)!)) {
+			case io::error => return nomem;
+			case size => yield;
+			};
 			memio::reset(&p.pat);
 			return;
 		case let r: rune =>
@@ -254,9 +275,15 @@ fn pattern_parse(p: *pattern, pstr: str, noesc: bool) void = {
 		case => void;
 		};
 
-		memio::appendrune(&p.pat, r)!;
+		match (memio::appendrune(&p.pat, r)) {
+		case io::error => return nomem;
+		case size => yield;
+		};
 		if (r == '/') {
-			memio::concat(&p.dir, memio::string(&p.pat)!)!;
+			match (memio::concat(&p.dir, memio::string(&p.pat)!)) {
+			case io::error => return nomem;
+			case size => yield;
+			};
 			memio::reset(&p.pat);
 			itpat = itdir;
 		};
@@ -275,16 +302,25 @@ fn pattern_parse(p: *pattern, pstr: str, noesc: bool) void = {
 		};
 
 		if (esc && r != '/') {
-			memio::appendrune(&p.pat, '\\')!;
+			match (memio::appendrune(&p.pat, '\\')) {
+			case io::error => return nomem;
+			case size => yield;
+			};
 		};
-		memio::appendrune(&p.pat, r)!;
+		match (memio::appendrune(&p.pat, r)) {
+		case io::error => return nomem;
+		case size => yield;
+		};
 		if (r == '/') {
 			break;
 		};
 		esc = false;
 	};
 
-	memio::concat(&p.rem, strings::iterstr(&itpat))!;
+	match (memio::concat(&p.rem, strings::iterstr(&itpat))) {
+	case io::error => return nomem;
+	case size => yield;
+	};
 };
 
 fn strstack_init() strstack = strstack {
@@ -301,9 +337,9 @@ fn strstack_free(ss: *strstack) void = {
 
 fn strstack_size(ss: *strstack) size = ss.bufc;
 
-fn strstack_push(ss: *strstack) *memio::stream = {
+fn strstack_push(ss: *strstack) (*memio::stream | nomem) = {
 	if (ss.bufc == len(ss.bufv)) {
-		append(ss.bufv, memio::dynamic())!;
+		append(ss.bufv, memio::dynamic())?;
 	};
 	let b = &ss.bufv[ss.bufc];
 	memio::reset(b);

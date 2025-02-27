@@ -24,7 +24,7 @@ use strings;
 		("\\*", flag::NONE),
 	];
 	for (let c .. cases) {
-		let gen = glob(c.0, c.1);
+		let gen = glob(c.0, c.1)!;
 		defer finish(&gen);
 		for (true) match (next(&gen)) {
 		case done =>
@@ -83,7 +83,7 @@ use strings;
 	let p = pattern_init();
 	defer pattern_free(&p);
 	for (let c .. cases) {
-		pattern_parse(&p, c.0, c.1);
+		pattern_parse(&p, c.0, c.1)!;
 		const dir = pattern_dir(&p);
 		const pat = pattern_pat(&p);
 		const rem = pattern_rem(&p);
