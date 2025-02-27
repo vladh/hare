@@ -398,6 +398,34 @@ export def TFD_NONBLOCK: int = O_NONBLOCK;
 export def TFD_TIMER_ABSTIME: int = 1;
 export def TFD_TIMER_CANCEL_ON_SET: int = 2;
 
+export def PIDFD_NONBLOCK: uint = O_NONBLOCK: uint;
+
+export def CLONE_NEWTIME = 0x00000080;
+export def CLONE_VM = 0x00000100;
+export def CLONE_FS = 0x00000200;
+export def CLONE_FILES = 0x00000400;
+export def CLONE_SIGHAND = 0x00000800;
+export def CLONE_PIDFD = 0x00001000;
+export def CLONE_PTRACE = 0x00002000;
+export def CLONE_VFORK = 0x00004000;
+export def CLONE_PARENT = 0x00008000;
+export def CLONE_THREAD = 0x00010000;
+export def CLONE_NEWNS = 0x00020000;
+export def CLONE_SYSVSEM = 0x00040000;
+export def CLONE_SETTLS = 0x00080000;
+export def CLONE_PARENT_SETTID = 0x00100000;
+export def CLONE_CHILD_CLEARTID = 0x00200000;
+export def CLONE_DETACHED = 0x00400000;
+export def CLONE_UNTRACED = 0x00800000;
+export def CLONE_CHILD_SETTID = 0x01000000;
+export def CLONE_NEWCGROUP = 0x02000000;
+export def CLONE_NEWUTS = 0x04000000;
+export def CLONE_NEWIPC = 0x08000000;
+export def CLONE_NEWUSER = 0x10000000;
+export def CLONE_NEWPID = 0x20000000;
+export def CLONE_NEWNET = 0x40000000;
+export def CLONE_IO = 0x80000000;
+
 export def SIG_BLOCK: int = 0;
 export def SIG_UNBLOCK: int = 1;
 export def SIG_SETMASK: int = 2;

@@ -1098,3 +1098,28 @@ export fn sigqueueinfo(tgid: pid_t, sig: int, info: *siginfo) (void | errno) = {
 	wrap_return(syscall3(SYS_rt_sigqueueinfo, tgid: u64,
 		sig: u64, info: uintptr: u64))?;
 };
+
+export fn pidfd_open(pid: pid_t, flags: uint) (int | errno) = {
+	return wrap_return(syscall2(SYS_pidfd_open,
+			pid: u64, flags: u64))?: int;
+};
+
+export fn pidfd_getfd(pidfd: int, targetfd: int, flags: uint) (int | errno) = {
+	return wrap_return(syscall3(SYS_pidfd_getfd,
+		pidfd: u64, targetfd: u64, flags: u64))?: int;
+};
+
+export fn pidfd_send_signal(
+	pidfd: int,
+	sig: int,
+	info: nullable *siginfo,
+	flags: uint,
+) (void | errno) = {
+	wrap_return(syscall4(
+		SYS_pidfd_send_signal,
+		pidfd: u64,
+		sig: u64,
+		info: uintptr: u64,
+		flags: u64,
+	))?;
+};
