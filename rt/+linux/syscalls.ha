@@ -1123,3 +1123,10 @@ export fn pidfd_send_signal(
 		flags: u64,
 	))?;
 };
+
+export fn clone3(cl_args: *clone_args) (pid_t | errno) = {
+	return wrap_return(syscall2(
+		SYS_clone3,
+		cl_args: uintptr: u64,
+		size(clone_args)))?: pid_t;
+};

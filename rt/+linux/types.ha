@@ -426,6 +426,20 @@ export def CLONE_NEWPID = 0x20000000;
 export def CLONE_NEWNET = 0x40000000;
 export def CLONE_IO = 0x80000000;
 
+export type clone_args = struct {
+	flags: u64,
+	pidfd: u64,
+	child_tid: u64,
+	parent_tid: u64,
+	exit_signal: u64,
+	stack: u64,
+	stack_size: u64,
+	tls: u64,
+	set_tid: u64,
+	set_tid_size: u64,
+	cgroup: u64,
+};
+
 export def SIG_BLOCK: int = 0;
 export def SIG_UNBLOCK: int = 1;
 export def SIG_SETMASK: int = 2;
