@@ -232,7 +232,7 @@ $(HARECACHE)/dirs.ssa: $(dirs_ha) $(HARECACHE)/errors.td $(HARECACHE)/fmt.td $(H
 	@$(TDENV) $(HAREC) $(HARECFLAGS) -o $@ -t $(HARECACHE)/dirs.td.tmp -N dirs $(dirs_ha)
 
 getopt_ha = getopt/getopts.ha
-$(HARECACHE)/getopt.ssa: $(getopt_ha) $(HARECACHE)/fmt.td $(HARECACHE)/io.td $(HARECACHE)/os.td $(HARECACHE)/strings.td
+$(HARECACHE)/getopt.ssa: $(getopt_ha) $(HARECACHE)/errors.td $(HARECACHE)/fmt.td $(HARECACHE)/io.td $(HARECACHE)/os.td $(HARECACHE)/strings.td
 	@mkdir -p -- "$(HARECACHE)"
 	@printf 'HAREC\t%s\n' "$@"
 	@$(TDENV) $(HAREC) $(HARECFLAGS) -o $@ -t $(HARECACHE)/getopt.td.tmp -N getopt $(getopt_ha)
