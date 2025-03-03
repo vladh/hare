@@ -164,18 +164,30 @@ fn encode_closer(s: *io::stream) (void | io::error) = {
 
 // Encodes a byte slice in base-32, using the given encoding, returning a slice
 // of ASCII bytes. The caller must free the return value.
-export fn encodeslice(enc: *encoding, in: []u8) []u8 = {
+export fn encodeslice(enc: *encoding, in: []u8) ([]u8 | nomem) = {
 	let out = memio::dynamic();
 	let encoder = newencoder(enc, &out);
-	io::writeall(&encoder, in)!;
-	io::close(&encoder)!;
+	match (io::writeall(&encoder, in)) {
+	case size => void;
+	case nomem =>
+		return nomem;
+	case =>
+		abort();
+	};
+	match (io::close(&encoder)) {
+	case void => void;
+	case nomem =>
+		return nomem;
+	case =>
+		abort();
+	};
 	return memio::buffer(&out);
 };
 
 // Encodes a byte slice in base-32, using the given encoding, returning a
 // string. The caller must free the return value.
-export fn encodestr(enc: *encoding, in: []u8) str = {
-	return strings::fromutf8(encodeslice(enc, in))!;
+export fn encodestr(enc: *encoding, in: []u8) (str | nomem) = {
+	return strings::fromutf8(encodeslice(enc, in)?)!;
 };
 
 @test fn encode() void = {
@@ -208,7 +220,7 @@ export fn encodestr(enc: *encoding, in: []u8) str = {
 		assert(bytes::equal(outb, strings::toutf8(expect[i])));
 		free(outb);
 		// Testing encodestr should cover encodeslice too
-		let s = encodestr(&std_encoding, in[..i]);
+		let s = encodestr(&std_encoding, in[..i])!;
 		defer free(s);
 		assert(s == expect[i]);
 
@@ -219,7 +231,7 @@ export fn encodestr(enc: *encoding, in: []u8) str = {
 		let outb = memio::buffer(&out);
 		assert(bytes::equal(outb, strings::toutf8(expect_hex[i])));
 		free(outb);
-		let s = encodestr(&hex_encoding, in[..i]);
+		let s = encodestr(&hex_encoding, in[..i])!;
 		defer free(s);
 		assert(s == expect_hex[i]);
 	};
@@ -356,22 +368,27 @@ fn decode_reader(
 export fn decodeslice(
 	enc: *encoding,
 	in: []u8,
-) ([]u8 | errors::invalid) = {
+) ([]u8 | errors::invalid | nomem) = {
 	let in = memio::fixed(in);
 	let decoder = newdecoder(enc, &in);
 	let out = memio::dynamic();
 	match (io::copy(&out, &decoder)) {
-	case io::error =>
-		io::close(&out)!;
-		return errors::invalid;
 	case size =>
 		return memio::buffer(&out);
+	case nomem =>
+		io::close(&out)!;
+		return nomem;
+	case errors::invalid =>
+		io::close(&out)!;
+		return errors::invalid;
+	case =>
+		abort(); // unreachable
 	};
 };
 
 // Decodes a string of ASCII-encoded base-32 data, using the given encoding,
 // returning a slice of decoded bytes. The caller must free the return value.
-export fn decodestr(enc: *encoding, in: str) ([]u8 | errors::invalid) = {
+export fn decodestr(enc: *encoding, in: str) ([]u8 | errors::invalid | nomem) = {
 	return decodeslice(enc, strings::toutf8(in));
 };
 
