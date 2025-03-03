@@ -415,9 +415,13 @@ export fn ftosf(
 	f: ffmt = ffmt::G,
 	prec: (void | uint) = void,
 	flag: fflags = fflags::NONE,
-) str = {
+) (str | nomem) = {
 	let m = memio::dynamic();
-	fftosf(&m, n, f, prec, flag)!;
+	match (fftosf(&m, n, f, prec, flag)) {
+	case size => void;
+	case let e: io::error =>
+		return e as nomem;
+	};
 	return memio::string(&m)!;
 };
 
