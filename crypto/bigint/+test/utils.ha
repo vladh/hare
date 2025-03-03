@@ -34,7 +34,7 @@ export fn tohex(x: []word) str = {
 		};
 	};
 
-	return hex::encodestr(buf[i..]);
+	return hex::encodestr(buf[i..])!;
 };
 
 export fn equalshex(x: []word, h: str) bool = {

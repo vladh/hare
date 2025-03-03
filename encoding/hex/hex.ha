@@ -65,16 +65,23 @@ fn encode_writer(s: *io::stream, in: const []u8) (size | io::error) = {
 
 // Encodes a byte slice as a hexadecimal string and returns it. The caller must
 // free the return value.
-export fn encodestr(in: []u8) str = {
+export fn encodestr(in: []u8) (str | nomem) = {
 	const out = memio::dynamic();
 	const enc = newencoder(&out);
-	io::writeall(&enc, in)!;
+	match (io::writeall(&enc, in)) {
+	case size => void;
+	case nomem =>
+		io::close(&out)!;
+		return nomem;
+	case =>
+		abort(); // unreachable
+	};
 	return memio::string(&out)!;
 };
 
 @test fn encodestr() void = {
 	let in: [_]u8 = [0xCA, 0xFE, 0xBA, 0xBE, 0xDE, 0xAD, 0xF0, 0x0D];
-	let s = encodestr(in);
+	let s = encodestr(in)!;
 	defer free(s);
 	assert(s == "cafebabedeadf00d");
 };
@@ -165,7 +172,7 @@ fn decode_reader(s: *io::stream, out: []u8) (size | io::EOF | io::error) = {
 
 // Decodes a string of hexadecimal bytes into a byte slice. The caller must free
 // the return value.
-export fn decodestr(s: str) ([]u8 | io::error) = {
+export fn decodestr(s: str) ([]u8 | errors::invalid | nomem) = {
 	let s = strings::toutf8(s);
 	const in = memio::fixed(s);
 	const decoder = newdecoder(&in);
@@ -173,8 +180,14 @@ export fn decodestr(s: str) ([]u8 | io::error) = {
 	match(io::copy(&out, &decoder)) {
 	case size =>
 		return memio::buffer(&out);
-	case let err: io::error =>
-		return err;
+	case errors::invalid =>
+		io::close(&out)!;
+		return errors::invalid;
+	case nomem =>
+		io::close(&out)!;
+		return nomem;
+	case =>
+		abort(); // unreachable
 	};
 };
 
@@ -183,7 +196,7 @@ export fn decodestr(s: str) ([]u8 | io::error) = {
 	defer free(s);
 	assert(bytes::equal(s, [0xCA, 0xFE, 0xBA, 0xBE, 0xDE, 0xAD, 0xF0, 0x0D]));
 
-	decodestr("this is not hex") as io::error as errors::invalid: void;
+	decodestr("this is not hex") as errors::invalid: void;
 };
 
 // Outputs a dump of hex data alongside the offset and an ASCII representation

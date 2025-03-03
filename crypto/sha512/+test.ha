@@ -27,7 +27,7 @@ use strings;
 		let sum: [SZ]u8 = [0...];
 		hash::sum(&sha, sum);
 
-		let shahex = hex::encodestr(sum);
+		let shahex = hex::encodestr(sum)!;
 		defer free(shahex);
 		if (shahex != vector.1) {
 			fmt::errorfln("Vector {}: {} != {}", i, shahex, vector.1)!;
@@ -52,7 +52,7 @@ use strings;
 		let sum: [SZ224]u8 = [0...];
 		hash::sum(&sha, sum);
 
-		let shahex = hex::encodestr(sum);
+		let shahex = hex::encodestr(sum)!;
 		defer free(shahex);
 		if (shahex != vector.1) {
 			fmt::errorfln("Vector {}: {} != {}", i, shahex, vector.1)!;
@@ -77,7 +77,7 @@ use strings;
 		let sum: [SZ256]u8 = [0...];
 		hash::sum(&sha, sum);
 
-		let shahex = hex::encodestr(sum);
+		let shahex = hex::encodestr(sum)!;
 		defer free(shahex);
 		if (shahex != vector.1) {
 			fmt::errorfln("Vector {}: {} != {}", i, shahex, vector.1)!;
@@ -103,7 +103,7 @@ use strings;
 		let sum: [SZ384]u8 = [0...];
 		hash::sum(&sha, sum);
 
-		let shahex = hex::encodestr(sum);
+		let shahex = hex::encodestr(sum)!;
 		defer free(shahex);
 		if (shahex != vector.1) {
 			fmt::errorfln("Vector {}: {} != {}", i, shahex, vector.1)!;
