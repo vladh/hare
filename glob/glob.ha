@@ -59,7 +59,7 @@ export type failure = !struct {
 // allocated.
 export fn strerror(err: failure) str = {
 	static let buf: [path::MAX + 1024]u8 = [0...];
-	return fmt::bsprintf(buf, "{}: {}", err.path, fs::strerror(err.error));
+	return fmt::bsprintf(buf, "{}: {}", err.path, fs::strerror(err.error))!;
 };
 
 // Returns a generator of pathnames matching a pattern. The result must be

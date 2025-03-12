@@ -94,7 +94,7 @@ export fn strerror(err: error) const str = {
 	case bad_time =>
 		return "Signature out of time window";
 	case let ue: unknown_error =>
-		return fmt::bsprintf(buf, "Unknown DNS error {}", ue: u8);
+		return fmt::bsprintf(buf, "Unknown DNS error {}", ue: u8)!;
 	case errors::invalid =>
 		return "The message contains one or more field with invalid values";
 	case errors::overflow =>

@@ -10,7 +10,7 @@ use strings;
 
 @test fn read() void = {
 	const testcert_str = fmt::asprintf(
-		"garbage\ngarbage\ngarbage\n{}garbage\n", cert_str);
+		"garbage\ngarbage\ngarbage\n{}garbage\n", cert_str)!;
 	defer free(testcert_str);
 	const in = memio::fixed(strings::toutf8(testcert_str));
 	const dec = newdecoder(&in);
@@ -29,7 +29,7 @@ use strings;
 };
 
 @test fn read_many() void = {
-	const testmany = fmt::asprintf("{}{}", cert_str, privkey_str);
+	const testmany = fmt::asprintf("{}{}", cert_str, privkey_str)!;
 	defer free(testmany);
 	const in = memio::fixed(strings::toutf8(testmany));
 	const dec = newdecoder(&in);
@@ -169,7 +169,7 @@ const testprivkey_bin: [_]u8 = [
 
 @test fn readcrlf() void = {
 	const test_str = fmt::asprintf(
-		"garbage\r\ngarbage\r\ngarbage\r\n{}garbage\r\n", testcrlf_str);
+		"garbage\r\ngarbage\r\ngarbage\r\n{}garbage\r\n", testcrlf_str)!;
 	defer free(test_str);
 	const in = memio::fixed(strings::toutf8(test_str));
 	const dec = newdecoder(&in);

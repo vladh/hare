@@ -70,13 +70,13 @@ export fn strerror(err: error) str = {
 	match (err.2) {
 	case let r: requires_arg =>
 		return fmt::bsprintf(buf, "{}: option -{} requires an argument",
-			err.0, r: rune);
+			err.0, r: rune)!;
 	case let r: unknown_option =>
 		return fmt::bsprintf(buf, "{}: unrecognized option: -{}",
-			err.0, r: rune);
+			err.0, r: rune)!;
 	case let s: unknown_subcmd =>
 		return fmt::bsprintf(buf, "{}: unrecognized subcommand: {}",
-			err.0, s: str);
+			err.0, s: str)!;
 	};
 };
 

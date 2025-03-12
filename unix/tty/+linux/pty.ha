@@ -63,7 +63,7 @@ export fn ptsname(master: io::file) (str | error) = {
 		};
 	case =>
 		static let buf: [9 + 20]u8 = [0...];
-		return fmt::bsprintf(buf[..len(buf)], "/dev/pts/{}", pty);
+		return fmt::bsprintf(buf[..len(buf)], "/dev/pts/{}", pty)!;
 	};
 };
 

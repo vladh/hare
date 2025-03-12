@@ -565,17 +565,17 @@ fn literal(
 			const s = strings::multireplace(s,
 				(`\`, `\\`), (`"`, `\"`))!;
 			defer free(s);
-			const s = fmt::asprintf(`"{}"`, s);
+			const s = fmt::asprintf(`"{}"`, s)?;
 			defer free(s);
 			return syn(ctx, s, synkind::RUNE_STRING)?;
 		case let r: rune =>
 			// 4 for unicode codepoint + 2 's
 			let buf: [6]u8 = [0...];
 			if (r == '\'' || r == '\\') {
-				return syn(ctx, fmt::bsprintf(buf, `'\{}'`, r),
+				return syn(ctx, fmt::bsprintf(buf, `'\{}'`, r)!,
 					synkind::RUNE_STRING)?;
 			} else {
-				return syn(ctx, fmt::bsprintf(buf, "'{}'", r),
+				return syn(ctx, fmt::bsprintf(buf, "'{}'", r)!,
 					synkind::RUNE_STRING)?;
 			};
 		};
@@ -596,35 +596,35 @@ fn literal(
 	case let v: ast::number_literal =>
 		const s = switch (v.suff) {
 		case ltok::LIT_U8 =>
-			yield fmt::asprintf("{}u8", v.value);
+			yield fmt::asprintf("{}u8", v.value)?;
 		case ltok::LIT_U16 =>
-			yield fmt::asprintf("{}u16", v.value);
+			yield fmt::asprintf("{}u16", v.value)?;
 		case ltok::LIT_U32 =>
-			yield fmt::asprintf("{}u32", v.value);
+			yield fmt::asprintf("{}u32", v.value)?;
 		case ltok::LIT_U64 =>
-			yield fmt::asprintf("{}u64", v.value);
+			yield fmt::asprintf("{}u64", v.value)?;
 		case ltok::LIT_UINT =>
-			yield fmt::asprintf("{}u", v.value);
+			yield fmt::asprintf("{}u", v.value)?;
 		case ltok::LIT_SIZE =>
-			yield fmt::asprintf("{}z", v.value);
+			yield fmt::asprintf("{}z", v.value)?;
 		case ltok::LIT_I8 =>
-			yield fmt::asprintf("{}i8", v.value);
+			yield fmt::asprintf("{}i8", v.value)?;
 		case ltok::LIT_I16 =>
-			yield fmt::asprintf("{}i16", v.value);
+			yield fmt::asprintf("{}i16", v.value)?;
 		case ltok::LIT_I32 =>
-			yield fmt::asprintf("{}i32", v.value);
+			yield fmt::asprintf("{}i32", v.value)?;
 		case ltok::LIT_I64 =>
-			yield fmt::asprintf("{}i64", v.value);
+			yield fmt::asprintf("{}i64", v.value)?;
 		case ltok::LIT_INT =>
-			yield fmt::asprintf("{}i", v.value);
+			yield fmt::asprintf("{}i", v.value)?;
 		case ltok::LIT_ICONST =>
-			yield fmt::asprint(v.value);
+			yield fmt::asprint(v.value)?;
 		case ltok::LIT_FCONST =>
-			yield fmt::asprintf("{:F.}", v.value);
+			yield fmt::asprintf("{:F.}", v.value)?;
 		case ltok::LIT_F32 =>
-			yield fmt::asprintf("{}f32", v.value);
+			yield fmt::asprintf("{}f32", v.value)?;
 		case ltok::LIT_F64 =>
-			yield fmt::asprintf("{}f64", v.value);
+			yield fmt::asprintf("{}f64", v.value)?;
 		case => abort();
 		};
 		defer free(s);

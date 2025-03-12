@@ -90,5 +90,5 @@ export fn formatspan(s: span, sep: rune = ' ') str = {
 		s.minutes, sep,
 		s.seconds, sep,
 		s.nanoseconds,
-	);
+	)!;
 };

@@ -439,9 +439,9 @@ fn head(ident: ast::ident) (void | error) = {
 
 	const title =
 		if (len(id) == 0)
-			fmt::asprintf("Hare documentation")
+			fmt::asprintf("Hare documentation")!
 		else
-			fmt::asprintf("{} — Hare documentation", id);
+			fmt::asprintf("{} — Hare documentation", id)!;
 	defer free(title);
 
 	// TODO: Move bits to +embed?

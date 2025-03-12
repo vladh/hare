@@ -63,7 +63,7 @@ export fn named(
 		let id = 0u64;
 		random::buffer(&id: *[size(u64)]u8);
 
-		const name = fmt::bsprintf(namebuf, "temp.{}", id);
+		const name = fmt::bsprintf(namebuf, "temp.{}", id)!;
 		const path = path::set(&pathbuf, path, name)!;
 
 		match (fs::create_file(fs, path, mode, oflags)) {

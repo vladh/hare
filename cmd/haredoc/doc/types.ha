@@ -40,7 +40,7 @@ export fn strerror(err: error) str = {
 			return ERRMSG;
 		};
 		static let buf: [len(ERRMSG) + 64 + 3]u8 = [0...];
-		return fmt::bsprintf(buf, "{} '{}'", ERRMSG, err);
+		return fmt::bsprintf(buf, "{} '{}'", ERRMSG, err)!;
 	};
 };
 

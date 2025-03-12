@@ -20,7 +20,7 @@ fn syntaxerr(
 	args: fmt::field...
 ) lex::error = {
 	static let buf: [4096]u8 = [0...];
-	let why = fmt::bsprintf(buf, fmt, args...);
+	let why = fmt::bsprintf(buf, fmt, args...)!;
 	return lex::syntaxerr(loc, why);
 };
 

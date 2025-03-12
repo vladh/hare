@@ -38,7 +38,7 @@ export fn strerror(err: error) const str = {
 		const (bi, rn) = pf;
 		def FMTMSG = "Date parsing failure for layout rune '{}' at byteindex {}";
 		static let buf: [len(FMTMSG) + 3]u8 = [0...];
-		return fmt::bsprintf(buf, FMTMSG, rn, bi);
+		return fmt::bsprintf(buf, FMTMSG, rn, bi)!;
 	case invalidtzif =>
 		return "Invalid TZif data";
 	case let err: tzdberror =>
@@ -48,12 +48,12 @@ export fn strerror(err: error) const str = {
 			return fmt::bsprintf(buf,
 				"Timezone database error: {}",
 				fs::strerror(err),
-			);
+			)!;
 		case let err: io::error =>
 			return fmt::bsprintf(buf,
 				"Timezone database error: {}",
 				io::strerror(err),
-			);
+			)!;
 		case invalidtzif =>
 			return "Timezone database error: Invalid TZif data";
 		};

@@ -21,6 +21,6 @@ export fn strerror(err: error) const str = {
 		return "File is invalid UTF-8";
 	case let s: syntaxerr =>
 		static let buf: [1024]u8 = [0...];
-		return fmt::bsprintf(buf, "{}: Invalid syntax", s: size);
+		return fmt::bsprintf(buf, "{}: Invalid syntax", s: size)!;
 	};
 };

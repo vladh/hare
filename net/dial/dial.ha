@@ -71,13 +71,13 @@ export fn dial_uri(proto: str, uri: *uri::uri) (net::socket | error) = {
 
 	let addr = match (uri.host) {
 	case let host: str =>
-		yield fmt::bsprintf(addr, "{}{}{}", host, colon, port);
+		yield fmt::bsprintf(addr, "{}{}{}", host, colon, port)!;
 	case let ip: ip::addr4 =>
 		const host = ip::string(ip);
-		yield fmt::bsprintf(addr, "{}{}{}", host, colon, port);
+		yield fmt::bsprintf(addr, "{}{}{}", host, colon, port)!;
 	case let ip: ip::addr6 =>
 		const host = ip::string(ip);
-		yield fmt::bsprintf(addr, "[{}]{}{}", host, colon, port);
+		yield fmt::bsprintf(addr, "[{}]{}{}", host, colon, port)!;
 	};
 
 	return dial(proto, addr, uri.scheme);

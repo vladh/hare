@@ -26,19 +26,27 @@ export fn errorfln(fmt: str, args: field...) (size | io::error) =
 
 // Formats text for printing and writes it into a heap-allocated string. The
 // caller must free the return value.
-export fn asprintf(fmt: str, args: field...) str = {
+export fn asprintf(fmt: str, args: field...) (str | nomem) = {
 	let buf = memio::dynamic();
-	assert(fprintf(&buf, fmt, args...) is size);
+	match (fprintf(&buf, fmt, args...)) {
+	case size => void;
+	case let e: io::error =>
+		return e as nomem;
+	};
 	return strings::fromutf8_unsafe(memio::buffer(&buf));
 };
 
 // Formats text for printing and writes it into a caller supplied buffer. The
-// returned string is borrowed from this buffer. Aborts if the buffer isn't
-// large enough to hold the formatted text.
-export fn bsprintf(buf: []u8, fmt: str, args: field...) str = {
+// returned string is borrowed from this buffer. Returns nomem, if the buffer
+// isn't large enough to hold the formatted text.
+export fn bsprintf(buf: []u8, fmt: str, args: field...) (str | nomem) = {
 	let sink = memio::fixed(buf);
-	let l = fprintf(&sink, fmt, args...)!;
-	return strings::fromutf8_unsafe(buf[..l]);
+	match (fprintf(&sink, fmt, args...)) {
+	case let l: size =>
+		return strings::fromutf8_unsafe(buf[..l]);
+	case let e: io::error =>
+		return e as nomem;
+	};
 };
 
 // Formats text for printing and writes it to [[os::stderr]], followed by a line
@@ -87,20 +95,28 @@ export fn errorln(args: formattable...) (size | io::error) =
 // Formats values for printing using the default format modifiers and writes
 // them into a heap-allocated string separated by spaces. The caller must free
 // the return value.
-export fn asprint(args: formattable...) str = {
+export fn asprint(args: formattable...) (str | nomem) = {
 	let buf = memio::dynamic();
-	assert(fprint(&buf, args...) is size);
+	match (fprint(&buf, args...)) {
+	case size => void;
+	case let e: io::error =>
+		return e as nomem;
+	};
 	return strings::fromutf8_unsafe(memio::buffer(&buf));
 };
 
 // Formats values for printing using the default format modifiers and writes
 // them into a caller supplied buffer separated by spaces. The returned string
-// is borrowed from this buffer. Aborts if the buffer isn't large enough to hold
-// the formatted text.
-export fn bsprint(buf: []u8, args: formattable...) str = {
+// is borrowed from this buffer. Returns nomem, if the buffer isn't large enough
+// to hold the formatted text.
+export fn bsprint(buf: []u8, args: formattable...) (str | nomem) = {
 	let sink = memio::fixed(buf);
-	let l = fprint(&sink, args...)!;
-	return strings::fromutf8_unsafe(buf[..l]);
+	match (fprint(&sink, args...)) {
+	case let l: size =>
+		return strings::fromutf8_unsafe(buf[..l]);
+	case let e: io::error =>
+		return e as nomem;
+	};
 };
 
 // Formats values for printing using the default format modifiers and writes

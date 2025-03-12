@@ -19,7 +19,7 @@ export fn strerror(e: error) const str = {
 			"Timescale mismatch: {}, {}",
 			e.0.abbr,
 			e.1.abbr,
-		);
+		)!;
 	case let e: utciniterror =>
 		return fmt::bsprintf(buf,
 			"UTC initialization: {}",
@@ -31,6 +31,6 @@ export fn strerror(e: error) const str = {
 			case let e: utf8::invalid =>
 				yield utf8::strerror(e);
 			},
-		);
+		)!;
 	};
 };

@@ -45,7 +45,7 @@ export fn require(keywords: str...) void = {
 				skip(fmt::asprintf(
 					"Requires HARETEST_INCLUDE='{}'",
 					strings::join(" ", keywords...)!,
-				));
+				)!);
 			};
 		};
 	};
