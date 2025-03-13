@@ -83,14 +83,24 @@ export fn issocket(mode: mode) bool = mode & IFMT == mode::SOCK;
 
 // Reads all entries from a directory. The caller must free the return value
 // with [[dirents_free]].
-export fn readdir(fs: *fs, path: str) ([]dirent | error) = {
+export fn readdir(fs: *fs, path: str) ([]dirent | error | nomem) = {
 	let i = iter(fs, path)?;
 	defer finish(i);
 	let ents: []dirent = [];
+	let ok = false;
+	defer if (!ok) dirents_free(ents);
 
 	for (let d => next(i)?) {
-		append(ents, dirent_dup(&d))!;
+		let dup = dirent_dup(&d)?;
+		match (append(ents, dup)) {
+		case void => void;
+		case nomem =>
+			dirent_finish(&dup);
+			return nomem;
+		};
 	};
+
+	ok = true;
 	return ents;
 };
 

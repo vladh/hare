@@ -164,9 +164,9 @@ export type dirent = struct {
 
 // Duplicates a [[dirent]] object. Call [[dirent_finish]] to get rid of it
 // later.
-export fn dirent_dup(e: *dirent) dirent = {
+export fn dirent_dup(e: *dirent) (dirent | nomem) = {
 	let new = *e;
-	new.name = strings::dup(e.name)!;
+	new.name = strings::dup(e.name)?;
 	return new;
 };
 
