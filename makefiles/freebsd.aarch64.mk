@@ -220,7 +220,7 @@ $(HARECACHE)/unix_tty.ssa: $(unix_tty_ha) $(HARECACHE)/errors.td $(HARECACHE)/fm
 	@$(TDENV) $(HAREC) $(HARECFLAGS) -o $@ -t $(HARECACHE)/unix_tty.td.tmp -N unix::tty $(unix_tty_ha)
 
 cmd_hare_build_ha = cmd/hare/build/gather.ha cmd/hare/build/platform.ha cmd/hare/build/queue.ha cmd/hare/build/types.ha cmd/hare/build/util.ha
-$(HARECACHE)/cmd_hare_build.ssa: $(cmd_hare_build_ha) $(HARECACHE)/crypto_sha256.td $(HARECACHE)/encoding_hex.td $(HARECACHE)/fmt.td $(HARECACHE)/fs.td $(HARECACHE)/hare_ast.td $(HARECACHE)/hare_module.td $(HARECACHE)/hare_unparse.td $(HARECACHE)/hash.td $(HARECACHE)/io.td $(HARECACHE)/memio.td $(HARECACHE)/os.td $(HARECACHE)/os_exec.td $(HARECACHE)/path.td $(HARECACHE)/shlex.td $(HARECACHE)/sort.td $(HARECACHE)/strings.td $(HARECACHE)/time.td $(HARECACHE)/unix_tty.td
+$(HARECACHE)/cmd_hare_build.ssa: $(cmd_hare_build_ha) $(HARECACHE)/crypto_sha256.td $(HARECACHE)/encoding_hex.td $(HARECACHE)/errors.td $(HARECACHE)/fmt.td $(HARECACHE)/fs.td $(HARECACHE)/hare_ast.td $(HARECACHE)/hare_module.td $(HARECACHE)/hare_unparse.td $(HARECACHE)/hash.td $(HARECACHE)/io.td $(HARECACHE)/memio.td $(HARECACHE)/os.td $(HARECACHE)/os_exec.td $(HARECACHE)/path.td $(HARECACHE)/shlex.td $(HARECACHE)/sort.td $(HARECACHE)/strings.td $(HARECACHE)/time.td $(HARECACHE)/unix_tty.td
 	@mkdir -p -- "$(HARECACHE)"
 	@printf 'HAREC\t%s\n' "$@"
 	@$(TDENV) $(HAREC) $(HARECFLAGS) -o $@ -t $(HARECACHE)/cmd_hare_build.td.tmp -N cmd::hare::build $(cmd_hare_build_ha)
