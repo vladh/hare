@@ -325,7 +325,12 @@ fn parse_port(in: *strings::iterator) (u16 | invalid) = {
 
 fn percent_decode(s: str) (str | invalid) = {
 	let buf = memio::dynamic();
-	percent_decode_static(&buf, s)?;
+	match (percent_decode_static(&buf, s)) {
+	case void => void;
+	case invalid =>
+		io::close(&buf)!;
+		return invalid;
+	};
 	return memio::string(&buf)!;
 };
 
