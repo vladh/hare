@@ -5,7 +5,7 @@ use hash::fnv;
 use strings;
 
 // Looks up a Media Type based on the mime type string, returning null if
-// unknown.
+// unknown. The return value is borrowed from the global database.
 export fn lookup_mime(mime: str) const nullable *mimetype = {
 	const hash = fnv::string(mime);
 	const bucket = &mimetable[hash % len(mimetable)];
@@ -18,7 +18,8 @@ export fn lookup_mime(mime: str) const nullable *mimetype = {
 };
 
 // Looks up a Media Type based on a file extension, with or without the leading
-// '.' character, returning null if unknown.
+// '.' character, returning null if unknown. The return value is borrowed from
+// the global database.
 export fn lookup_ext(ext: str) const nullable *mimetype = {
 	ext = strings::ltrim(ext, '.');
 	const hash = fnv::string(ext);

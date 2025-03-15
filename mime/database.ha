@@ -27,7 +27,8 @@ let exttable: [MIME_BUCKETS][]*mimetype = [[]...];
 
 // Registers a Media Type and its extensions in the internal MIME database. This
 // function is designed to be used by @init functions for modules which
-// implement new Media Types.
+// implement new Media Types. The input is expected to be statically allocated
+// and is never freed.
 export fn register(mime: *mimetype...) void = {
 	let i = len(static_db);
 	append(static_db, mime...)!;
