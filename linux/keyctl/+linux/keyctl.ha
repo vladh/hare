@@ -21,9 +21,9 @@ export fn add_key(
 	payload: []u8,
 	keyring: serial,
 ) (serial | error) = {
-	const keytype = c::fromstr(keytype);
+	const keytype = c::fromstr(keytype)!;
 	defer free(keytype);
-	const name = c::fromstr(name);
+	const name = c::fromstr(name)!;
 	defer free(name);
 	match (rt::add_key(keytype: *const u8, name: *const u8,
 			payload: *[*]u8: *opaque, len(payload), keyring)) {
@@ -63,7 +63,7 @@ export fn join_session_keyring(name: str) (serial | error) = {
 	let name = if (name == "") {
 		yield null;
 	} else {
-		yield c::fromstr(name);
+		yield c::fromstr(name)!;
 	};
 	defer free(name);
 	return keyctl(command::JOIN_SESSION_KEYRING,

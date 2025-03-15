@@ -29,7 +29,7 @@ static assert(align(intptr) == align(uintptr));
 static assert(align(ssize) == align(size));
 
 @test fn strings() void = {
-	let s = fromstr("hello!");
+	let s = fromstr("hello!")!;
 	defer free(s);
 	assert(tostr(s)! == "hello!");
 	let s = nulstr("hello!\0");

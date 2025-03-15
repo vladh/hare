@@ -59,16 +59,17 @@ export fn tostrn(cstr: *const char, length: size) (const str | utf8::invalid) = 
 
 // Converts a Hare string to a C string. The result is allocated; the caller
 // must free it when they're done.
-export fn fromstr(s: const str) *char = {
+export fn fromstr(s: const str) (*char | nomem) = {
 	let slice: []char = alloc([0...], len(s) + 1)!;
 	return fromstr_buf(s, slice);
 };
 
 // Converts a Hare string to a C string. The result is stored into a
-// user-supplied buffer.
-export fn fromstr_buf(s: const str, sl: []char) *char = {
+// user-supplied buffer. Returns nomem if the buffer does not provide enough
+// space.
+export fn fromstr_buf(s: const str, sl: []char) (*char | nomem) = {
 	if (len(sl) < len(s) + 1) {
-		abort("types::c::fromstr_buf: buffer has insufficient space for string plus NUL");
+		return nomem;
 	};
 
 	const s = &s: *[]char;
