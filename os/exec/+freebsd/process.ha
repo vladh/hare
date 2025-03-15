@@ -173,12 +173,12 @@ export fn exitstr(status: exit_status) const str = {
 		case 0 =>
 			return "exited normally";
 		case =>
-			return fmt::bsprintf(buf, "exited with status {}",
-				i: int);
+			return fmt::bsprintf(buf,
+				"exited with status {}", i: int)!;
 		};
 	case let s: signaled =>
 		return fmt::bsprintf(buf, "exited with signal {}",
-			signal::signame(s));
+			signal::signame(s))!;
 	};
 };
 
