@@ -14,8 +14,8 @@ export type invalid_address = !void;
 export type unknown_service = !void;
 
 // Errors which can occur from dial.
-export type error = !(invalid_address | unknown_service | net::error | dns::error
-	| hosts::error);
+export type error = !(invalid_address | unknown_service | net::error
+	| dns::error | hosts::error | nomem);
 
 // Converts an [[error]] to a human-readable string. The result may be
 // statically allocated.

@@ -39,7 +39,7 @@ export fn finish(rd: *reader) void = {
 
 // Returns the next host line as a [[host]] type. The host value is borrowed
 // from the [[reader]]; see [[host_dup]] to extend its lifetime.
-export fn next(rd: *reader) (host | done | error) = {
+export fn next(rd: *reader) (host | done | nomem | error) = {
 	for (const line => bufio::scan_line(&rd.scan)?) {
 		if (len(line) == 0 || strings::hasprefix(line, "#")) {
 			continue;
@@ -55,7 +55,24 @@ export fn next(rd: *reader) (host | done | error) = {
 			if (len(tok) == 0) {
 				continue;
 			};
-			append(rd.names, tok)!;
+			// XXX: Rather than return nomem here we could consider
+			// handling it by treating
+			//
+			// 127.0.0.1 long list of hosts...
+			//
+			// As the following:
+			//
+			// 127.0.0.1 long
+			// 127.0.0.1 list
+			// 127.0.0.1 of
+			// 127.0.0.1 hosts
+			//
+			// By storing the tokenizer state in [[reader]] and
+			// handling long lines over the course of several calls
+			// to [[next]]. But that would require substantial
+			// refactoring that the author of this comment lacks the
+			// patience for right now.
+			append(rd.names, tok)?;
 		};
 
 		if (len(rd.names) == 0) {
@@ -73,7 +90,7 @@ export fn next(rd: *reader) (host | done | error) = {
 
 // Looks up a slice of addresses from /etc/hosts. The caller must free the
 // return value.
-export fn lookup(name: const str) ([]ip::addr | error) = {
+export fn lookup(name: const str) ([]ip::addr | nomem | error) = {
 	const file = os::open(PATH)?;
 	defer io::close(file)!;
 
@@ -82,15 +99,19 @@ export fn lookup(name: const str) ([]ip::addr | error) = {
 	return _lookup(&rd, name);
 };
 
-fn _lookup(rd: *reader, name: const str) ([]ip::addr | error) = {
+fn _lookup(rd: *reader, name: const str) ([]ip::addr | nomem | error) = {
 	let addrs: []ip::addr = [];
+	let ok = false;
+	defer if (!ok) free(addrs);
+
 	for (const host => next(rd)?) {
 		for (const cand .. host.names) {
 			if (cand == name) {
-				append(addrs, host.addr)!;
+				append(addrs, host.addr)?;
 			};
 		};
 	};
+	ok = true;
 
 	if (len(addrs) != 0) {
 		return addrs;
