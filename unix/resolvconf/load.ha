@@ -47,6 +47,9 @@ export fn load() *config = {
 		fmt::errorfln("Error parsing /etc/resolv.conf: {}",
 			strerror(err)): void;
 		return &cache;
+	case nomem =>
+		fmt::errorfln("Error parsing /etc/resolv.conf: out of memory"): void;
+		return &cache;
 	case void =>
 		cache_valid = true;
 		return &cache;
@@ -54,9 +57,9 @@ export fn load() *config = {
 };
 
 // Parses a resolv.conf-formatted file and populates the given config object.
-fn parse(conf: *config, in: io::handle) (void | error) = {
+fn parse(conf: *config, in: io::handle) (void | nomem | error) = {
 	const rd = read(in);
-	for (const param => next(&rd)!) {
+	for (const param => next(&rd)?) {
 		switch (param.name) {
 		case "nameserver" =>
 			append(conf.nameservers, param.value as ip::addr)!;

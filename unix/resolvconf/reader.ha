@@ -39,7 +39,7 @@ export fn finish(rd: *reader) void = {
 
 // Reads the next [[parameter]] from a resolv.conf [[reader]]. The return value
 // is borrowed from the [[reader]].
-export fn next(rd: *reader) (parameter | io::EOF | error) = {
+export fn next(rd: *reader) (parameter | io::EOF | nomem | error) = {
 	for (const line => bufio::scan_line(&rd.scan)?) {
 		if (strings::hasprefix(line, '#') || strings::hasprefix(line, ';')) {
 			continue;
@@ -90,7 +90,10 @@ fn parse_addr(rd: *reader, tok: *strings::tokenizer) (value | error) = {
 	return ip::parse(addr)?;
 };
 
-fn parse_subnet_list(rd: *reader, tok: *strings::tokenizer) (value | error) = {
+fn parse_subnet_list(
+	rd: *reader,
+	tok: *strings::tokenizer,
+) (value | nomem | error) = {
 	rd.subnet_list = rd.subnet_list[..0];
 
 	for (const tok => strings::next_token(tok)) {
@@ -99,20 +102,23 @@ fn parse_subnet_list(rd: *reader, tok: *strings::tokenizer) (value | error) = {
 		};
 
 		const subnet = ip::parsecidr(tok)?;
-		append(rd.subnet_list, subnet)!;
+		append(rd.subnet_list, subnet)?;
 	};
 
 	return rd.subnet_list;
 };
 
-fn parse_str_list(rd: *reader, tok: *strings::tokenizer) (value | error) = {
+fn parse_str_list(
+	rd: *reader,
+	tok: *strings::tokenizer,
+) (value | nomem | error) = {
 	rd.str_list = rd.str_list[..0];
 
 	for (const tok => strings::next_token(tok)) {
 		if (len(tok) == 0) {
 			continue;
 		};
-		append(rd.str_list, tok)!;
+		append(rd.str_list, tok)?;
 	};
 
 	return rd.str_list;
