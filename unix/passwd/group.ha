@@ -95,10 +95,17 @@ export fn grents_free(ents: []grent) void = {
 	free(ents);
 };
 
-fn grent_dup(ent: *grent) void = {
-	ent.name = strings::dup(ent.name)!;
-	ent.password = strings::dup(ent.password)!;
-	ent.userlist = strings::dup(ent.userlist)!;
+fn grent_dup(ent: *grent) (void | nomem) = {
+	let dup = grent { ... };
+	let ok = false;
+	defer if (!ok) grent_finish(&dup);
+
+	dup.name = strings::dup(ent.name)!;
+	dup.password = strings::dup(ent.password)!;
+	dup.userlist = strings::dup(ent.userlist)!;
+
+	*ent = dup;
+	ok = true;
 };
 
 // Looks up a group by name in a Unix-like group file. It expects a such file at
@@ -108,7 +115,7 @@ fn grent_dup(ent: *grent) void = {
 // associated with the group.
 //
 // See [[nextgr]] for low-level parsing API.
-export fn getgroup(name: str) (grent | void) = {
+export fn getgroup(name: str) (grent | void | nomem) = {
 	const file = match (os::open("/etc/group")) {
 	case let f: io::file =>
 		yield f;
@@ -121,7 +128,7 @@ export fn getgroup(name: str) (grent | void) = {
 	defer groups_finish(&rd);
 	for (const ent => nextgr(&rd)!) {
 		if (ent.name == name) {
-			grent_dup(&ent);
+			grent_dup(&ent)?;
 			return ent;
 		};
 	};
@@ -134,7 +141,7 @@ export fn getgroup(name: str) (grent | void) = {
 // associated with the group.
 //
 // See [[nextgr]] for low-level parsing API.
-export fn getgid(gid: unix::gid) (grent | void) = {
+export fn getgid(gid: unix::gid) (grent | void | nomem) = {
 	const file = match (os::open("/etc/group")) {
 	case let f: io::file =>
 		yield f;
@@ -147,7 +154,7 @@ export fn getgid(gid: unix::gid) (grent | void) = {
 	defer groups_finish(&rd);
 	for (const ent => nextgr(&rd)!) {
 		if (ent.gid == gid) {
-			grent_dup(&ent);
+			grent_dup(&ent)?;
 			return ent;
 		};
 	};
@@ -178,8 +185,13 @@ export fn getgroups(name: str) ([]grent | nomem) = {
 		const tok = strings::tokenize(ent.userlist, ",");
 		for (const tok => strings::next_token(&tok)) {
 			if (tok == name) {
-				grent_dup(&ent);
-				append(groups, ent)?;
+				grent_dup(&ent)?;
+				match (append(groups, ent)) {
+				case void => void;
+				case nomem =>
+					grent_finish(&ent);
+					return nomem;
+				};
 			};
 		};
 	};

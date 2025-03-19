@@ -121,10 +121,10 @@ fn _lookup(rd: *reader, name: const str) ([]ip::addr | nomem | error) = {
 };
 
 // Duplicates a [[host]] value.
-export fn host_dup(src: *host) host = {
+export fn host_dup(src: *host) (host | nomem) = {
 	return host {
 		addr = src.addr,
-		names = strings::dupall(src.names)!,
+		names = strings::dupall(src.names)?,
 	};
 };
 

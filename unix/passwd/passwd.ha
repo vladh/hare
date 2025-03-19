@@ -105,12 +105,19 @@ export fn pwent_finish(ent: *pwent) void = {
 	free(ent.shell);
 };
 
-fn pwent_dup(ent: *pwent) void = {
-	ent.username = strings::dup(ent.username)!;
-	ent.password = strings::dup(ent.password)!;
-	ent.comment = strings::dup(ent.comment)!;
-	ent.homedir = strings::dup(ent.homedir)!;
-	ent.shell = strings::dup(ent.shell)!;
+fn pwent_dup(ent: *pwent) (void | nomem) = {
+	let dup = pwent { ... };
+	let ok = false;
+	defer if (!ok) pwent_finish(&dup);
+
+	dup.username = strings::dup(ent.username)?;
+	dup.password = strings::dup(ent.password)?;
+	dup.comment = strings::dup(ent.comment)?;
+	dup.homedir = strings::dup(ent.homedir)?;
+	dup.shell = strings::dup(ent.shell)?;
+
+	*ent = dup;
+	ok = true;
 };
 
 // Looks up a user by name in a Unix-like password file. It expects a password
@@ -118,7 +125,7 @@ fn pwent_dup(ent: *pwent) void = {
 // properly formatted. The return value must be freed with [[pwent_finish]].
 //
 // See [[nextpw]] for low-level parsing API.
-export fn getuser(username: str) (pwent | void) = {
+export fn getuser(username: str) (pwent | void | nomem) = {
 	const file = match (os::open("/etc/passwd")) {
 	case let f: io::file =>
 		yield f;
@@ -132,7 +139,7 @@ export fn getuser(username: str) (pwent | void) = {
 
 	for (const ent => nextpw(&rd)!) {
 		if (ent.username == username) {
-			pwent_dup(&ent);
+			pwent_dup(&ent)?;
 			return ent;
 		};
 	};
@@ -143,7 +150,7 @@ export fn getuser(username: str) (pwent | void) = {
 // properly formatted. The return value must be freed with [[pwent_finish]].
 //
 // See [[nextpw]] for low-level parsing API.
-export fn getuid(uid: unix::uid) (pwent | void) = {
+export fn getuid(uid: unix::uid) (pwent | void | nomem) = {
 	const file = match (os::open("/etc/passwd")) {
 	case let f: io::file =>
 		yield f;
@@ -157,7 +164,7 @@ export fn getuid(uid: unix::uid) (pwent | void) = {
 
 	for (const ent => nextpw(&rd)!) {
 		if (ent.uid == uid) {
-			pwent_dup(&ent);
+			pwent_dup(&ent)?;
 			return ent;
 		};
 	};
