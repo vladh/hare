@@ -35,9 +35,9 @@ export fn entry_dup(ent: entry) (entry | nomem) = {
 	let dup: entry = ("", "", "");
 	let ok = false;
 	defer if (!ok) entry_finish(dup);
-	ent.0 = strings::dup(ent.0)?;
-	ent.1 = strings::dup(ent.1)?;
-	ent.2 = strings::dup(ent.2)?;
+	dup.0 = strings::dup(ent.0)?;
+	dup.1 = strings::dup(ent.1)?;
+	dup.2 = strings::dup(ent.2)?;
 	ok = true;
 	return dup;
 };
