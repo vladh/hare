@@ -2,6 +2,7 @@
 // (c) Hare authors <https://harelang.org>
 
 use errors;
+use fmt;
 use fs;
 use io;
 use os;
@@ -38,7 +39,9 @@ fn open_master() (io::file | fs::error) = {
 fn get_slave(master: io::file) (io::file | fs::error) =
 	os::open(ptsname(master)?, fs::flag::RDWR);
 
-// Returns the filename of the pseudoterminal slave.
+// Returns the filename of the pseudoterminal slave. The return value is
+// statically allocated and will be overwritten on subsequent calls to this
+// function.
 export fn ptsname(master: io::file) (str | error) = {
 	let pm = rt::ptmget { ... };
 	match (rt::ioctl(master, rt::TIOCPTSNAME, &pm)) {
@@ -53,7 +56,9 @@ export fn ptsname(master: io::file) (str | error) = {
 		};
 	case => void;
 	};
-	return strings::dup(c::tostr(&pm.sn: *const c::char)!)!;
+
+	static let buf: [rt::PATH_MAX]u8 = [0...];
+	return fmt::bsprintf(buf, c::tostr(&pm.sn: *const c::char)!)!;
 };
 
 // Sets the dimensions of the underlying pseudoterminal for an [[io::file]].

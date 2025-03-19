@@ -33,7 +33,9 @@ fn open_master() (io::file | fs::error) = {
 	};
 };
 
-// Returns the filename of the pseudoterminal slave.
+// Returns the filename of the pseudoterminal slave. The return value is
+// statically allocated and will be overwritten on subsequent calls to this
+// function.
 export fn ptsname(master: io::file) (str | error) = {
 	static let path_buf: [rt::PATH_MAX]u8 = [0...];
 

@@ -38,7 +38,9 @@ fn open_master() (io::file | fs::error) = {
 fn get_slave(master: io::file) (io::file | fs::error) =
 	os::open(ptsname(master)?, fs::flag::RDWR);
 
-// Returns the filename of the pseudoterminal slave.
+// Returns the filename of the pseudoterminal slave. The return value is
+// statically allocated and will be overwritten on subsequent calls to this
+// function.
 export fn ptsname(master: io::file) (str | error) = {
 	// Ensure that the file descriptor refers to a master
 	match (rt::ioctl(master, rt::TIOCPTMASTER, null)) {

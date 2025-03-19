@@ -48,7 +48,9 @@ fn get_slave(master: io::file) (io::file | fs::error) = {
 	};
 };
 
-// Returns the filename of the pseudoterminal slave.
+// Returns the filename of the pseudoterminal slave. The return value is
+// statically allocated and will be overwritten on subsequent calls to this
+// function.
 export fn ptsname(master: io::file) (str | error) = {
 	let pty = 0;
 	match (rt::ioctl(master, rt::TIOCGPTN, &pty)) {
