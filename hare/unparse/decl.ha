@@ -190,6 +190,7 @@ fn decl_test(d: *ast::decl, expected: str) bool = {
 		path = "<test>",
 		line = 0,
 		col = 0,
+		off = 0,
 	};
 	let type_int = ast::_type {
 		start = loc,

@@ -17,10 +17,10 @@ use types;
 export type lexer = struct {
 	in: *bufio::scanner,
 	path: str,
-	loc: (uint, uint),
-	prevrloc: (uint, uint),
+	loc: (uint, uint, io::off),
+	prevrloc: (uint, uint, io::off),
 	un: token, // ltok::EOF when no token was unlexed
-	prevunlocs: [2]((uint, uint), (uint, uint)),
+	prevunlocs: [2]((uint, uint, io::off), (uint, uint, io::off)),
 	flags: flag,
 	comment: str,
 	require_int: bool,
@@ -59,14 +59,19 @@ export fn init(
 	path: str,
 	flags: flag = flag::NONE,
 ) lexer = {
-	const loc = location { path = path, line = 1, col = 1 };
+	const loc = location {
+		path = path,
+		line = 1,
+		col = 1,
+		off = 0,
+	};
 	return lexer {
 		in = in,
 		path = path,
-		loc = (1, 1),
-		prevrloc = (1, 1),
+		loc = (1, 1, 0),
+		prevrloc = (1, 1, 0),
 		un = (ltok::EOF, void, loc),
-		prevunlocs = [((1, 1), (1, 1))...],
+		prevunlocs = [((1, 1, 0), (1, 1, 0))...],
 		flags = flags,
 		...
 	};
@@ -88,8 +93,8 @@ export fn lex(lex: *lexer) (token | error) = {
 		const prev = prevloc(lex);
 		const loc = mkloc(lex);
 		lex.prevunlocs[0] = (
-			(prev.line, prev.col),
-			(loc.line, loc.col),
+			(prev.line, prev.col, prev.off),
+			(loc.line, loc.col, loc.off),
 		);
 	};
 
@@ -831,6 +836,7 @@ fn unget(lex: *lexer, r: rune) void = {
 
 fn lexloc(lex: *lexer, r: rune) void = {
 	lex.prevrloc = lex.loc;
+	lex.loc.2 += 1;
 	switch (r) {
 	case '\n' =>
 		lex.loc.0 += 1;
@@ -849,6 +855,7 @@ export fn mkloc(lex: *lexer) location = {
 		path = lex.path,
 		line = loc.0,
 		col = loc.1,
+		off = loc.2,
 	};
 };
 
@@ -859,6 +866,7 @@ export fn prevloc(lex: *lexer) location = {
 		path = lex.path,
 		line = loc.0,
 		col = loc.1,
+		off = loc.2,
 	};
 };
 

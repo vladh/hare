@@ -35,12 +35,13 @@ fn initstr(in: str, flags: flag = flag::NONE) lexer = {
 		path = "<test>",
 		line = 1234,
 		col = 1234,
+		off = 1234,
 	}));
 	let t = lex(&lexer) as token;
 	assert(t.0 == ltok::IF);
 	assert(t.1 is void);
 	assert(t.2.path == "<test>");
-	assert(t.2.line == 1234 && t.2.col == 1234);
+	assert(t.2.line == 1234 && t.2.col == 1234 && t.2.off == 1234);
 };
 
 fn vassert(expected: value, actual: value) void = {
@@ -91,6 +92,7 @@ fn loc(line: uint, col: uint) location = location {
 	path = "<test>",
 	line = line,
 	col = col,
+	off = 0,
 };
 
 @test fn lex1() void = {

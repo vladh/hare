@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: MPL-2.0
 // (c) Hare authors <https://harelang.org>
 
+use io;
+
 // A lexical token class.
 export type ltok = enum uint {
 	// Keep ordered with bmap
@@ -293,7 +295,8 @@ export type value = (str | rune | u64 | f64 | void);
 export type location = struct {
 	path: str,
 	line: uint,
-	col: uint
+	col: uint,
+	off: io::off,
 };
 
 // A single lexical token.

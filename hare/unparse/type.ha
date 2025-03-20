@@ -337,6 +337,7 @@ fn type_test(t: *ast::_type, expected: str) void = {
 		path = "<test>",
 		line = 0,
 		col = 0,
+		off = 0,
 	};
 	let t = ast::_type {
 		start = loc,

@@ -167,6 +167,7 @@ continuing the same code sample
 			path = "<test>",
 			line = i + 1,
 			col = i + 1,
+			off = 0,
 		}) as lex::syntax;
 		assert(err.0.path == "<test>");
 		assert(err.0.line == i + tests[i].1);

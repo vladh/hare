@@ -85,6 +85,7 @@ export fn emit_html(ctx: *context) (void | error) = {
 			path = "README", // XXX: this is meh
 			line = 1,
 			col = 1,
+			off = 0,
 		})?;
 		fmt::fprintln(ctx.out, "</div>")?;
 	};
