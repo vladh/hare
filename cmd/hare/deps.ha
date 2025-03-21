@@ -127,7 +127,7 @@ fn deps_graph(mods: *[]module::module) void = {
 	for (let i = len(mods) - 1; i < len(mods); i -= 1) {
 		// reverse-sort deps so that we know the last in the list is the
 		// "final" child during show_deps
-		sort::sort(mods[i].deps, size((size, ast::ident)), &revsort);
+		sort::sort(mods[i].deps, size((size, ast::ident)), &revsort)!;
 
 		for (let j = 0z; j < len(links); j += 1) {
 			if (i < links[j].child) {

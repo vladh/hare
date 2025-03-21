@@ -39,7 +39,7 @@ export fn execute(ctx: *context) (str | error) = {
 	queue(ctx, &q, goal, ctx.top);
 	// sort by stage, harec then qbe then as then ld, and keep reverse
 	// topo sort within each stage
-	sort::sort(q, size(*task), &task_cmp);
+	sort::sort(q, size(*task), &task_cmp)!;
 	ctx.total = len(q);
 
 	let jobs: []job = alloc([], ctx.jobs)!;

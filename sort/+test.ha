@@ -58,7 +58,7 @@ use types;
 		5, 2, 3, 7, 10, 7, 7, 5, 5, 2, 3, 4, 5, 3, 6, 2, 3, 6, 8, 8, 9,
 		7, 10, 4, 10, 3, 2, 7, 10, 8, 8, 2, 2, 5, 3, 7, 4, 1,
 	];
-	sort(nums, size(int), &cmp::ints);
+	sort(nums, size(int), &cmp::ints)!;
 	for (let i = 1z; i < len(nums); i += 1) {
 		assert(nums[i] >= nums[i - 1]);
 	};
@@ -67,7 +67,7 @@ use types;
 @test fn big_equal() void = {
 	let nums = alloc([42...], 1000000)!;
 	defer free(nums);
-	sort(nums, size(int), &cmp::ints);
+	sort(nums, size(int), &cmp::ints)!;
 	for (let i = 0z; i < len(nums); i += 1) {
 		assert(nums[i] == 42);
 	};
@@ -82,7 +82,7 @@ use types;
 		nums[i] = random::next(&rand): int;
 	};
 
-	sort(nums, size(int), &cmp::ints);
+	sort(nums, size(int), &cmp::ints)!;
 	for (let i = 1z; i < len(nums); i += 1) {
 		assert(nums[i] >= nums[i - 1]);
 	};
@@ -93,7 +93,7 @@ use types;
 
 	assert(!sorted(nums, size(int), &cmp::ints));
 
-	sort(nums, size(int), &cmp::ints);
+	sort(nums, size(int), &cmp::ints)!;
 	assert(sorted(nums, size(int), &cmp::ints));
 	assert(sorted(nums[..0], size(int), &cmp::ints));
 };

@@ -510,7 +510,7 @@ fn struct_from_ast(
 	let fields: []struct_field = [];
 	let offs = 0z;
 	_struct_from_ast(store, atype, is_union, &fields, &offs)?;
-	sort::sort(fields, size(struct_field), &field_cmp);
+	sort::sort(fields, size(struct_field), &field_cmp)!;
 	return _struct {
 		kind = if (is_union) struct_union::UNION else struct_union::STRUCT,
 		fields = fields,
@@ -542,7 +542,7 @@ fn tagged_from_ast(
 	let types: []const *_type = [];
 	//defer! free(types);
 	tagged_collect(store, atype, &types)?;
-	sort::sort(types, size(const *_type), &tagged_cmp);
+	sort::sort(types, size(const *_type), &tagged_cmp)!;
 	for (let i = 1z; i < len(types); i += 1) {
 		if (types[i].id == types[i - 1].id) {
 			delete(types[i]);

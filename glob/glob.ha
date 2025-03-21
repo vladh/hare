@@ -207,7 +207,7 @@ fn next_match(gen: *generator) (str | void | failure | nomem) = {
 		};
 	};
 	if (gen.flgs & flag::NOSORT == 0) {
-		strstack_sort(&gen.pats, l);
+		strstack_sort(&gen.pats, l)?;
 	};
 
 	return next_match(gen);
@@ -355,12 +355,12 @@ fn strstack_pop(ss: *strstack) (str | void) = {
 	return memio::string(&ss.bufv[ss.bufc])!;
 };
 
-fn strstack_sort(ss: *strstack, pos: size) void = {
+fn strstack_sort(ss: *strstack, pos: size) (void | nomem) = {
 	if (pos > ss.bufc) {
 		return;
 	};
 	let s = ss.bufv[pos..ss.bufc];
-	sort::sort(s, size(memio::stream), &bufcmp);
+	sort::sort(s, size(memio::stream), &bufcmp)?;
 };
 
 fn bufcmp(a: const *opaque, b: const *opaque) int =

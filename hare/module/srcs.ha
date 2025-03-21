@@ -137,11 +137,11 @@ fn path_find(ctx: *context, buf: *path::buffer) (srcset | error) = {
 		};
 	};
 
-	sort::sort(res.dirs, size(str), &cmp::strs);
-	sort::sort(res.ha, size(str), &cmp::strs);
-	sort::sort(res.s, size(str), &cmp::strs);
-	sort::sort(res.o, size(str), &cmp::strs);
-	sort::sort(res.sc, size(str), &cmp::strs);
+	sort::sort(res.dirs, size(str), &cmp::strs)!;
+	sort::sort(res.ha, size(str), &cmp::strs)!;
+	sort::sort(res.s, size(str), &cmp::strs)!;
+	sort::sort(res.o, size(str), &cmp::strs)!;
+	sort::sort(res.sc, size(str), &cmp::strs)!;
 	return res;
 };
 

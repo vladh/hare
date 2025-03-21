@@ -32,6 +32,6 @@ export fn submodules(path: str, show_undocumented: bool) ([]str | error) = {
 			append(submodules, strings::dup(d.name)!)!;
 		};
 	};
-	sort::sort(submodules, size(str), &cmp::strs);
+	sort::sort(submodules, size(str), &cmp::strs)!;
 	return submodules;
 };

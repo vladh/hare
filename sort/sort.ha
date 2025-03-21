@@ -6,15 +6,12 @@ use types;
 
 // Sorts a slice of items in place. This function provides a stable sort -
 // relative order of equal elements is preserved.
-//
-// Note that this function may (temporarily) allocate, and will abort on
-// allocation failure.
-export fn sort(items: []opaque, itemsz: size, cmp: *cmpfunc) void = {
+export fn sort(items: []opaque, itemsz: size, cmp: *cmpfunc) (void | nomem) = {
 	if (len(items) < 256) {
 		insort(items, itemsz, cmp);
 		return;
 	};
-	powersort(items, itemsz, cmp);
+	powersort(items, itemsz, cmp)?;
 };
 
 // Checks if all of the items in a slice are sorted.
@@ -86,14 +83,14 @@ type run = struct {
 	end: size,
 };
 
-fn powersort(items: []opaque, itemsz: size, cmp: *cmpfunc) void = {
+fn powersort(items: []opaque, itemsz: size, cmp: *cmpfunc) (void | nomem) = {
 	// npowers = floor(log2(n)) + 1
 	const npowers = math::bit_size(len(items)) + 1;
-	const runs: []run = alloc([run { start = EMPTY, ... }...], npowers + 1)!;
+	const runs: []run = alloc([run { start = EMPTY, ... }...], npowers + 1)?;
 	defer free(runs);
 	let top = 0u8;
 
-	const aux: []u8 = alloc([0...], len(items) * itemsz)!;
+	const aux: []u8 = alloc([0...], len(items) * itemsz)?;
 	defer free(aux);
 
 	let a = run {

@@ -485,7 +485,7 @@ fn realize_validzoffs(
 						void;
 					case void =>
 						append(dates, d)!;
-						sort::sort(dates, size(date), &cmpdates);
+						sort::sort(dates, size(date), &cmpdates)!;
 					};
 				case invalid =>
 					continue;
@@ -508,7 +508,7 @@ fn realize_validzoffs(
 				void;
 			case void =>
 				append(dates, d)!;
-				sort::sort(dates, size(date), &cmpdates);
+				sort::sort(dates, size(date), &cmpdates)!;
 			};
 		case invalid =>
 			continue;
