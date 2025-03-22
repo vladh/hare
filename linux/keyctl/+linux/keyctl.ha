@@ -20,10 +20,10 @@ export fn add_key(
 	name: str,
 	payload: []u8,
 	keyring: serial,
-) (serial | error) = {
-	const keytype = c::fromstr(keytype)!;
+) (serial | error | nomem) = {
+	const keytype = c::fromstr(keytype)?;
 	defer free(keytype);
-	const name = c::fromstr(name)!;
+	const name = c::fromstr(name)?;
 	defer free(name);
 	match (rt::add_key(keytype: *const u8, name: *const u8,
 			payload: *[*]u8: *opaque, len(payload), keyring)) {
@@ -59,11 +59,11 @@ export fn get_keyring_id(key: serial, create: bool) (serial | error) = {
 
 // Replace the session keyring this process subscribes to with a new session
 // keyring using the given name, or, given an empty string, "_ses".
-export fn join_session_keyring(name: str) (serial | error) = {
+export fn join_session_keyring(name: str) (serial | error | nomem) = {
 	let name = if (name == "") {
 		yield null;
 	} else {
-		yield c::fromstr(name)!;
+		yield c::fromstr(name)?;
 	};
 	defer free(name);
 	return keyctl(command::JOIN_SESSION_KEYRING,
