@@ -68,13 +68,13 @@ use strings;
 		("'The central enemy of reliability is complexity.' - Geer et al", 0x61ea79c94e39ed29),
 	];
 
-	 for (let i = 0z; i < len(vectors); i += 1) {
+	for (let i = 0z; i < len(vectors); i += 1) {
 		const vector = vectors[i];
 		let sip = siphash(2, 4, &key);
 		defer hash::close(&sip);
 		hash::write(&sip, strings::toutf8(vector.0));
 		assert(sum(&sip) == vector.1);
-	 };
+	};
 
 	// Uncomment this to run the 1G test vector (I promise it works):
 

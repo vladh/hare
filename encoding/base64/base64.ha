@@ -462,22 +462,22 @@ export fn decode(
 		// invalid padding
 		("=", &std_encoding),
 		("==", &std_encoding),
-	        ("===", &std_encoding),
-	        ("=====", &std_encoding),
-	        ("======", &std_encoding),
-	        // invalid characters
-	        ("@Zg=", &std_encoding),
-	        ("ê==", &std_encoding),
-	        ("êg==", &std_encoding),
+		("===", &std_encoding),
+		("=====", &std_encoding),
+		("======", &std_encoding),
+		// invalid characters
+		("@Zg=", &std_encoding),
+		("ê==", &std_encoding),
+		("êg==", &std_encoding),
 		("$3d==", &std_encoding),
 		("%3d==", &std_encoding),
 		("[==", &std_encoding),
 		("!", &std_encoding),
-	        // data after padding is encountered
-	        ("Zg===", &std_encoding),
-	        ("Zg====", &std_encoding),
-	        ("Zg==Zg==", &std_encoding),
-	        ("Zm8=Zm8=", &std_encoding),
+		// data after padding is encountered
+		("Zg===", &std_encoding),
+		("Zg====", &std_encoding),
+		("Zg==Zg==", &std_encoding),
+		("Zm8=Zm8=", &std_encoding),
 	];
 	let buf: [12]u8 = [0...];
 	for (let bufsz = 1z; bufsz <= 12; bufsz += 1) {

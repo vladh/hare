@@ -130,9 +130,9 @@ continuing the same code sample
 	  	indentation is preserved
 	  	as   well as multiple     spaces`: code_sample,
 
-	  	[
-	  		" this is now a paragraph because of the ",
-	  		["leading", "spaces"]: decl_ref,
+		[
+			" this is now a paragraph because of the ",
+			["leading", "spaces"]: decl_ref,
 		]: paragraph,
 
 		[
