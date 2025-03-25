@@ -157,6 +157,14 @@ fn details_tty(ctx: *context, decl: *ast::decl) (bool | error) = {
 
 	unparse::decl(ctx.out, &syn_tty, decl)?;
 	fmt::fprintln(ctx.out)?;
+
+	if (ctx.show_lineno) {
+		if (!no_color) fmt::fprintf(ctx.out, "\x1b[{}m",
+			color(unparse::synkind::COMMENT))?;
+		fmt::fprintfln(ctx.out, "// See {}:{}",
+			cwdpath(decl.start.path), decl.start.line)?;
+	};
+
 	return true;
 };
 

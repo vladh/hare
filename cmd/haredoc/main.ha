@@ -22,8 +22,10 @@ use strings;
 const help: []getopt::help = [
 	"reads and formats Hare documentation",
 	('a', "show undocumented members (only applies to -Ftty)"),
-	('t', "disable HTML template (requires postprocessing)"),
 	('F', "format", "specify output format (tty or html)"),
+	('n', "include file paths and line numbers"),
+	('N', "print symbol path and line number and exit"),
+	('t', "disable HTML template (requires postprocessing)"),
 	('T', "tagset", "set/unset build tags"),
 	"[identifier|path]",
 ];
@@ -56,6 +58,8 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 	let html = false;
 	let template = true;
 	let show_undocumented = false;
+	let show_lineno = false;
+	let only_lineno = false;
 	let tags: []str = default_tags();
 	defer free(tags);
 
@@ -74,6 +78,10 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 			merge_tags(&tags, v)?;
 		case 't' =>
 			template = false;
+		case 'n' =>
+			show_lineno = true;
+		case 'N' =>
+			only_lineno = true;
 		case 'a' =>
 			show_undocumented = true;
 		case => abort();
@@ -264,6 +272,22 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 			yield [];
 		};
 	} else [];
+
+	if (only_lineno) {
+		if (len(decls) == 0) {
+			const id = unparse::identstr(id);
+			fmt::fatalf("Error: {}: symbol not found", id);
+		} else if (len(decls) != 1) {
+			const id = unparse::identstr(id);
+			fmt::fatalf("Error: {} matches more than one symbol", id);
+		};
+		const decl = decls[0];
+		fmt::printfln("{}:{}",
+			doc::cwdpath(decl.start.path),
+			decl.start.line)?;
+		return;
+	};
+
 	const srcs = if (!ambiguous && modpath != "") modsrcs else declsrcs;
 	const summary = doc::sort_decls(decls);
 	defer doc::finish_summary(summary);
@@ -278,6 +302,7 @@ fn doc(name: str, cmd: *getopt::command) (void | error) = {
 		summary = summary,
 		template = template,
 		readme = readme,
+		show_lineno = show_lineno,
 		show_undocumented = show_undocumented,
 		out = os::stdout,
 		pager = void,

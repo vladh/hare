@@ -6,7 +6,7 @@ haredoc - read and format Hare documentation
 
 # SYNOPSIS
 
-*haredoc* [-hat] [-F _format_] [-T _tagset_] [_identifier_|_path_]
+*haredoc* [-hanNt] [-F _format_] [-T _tagset_] [_identifier_|_path_]
 
 # DESCRIPTION
 
@@ -31,6 +31,14 @@ RESOLUTION* in *hare-module*(5).
 
 *-F* _format_
 	Select output format (one of "html" or "tty"). The default is "tty".
+
+*-n*
+	Include file names and line numbers of symbol declarations in the output
+	(only applies to *-Ftty*).
+
+*-N*
+	Print the file name and line number of a single symbol to stdout, then
+	exit.
 
 *-t*
 	Disable HTML template (only applies to *-Fhtml*).

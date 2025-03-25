@@ -35,3 +35,15 @@ export fn submodules(path: str, show_undocumented: bool) ([]str | error) = {
 	sort::sort(submodules, size(str), &cmp::strs)!;
 	return submodules;
 };
+
+// Trims the cwd from a path if applicable.
+export fn cwdpath(path: str) str = {
+	static let cwd = "";
+	if (cwd == "") {
+		cwd = os::getcwd();
+	};
+	if (strings::hasprefix(path, cwd)) {
+		return strings::sub(path, len(cwd) + 1);
+	};
+	return path;
+};

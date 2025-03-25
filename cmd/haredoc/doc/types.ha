@@ -54,6 +54,7 @@ export type context = struct {
 	submods: []str,
 	summary: summary,
 	template: bool,
+	show_lineno: bool,
 	show_undocumented: bool,
 	readme: (io::file | void),
 	out: io::handle,
