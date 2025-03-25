@@ -1,7 +1,8 @@
 image: alpine/latest
 oauth: pages.sr.ht/PAGES:RW
 packages:
-  - scdoc
+- scdoc
+- hut
 sources:
 - git://c9x.me/qbe.git
 - https://git.sr.ht/~sircmpwn/harec
@@ -78,11 +79,11 @@ tasks:
     fi
 - docs: |
     cd hare
+    export HAREDOC_HTML_SRC="https://git.sr.ht/~sircmpwn/hare/tree/master/item/{}#L{}"
     make docs/html
-    tar -C docs/html -cvz . > docs.tar.gz
     if [ $BUILD_SUBMITTER != "git.sr.ht" ]
     then
         echo "Not uploading docs for non-git.sr.ht build"
         exit
     fi
-    acurl -f https://pages.sr.ht/publish/docs.harelang.org -Fcontent=@docs.tar.gz || true
+    hut pages publish -d docs.harelang.org docs/html

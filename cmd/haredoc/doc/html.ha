@@ -12,6 +12,7 @@ use io;
 use memio;
 use net::ip;
 use net::uri;
+use os;
 use path;
 use strings;
 
@@ -209,8 +210,20 @@ fn details(ctx: *context, decl: *ast::decl) (void | error) = {
 	// TODO: Add source URL
 	fmt::fprint(ctx.out, "</span><span class='heading-extra'><a href='#")?;
 	unparse::ident(ctx.out, decl_ident(decl))?;
-	fmt::fprint(ctx.out, "'>[link]</a>
-	</span>")?;
+	fmt::fprint(ctx.out, "'>[permalink]</a>")?;
+	match (os::getenv("HAREDOC_HTML_SRC")) {
+	case let fmt: str =>
+		const url = fmt::asprintf(fmt,
+			cwdpath(decl.start.path),
+			decl.start.line)!;
+		defer free(url);
+		fmt::fprint(ctx.out, " <a href='")?;
+		html_escape(ctx.out, url)?;
+		fmt::fprint(ctx.out, "'>[source]</a>")?;
+	case void => yield;
+	};
+
+	fmt::fprint(ctx.out, "</span>")?;
 	fmt::fprintln(ctx.out, "</h4>")?;
 
 	if (len(decl.docs) == 0) {

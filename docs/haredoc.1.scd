@@ -98,6 +98,11 @@ The following environment variables affect *haredoc*'s execution:
 :  Disables all color output when set to a non-empty string.
 |  *HAREDOC_COLORS*
 :  See *CUSTOMIZING COLORS*.
+|  *HAREDOC_HTML_SRC*
+:  fmt:: string which expands to a URL where a symbol's source code is browsable
+   online (used for *-Fhtml*) when the file path relative to the working
+   directory and the line number is given as the first and second argument to
+   fmt:: respectively.
 
 # SEE ALSO
 
