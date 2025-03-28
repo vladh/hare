@@ -61,7 +61,12 @@ export fn query(query: *message, servers: ip::addr...) (*message | error | nomem
 	let header = header { ... };
 	let src: ip::addr = ip::ANY_V4;
 	for (true) {
-		let nevent = poll::poll(pollfd, timeout)!;
+		let nevent = match (poll::poll(pollfd, timeout)) {
+		case let nevent: uint =>
+			yield nevent;
+		case let e: poll::error =>
+			return e: io::error;
+		};
 		if (nevent == 0) {
 			return errors::timeout;
 		};
@@ -114,8 +119,8 @@ export fn query(query: *message, servers: ip::addr...) (*message | error | nomem
 	let socket = tcp::connect(src, 53)?;
 	defer net::close(socket)!;
 
-	io::writeall(socket, zbuf)!;
-	io::writeall(socket, buf[..z])!;
+	io::writeall(socket, zbuf)?;
+	io::writeall(socket, buf[..z])?;
 
 	let rz: u16 = match (io::readall(socket, zbuf)?) {
 	case let s: size =>
