@@ -14,14 +14,17 @@ type decoder = struct {
 // Decodes a DNS message, heap allocating the resources necessary to represent
 // it in Hare's type system. The caller must use [[message_free]] to free the
 // return value.
-export fn decode(buf: []u8) (*message | format) = {
+export fn decode(buf: []u8) (*message | format | nomem) = {
 	let success = false;
-	let msg = alloc(message { ... })!;
+	let msg = alloc(message { ... })?;
 	defer if (!success) message_free(msg);
 	let dec = decoder_init(buf);
 	decode_header(&dec, &msg.header)?;
 	for (let i = 0z; i < msg.header.qdcount; i += 1) {
-		append(msg.questions, decode_question(&dec)?)!;
+		let question = decode_question(&dec)?;
+		if (append(msg.questions, question) is nomem) {
+			strings::freeall(question.qname);
+		};
 	};
 	decode_rrecords(&dec, msg.header.ancount, &msg.answers)?;
 	decode_rrecords(&dec, msg.header.nscount, &msg.authority)?;
@@ -34,9 +37,13 @@ fn decode_rrecords(
 	dec: *decoder,
 	count: u16,
 	out: *[]rrecord,
-) (void | format) = {
+) (void | format | nomem) = {
 	for (let i = 0z; i < count; i += 1) {
-		append(out, decode_rrecord(dec)?)!;
+		let r = decode_rrecord(dec)?;
+		if (append(out, r) is nomem) {
+			rrecord_finish(&r);
+			return nomem;
+		};
 	};
 };
 
@@ -104,7 +111,7 @@ fn decode_op(in: u16, out: *op) void = {
 	out.rcode = (in & 0b1111): rcode;
 };
 
-fn decode_name(dec: *decoder) ([]str | format) = {
+fn decode_name(dec: *decoder) ([]str | format | nomem) = {
 	let success = false;
 	let names: []str = [];
 	defer if (!success) strings::freeall(names);
@@ -151,12 +158,18 @@ fn decode_name(dec: *decoder) ([]str | format) = {
 			return format;
 		};
 
-		append(names, strings::dup(name)!)!;
+		const name = strings::dup(name)?;
+		match (append(names, name)) {
+		case void => void;
+		case nomem =>
+			free(name);
+			return nomem;
+		};
 	};
 	return format;
 };
 
-fn decode_question(dec: *decoder) (question | format) = {
+fn decode_question(dec: *decoder) (question | format | nomem) = {
 	let success = false;
 	const qname = decode_name(dec)?;
 	defer if (!success) strings::freeall(qname);
@@ -170,7 +183,7 @@ fn decode_question(dec: *decoder) (question | format) = {
 	};
 };
 
-fn decode_rrecord(dec: *decoder) (rrecord | format) = {
+fn decode_rrecord(dec: *decoder) (rrecord | format | nomem) = {
 	let success = false;
 	const name = decode_name(dec)?;
 	defer if (!success) strings::freeall(name);
@@ -189,7 +202,7 @@ fn decode_rrecord(dec: *decoder) (rrecord | format) = {
 	};
 };
 
-fn decode_rdata(dec: *decoder, rtype: rtype, rlen: size) (rdata | format) = {
+fn decode_rdata(dec: *decoder, rtype: rtype, rlen: size) (rdata | format | nomem) = {
 	if (len(dec.cur) < rlen) {
 		return format;
 	};
@@ -256,7 +269,7 @@ fn decode_aaaa(dec: *decoder) (rdata | format) = {
 	return ip: aaaa;
 };
 
-fn decode_caa(dec: *decoder) (rdata | format) = {
+fn decode_caa(dec: *decoder) (rdata | format | nomem) = {
 	let flags = decode_u8(dec)?;
 	let tag_len = decode_u8(dec)?;
 
@@ -276,44 +289,54 @@ fn decode_caa(dec: *decoder) (rdata | format) = {
 		return format;
 	};
 
-	return caa {
+	let caa = caa {
 		flags = flags,
-		tag = strings::dup(tag)!,
-		value = strings::dup(value)!,
+		tag = strings::dup(tag)?,
+		...
 	};
+
+	match (strings::dup(value)) {
+	case let s: str =>
+		caa.value = s;
+	case nomem =>
+		free(caa.tag);
+		return nomem;
+	};
+
+	return caa;
 };
 
-fn decode_cname(dec: *decoder) (rdata | format) = {
+fn decode_cname(dec: *decoder) (rdata | format | nomem) = {
 	return cname {
 		name = decode_name(dec)?,
 	};
 };
 
-fn decode_dnskey(dec: *decoder) (rdata | format) = {
+fn decode_dnskey(dec: *decoder) (rdata | format | nomem) = {
 	let r = dnskey {
 		flags = decode_u16(dec)?,
 		protocol = decode_u8(dec)?,
 		algorithm = decode_u8(dec)?,
 		key = [],
 	};
-	append(r.key, dec.cur[..]...)!;
+	append(r.key, dec.cur[..]...)?;
 	return r;
 };
 
-fn decode_mx(dec: *decoder) (rdata | format) = {
+fn decode_mx(dec: *decoder) (rdata | format | nomem) = {
 	return mx {
 		priority = decode_u16(dec)?,
 		name = decode_name(dec)?,
 	};
 };
 
-fn decode_ns(dec: *decoder) (rdata | format) = {
+fn decode_ns(dec: *decoder) (rdata | format | nomem) = {
 	return ns {
 		name = decode_name(dec)?,
 	};
 };
 
-fn decode_opt(dec: *decoder) (rdata | format) = {
+fn decode_opt(dec: *decoder) (rdata | format | nomem) = {
 	let success = false;
 	let r = opt {
 		options = [],
@@ -333,30 +356,36 @@ fn decode_opt(dec: *decoder) (rdata | format) = {
 		if (len(dec.cur) < sz) {
 			return format;
 		};
-		append(o.data, dec.cur[..sz]...)!;
+		append(o.data, dec.cur[..sz]...)?;
 		dec.cur = dec.cur[sz..];
-		append(r.options, o)!;
+		if (append(r.options, o) is nomem) {
+			free(o.data);
+			return nomem;
+		};
 	};
 	success = true;
 	return r;
 };
 
-fn decode_nsec(dec: *decoder) (rdata | format) = {
+fn decode_nsec(dec: *decoder) (rdata | format | nomem) = {
 	let r = nsec {
 		next_domain = decode_name(dec)?,
 		type_bitmaps = [],
 	};
-	append(r.type_bitmaps, dec.cur[..]...)!;
+	if (append(r.type_bitmaps, dec.cur[..]...) is nomem) {
+		strings::freeall(r.next_domain);
+		return nomem;
+	};
 	return r;
 };
 
-fn decode_ptr(dec: *decoder) (rdata | format) = {
+fn decode_ptr(dec: *decoder) (rdata | format | nomem) = {
 	return ptr {
 		name = decode_name(dec)?,
 	};
 };
 
-fn decode_rrsig(dec: *decoder) (rdata | format) = {
+fn decode_rrsig(dec: *decoder) (rdata | format | nomem) = {
 	let r = rrsig {
 		type_covered = decode_u16(dec)?,
 		algorithm = decode_u8(dec)?,
@@ -368,22 +397,34 @@ fn decode_rrsig(dec: *decoder) (rdata | format) = {
 		signer_name = decode_name(dec)?,
 		signature = [],
 	};
-	append(r.signature, dec.cur[..]...)!;
+
+	if (append(r.signature, dec.cur[..]...) is nomem) {
+		strings::freeall(r.signer_name);
+		return nomem;
+	};
 	return r;
 };
 
-fn decode_soa(dec: *decoder) (rdata | format) = {
-	return soa {
-		mname = decode_name(dec)?,
-		rname = decode_name(dec)?,
-		serial = decode_u32(dec)?,
-		refresh = decode_u32(dec)?,
-		retry = decode_u32(dec)?,
-		expire = decode_u32(dec)?,
+fn decode_soa(dec: *decoder) (rdata | format | nomem) = {
+	let s = soa { ... };
+	let success = true;
+	defer if (!success) {
+		strings::freeall(s.mname);
+		strings::freeall(s.rname);
 	};
+
+	s.mname = decode_name(dec)?;
+	s.rname = decode_name(dec)?;
+	s.serial = decode_u32(dec)?;
+	s.refresh = decode_u32(dec)?;
+	s.retry = decode_u32(dec)?;
+	s.expire = decode_u32(dec)?;
+
+	success = true;
+	return s;
 };
 
-fn decode_srv(dec: *decoder) (rdata | format) = {
+fn decode_srv(dec: *decoder) (rdata | format | nomem) = {
 	return srv {
 		priority = decode_u16(dec)?,
 		weight = decode_u16(dec)?,
@@ -392,23 +433,23 @@ fn decode_srv(dec: *decoder) (rdata | format) = {
 	};
 };
 
-fn decode_sshfp(dec: *decoder) (rdata | format) = {
+fn decode_sshfp(dec: *decoder) (rdata | format | nomem) = {
 	let r = sshfp {
 		algorithm = decode_u8(dec)?,
 		fp_type = decode_u8(dec)?,
 		fingerprint = [],
 	};
-	append(r.fingerprint, dec.cur[..]...)!;
+	append(r.fingerprint, dec.cur[..]...)?;
 	return r;
 };
 
-fn decode_tsig(dec: *decoder) (rdata | format) = {
+fn decode_tsig(dec: *decoder) (rdata | format | nomem) = {
 	let success = false;
 	let r = tsig {
 		algorithm = decode_name(dec)?,
 		...
 	};
-	defer if (!success) free(r.algorithm);
+	defer if (!success) strings::freeall(r.algorithm);
 
 	r.time_signed = decode_u48(dec)?;
 	r.fudge = decode_u16(dec)?;
@@ -417,7 +458,7 @@ fn decode_tsig(dec: *decoder) (rdata | format) = {
 	if (len(dec.cur) < r.mac_len) {
 		return format;
 	};
-	append(r.mac, dec.cur[..r.mac_len]...)!;
+	append(r.mac, dec.cur[..r.mac_len]...)?;
 	defer if (!success) free(r.mac);
 	dec.cur = dec.cur[r.mac_len..];
 
@@ -429,14 +470,14 @@ fn decode_tsig(dec: *decoder) (rdata | format) = {
 		return format;
 	};
 	if (r.other_len > 0) {
-		append(r.other_data, dec.cur[..]...)!;
+		append(r.other_data, dec.cur[..]...)?;
 	};
 
 	success = true;
 	return r;
 };
 
-fn decode_txt(dec: *decoder) (rdata | format) = {
+fn decode_txt(dec: *decoder) (rdata | format | nomem) = {
 	let success = false;
 	let items: txt = [];
 	defer if (!success) bytes_free(items);
@@ -446,9 +487,12 @@ fn decode_txt(dec: *decoder) (rdata | format) = {
 			return format;
 		};
 		let item: []u8 = [];
-		append(item, dec.cur[..ln]...)!;
+		append(item, dec.cur[..ln]...)?;
 		dec.cur = dec.cur[ln..];
-		append(items, item)!;
+		if (append(items, item) is nomem) {
+			free(item);
+			return nomem;
+		};
 	};
 	success = true;
 	return items;

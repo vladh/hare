@@ -172,11 +172,11 @@ use net::ip;
 	)!;
 };
 
-fn test_uri_roundtrip(in: str, expected: uri) (void | invalid) = {
+fn test_uri_roundtrip(in: str, expected: uri) (void | invalid | nomem) = {
 	test_uri(in, expected, in)?;
 };
 
-fn test_uri(in: str, expected_uri: uri, expected_str: str) (void | invalid) = {
+fn test_uri(in: str, expected_uri: uri, expected_str: str) (void | invalid | nomem) = {
 	const u = parse(in)?;
 	defer finish(&u);
 
@@ -193,7 +193,7 @@ fn test_uri(in: str, expected_uri: uri, expected_str: str) (void | invalid) = {
 	assert_str(u.query, expected_uri.query);
 	assert_str(u.fragment, expected_uri.fragment);
 
-	const s = string(&u);
+	const s = string(&u)!;
 	defer free(s);
 
 	assert_str(s, expected_str);

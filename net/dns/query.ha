@@ -20,7 +20,7 @@ def timeout: time::duration = 3 * time::SECOND;
 // free the return value with [[message_free]].
 //
 // If no DNS servers are provided, the system default servers (if any) are used.
-export fn query(query: *message, servers: ip::addr...) (*message | error) = {
+export fn query(query: *message, servers: ip::addr...) (*message | error | nomem) = {
 	if (len(servers) == 0) {
 		servers = resolvconf::load().nameservers;
 	};
@@ -93,7 +93,14 @@ export fn query(query: *message, servers: ip::addr...) (*message | error) = {
 
 	if (!header.op.tc) {
 		check_rcode(header.op.rcode)?;
-		return decode(buf[..z])?;
+		return match (decode(buf[..z])) {
+		case let m: *message =>
+			return m;
+		case format =>
+			return format;
+		case nomem =>
+			return nomem;
+		};
 	};
 
 	// Response was truncated, retry over TCP. In TCP mode, the
@@ -119,7 +126,7 @@ export fn query(query: *message, servers: ip::addr...) (*message | error) = {
 	case =>
 		return format;
 	};
-	let tcpbuf: []u8 = alloc([0...], rz)!;
+	let tcpbuf: []u8 = alloc([0...], rz)?;
 	defer free(tcpbuf);
 
 	match (io::readall(socket, tcpbuf)?) {
@@ -137,5 +144,12 @@ export fn query(query: *message, servers: ip::addr...) (*message | error) = {
 		return format;
 	};
 	check_rcode(header.op.rcode)?;
-	return decode(tcpbuf)?;
+	return match (decode(tcpbuf)) {
+	case let m: *message =>
+		return m;
+	case format =>
+		return format;
+	case nomem =>
+		return nomem;
+	};
 };

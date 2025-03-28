@@ -79,8 +79,13 @@ fn encode_labels(enc: *encoder, names: []str) (void | error) = {
 			return errors::overflow;
 		};
 		encode_u8(enc, len(names[i]): u8)?;
-		// TODO nomem
-		let label = fmt::bsprintf(enc.buf[enc.offs..], "{}", names[i])!;
+		let label = match (fmt::bsprintf(
+				enc.buf[enc.offs..], "{}", names[i])) {
+		case let label: str =>
+			yield label;
+		case nomem =>
+			return errors::overflow;
+		};
 		enc.offs += len(label);
 	};
 	encode_u8(enc, 0)?;

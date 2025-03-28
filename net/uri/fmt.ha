@@ -109,8 +109,13 @@ fn percent_encode(out: io::handle, src: str, allowed: str) (size | io::error) = 
 };
 
 // Formats a [[uri]] into a string. The result must be freed by the caller.
-export fn string(u: *const uri) str = {
+export fn string(u: *const uri) (str | nomem) = {
 	const st = memio::dynamic();
-	fmt(&st, u)!;
+	match (fmt(&st, u)) {
+	case size => void;
+	case let e: io::error =>
+		assert(e is nomem);
+		return nomem;
+	};
 	return memio::string(&st)!;
 };

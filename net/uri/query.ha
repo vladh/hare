@@ -26,7 +26,7 @@ export fn query_finish(dec: *query_decoder) void = {
 // Retrieves the next (key, value) pair from the query. The return value is
 // borrowed from the decoder and will be replaced on the next call, use
 // [[strings::dup]] to extend its lifetime.
-export fn query_next(dec: *query_decoder) ((str, str) | invalid | void) = {
+export fn query_next(dec: *query_decoder) ((str, str) | invalid | nomem | void) = {
 	const tok = match (strings::next_token(&dec.tokenizer)) {
 	case let s: str =>
 		yield s;
@@ -46,17 +46,26 @@ export fn query_next(dec: *query_decoder) ((str, str) | invalid | void) = {
 
 // Encodes (key, value) pairs into a URI query string. The result must be
 // freed by the caller.
-export fn encodequery(pairs: [](str, str)) str = {
+export fn encodequery(pairs: [](str, str)) (str | nomem) = {
 	const buf = memio::dynamic();
 	for (let i = 0z; i < len(pairs); i += 1) {
 		const pair = pairs[i];
-		if (i > 0) memio::appendrune(&buf, '&')!;
+		if (i > 0 && memio::appendrune(&buf, '&') is io::error) {
+			return nomem;
+		};
 
 		assert(len(pair.0) > 0);
-		percent_encode(&buf, pair.0, unres_query_frag)!;
+		if (percent_encode(&buf, pair.0, unres_query_frag) is io::error) {
+			return nomem;
+		};
 		if (len(pair.1) > 0) {
-			memio::appendrune(&buf, '=')!;
-			percent_encode(&buf, pair.1, unres_query_frag)!;
+			if (memio::appendrune(&buf, '=') is io::error) {
+				return nomem;
+			};
+			if (percent_encode(&buf, pair.1, unres_query_frag)
+					is io::error) {
+				return nomem;
+			};
 		};
 	};
 
@@ -88,7 +97,7 @@ export fn encodequery(pairs: [](str, str)) str = {
 		("sort", "longest-active"),
 		("quantity", "100%")
 	];
-	const encoded = encodequery(pairs);
+	const encoded = encodequery(pairs)!;
 	defer free(encoded);
 
 	assert(encoded == "search=%23risc-v&sort=longest-active&quantity=100%25");

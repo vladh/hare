@@ -18,23 +18,32 @@ export type uri = struct {
 };
 
 // Duplicates a [[uri]].
-export fn dup(u: *uri) uri = {
-	return uri {
-		scheme = strings::dup(u.scheme)!,
-
-		host = match (u.host) {
-		case let host: str =>
-			yield strings::dup(host)!;
-		case let ip: ip::addr =>
-			yield ip;
-		},
+export fn dup(u: *uri) (uri | nomem) = {
+	let dup = uri {
+		host = "",
 		port = u.port,
-		userinfo = strings::dup(u.userinfo)!,
-
-		path = strings::dup(u.path)!,
-		query = strings::dup(u.query)!,
-		fragment = strings::dup(u.fragment)!,
+		...
 	};
+	let success = false;
+	defer if (!success) finish(&dup);
+
+	dup.scheme = strings::dup(u.scheme)?;
+
+	dup.host = match (u.host) {
+	case let host: str =>
+		yield strings::dup(host)?;
+	case let ip: ip::addr =>
+		yield ip;
+	};
+	dup.port = u.port;
+	dup.userinfo = strings::dup(u.userinfo)?;
+
+	dup.path = strings::dup(u.path)?;
+	dup.query = strings::dup(u.query)?;
+	dup.fragment = strings::dup(u.fragment)?;
+
+	success = true;
+	return dup;
 };
 
 // Frees resources associated with a [[uri]].

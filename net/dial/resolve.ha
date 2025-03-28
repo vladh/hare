@@ -64,7 +64,7 @@ export fn resolve(
 	proto: str,
 	addr: str,
 	service: str,
-) (([]ip::addr, u16) | error) = {
+) (([]ip::addr, u16) | error | nomem) = {
 	const (addr, port) = splitaddr(addr, service)?;
 	if (service == "unknown" && port == 0) {
 		return unknown_service;
@@ -91,19 +91,26 @@ export fn resolve(
 	return (addrs, port);
 };
 
-fn resolve_addr(addr: str) ([]ip::addr | error) = {
+fn resolve_addr(addr: str) ([]ip::addr | error | nomem) = {
 	match (ip::parse(addr)) {
 	case let addr: ip::addr =>
-		return alloc([addr])!;
+		return alloc([addr])?;
 	case ip::invalid => void;
 	};
 
-	const addrs = hosts::lookup(addr)?;
+	const addrs = match (hosts::lookup(addr)) {
+	case let addrs: []ip::addr =>
+		yield addrs;
+	case let e: hosts::error =>
+		return e;
+	case nomem =>
+		return nomem;
+	};
 	if (len(addrs) != 0) {
 		return addrs;
 	};
 
-	const domain = dns::parse_domain(addr);
+	const domain = dns::parse_domain(addr)?;
 	defer free(domain);
 
 	let id = 0u16;
@@ -152,24 +159,41 @@ fn resolve_addr(addr: str) ([]ip::addr | error) = {
 		...
 	};
 
-	const resp6 = dns::query(&query6)?;
+	const resp6 = match (dns::query(&query6)) {
+	case let msg: *dns::message =>
+		yield msg;
+	case let e: dns::error =>
+		return e;
+	case nomem =>
+		return nomem;
+	};
 	defer dns::message_free(resp6);
-	const resp4 = dns::query(&query4)?;
+	const resp4 = match (dns::query(&query4)) {
+	case let msg: *dns::message =>
+		yield msg;
+	case let e: dns::error =>
+		return e;
+	case nomem =>
+		return nomem;
+	};
 	defer dns::message_free(resp4);
 
 	let addrs: []ip::addr = [];
-	collect_answers(&addrs, &resp6.answers);
-	collect_answers(&addrs, &resp4.answers);
+	let ok = false;
+	defer if (!ok) free(addrs);
+	collect_answers(&addrs, &resp6.answers)?;
+	collect_answers(&addrs, &resp4.answers)?;
+	ok = true;
 	return addrs;
 };
 
-fn collect_answers(addrs: *[]ip::addr, answers: *[]dns::rrecord) void = {
+fn collect_answers(addrs: *[]ip::addr, answers: *[]dns::rrecord) (void | nomem) = {
 	for (let i = 0z; i < len(answers); i += 1) {
 		match (answers[i].rdata) {
 		case let addr: dns::aaaa =>
-			append(addrs, addr: ip::addr)!;
+			append(addrs, addr: ip::addr)?;
 		case let addr: dns::a =>
-			append(addrs, addr: ip::addr)!;
+			append(addrs, addr: ip::addr)?;
 		case => void;
 		};
 	};

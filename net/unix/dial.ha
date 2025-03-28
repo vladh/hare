@@ -14,5 +14,5 @@ fn dial_unix(addr: str, service: str) (net::socket | dial::error) = {
 };
 
 @init fn registerproto() void = {
-	dial::registerproto("unix", &dial_unix);
+	dial::registerproto("unix", &dial_unix)!;
 };

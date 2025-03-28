@@ -34,21 +34,17 @@ use net::uri;
 // be performed alongside the A or AAAA record lookup for that name. If the name
 // server provides an SRV record for the given service, it will be utilized in
 // lieu of the service database.
-export fn dial(
-	proto: str,
-	address: str,
-	service: str,
-) (net::socket | error) = {
+export fn dial(proto: str, address: str, service: str) (net::socket | error) = {
 	for (let i = 0z; i < len(default_protocols); i += 1) {
 		const p = default_protocols[i];
 		if (p.name == proto) {
-			return p.dial(address, service);
+			return p.dial(address, service)?;
 		};
 	};
 	for (let i = 0z; i < len(protocols); i += 1) {
 		const p = protocols[i];
 		if (p.name == proto) {
-			return p.dial(address, service);
+			return p.dial(address, service)?;
 		};
 	};
 	return net::unknownproto: net::error;
@@ -58,7 +54,7 @@ def HOST_MAX: size = 255;
 
 // Performs a [[dial]] operation for a given URI, taking the service name from
 // the URI scheme and forming an address from the URI host and port.
-export fn dial_uri(proto: str, uri: *uri::uri) (net::socket | error) = {
+export fn dial_uri(proto: str, uri: *uri::uri) (net::socket | error | nomem) = {
 	// XXX: Should the code to convert a URI to e.g. "[::1]:80" be
 	// generalized for end-user use?
 	if (uri.host is str && len(uri.host as str) > HOST_MAX) {

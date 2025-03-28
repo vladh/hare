@@ -14,7 +14,7 @@ export type invalid = !void;
 
 // Parses a URI string into [[uri]] structure. The return value must be freed
 // using [[finish]].
-export fn parse(in: str) (uri | invalid) = {
+export fn parse(in: str) (uri | invalid | nomem) = {
 	let success = false;
 	let in = strings::iter(in);
 
@@ -124,7 +124,7 @@ export fn parse(in: str) (uri | invalid) = {
 	};
 };
 
-fn parse_scheme(in: *strings::iterator) (str | invalid) = {
+fn parse_scheme(in: *strings::iterator) (str | invalid | nomem) = {
 	let copy = *in;
 	for (let i = 0z; true; i += 1) {
 		const r = wantrune(in)?;
@@ -142,14 +142,14 @@ fn parse_scheme(in: *strings::iterator) (str | invalid) = {
 			};
 		};
 	};
-	let s = strings::dup(strings::slice(&copy, in))!;
+	let s = strings::dup(strings::slice(&copy, in))?;
 	strings::next(in);
 	return s;
 };
 
 fn parse_authority(
 	in: *strings::iterator,
-) (((str | ip::addr6), u16, str) | invalid) = {
+) (((str | ip::addr6), u16, str) | invalid | nomem) = {
 	// Scan everything until '@' or ':' or '/', then decide what it is
 	let success = false;
 	let buf = memio::dynamic();
@@ -180,7 +180,9 @@ fn parse_authority(
 				if (r == ']') {
 					break;
 				};
-				memio::appendrune(&buf, r)!;
+				if (memio::appendrune(&buf, r) is io::error) {
+					return nomem;
+				};
 			};
 
 			const addr = percent_decode(memio::string(&buf)!)?;
@@ -215,7 +217,9 @@ fn parse_authority(
 				return invalid;
 			};
 		} else {
-			memio::appendrune(&buf, r)!;
+			if (memio::appendrune(&buf, r) is io::error) {
+				return nomem;
+			};
 		};
 	};
 
@@ -237,7 +241,7 @@ type path_mode = enum {
 	ROOTLESS,
 };
 
-fn parse_path(in: *strings::iterator, mode: path_mode) (str | invalid) = {
+fn parse_path(in: *strings::iterator, mode: path_mode) (str | invalid | nomem) = {
 	let copy = *in;
 	// With rootless path, we need at least one segment
 	if (mode == path_mode::ROOTLESS) {
@@ -277,7 +281,7 @@ fn parse_path(in: *strings::iterator, mode: path_mode) (str | invalid) = {
 	return percent_decode(strings::slice(&copy, in));
 };
 
-fn parse_query(in: *strings::iterator) (str | invalid) = {
+fn parse_query(in: *strings::iterator) (str | invalid | nomem) = {
 	let copy = *in;
 	for (let r => strings::next(in)) {
 		if (r == '#') {
@@ -288,10 +292,10 @@ fn parse_query(in: *strings::iterator) (str | invalid) = {
 			return invalid;
 		};
 	};
-	return strings::dup(strings::slice(&copy, in))!;
+	return strings::dup(strings::slice(&copy, in))?;
 };
 
-fn parse_fragment(in: *strings::iterator) (str | invalid) = {
+fn parse_fragment(in: *strings::iterator) (str | invalid | nomem) = {
 	let copy = *in;
 	for (let r => strings::next(in)) {
 		if (!is_pchar(r) && r != '/' && r != '?') {
@@ -323,22 +327,23 @@ fn parse_port(in: *strings::iterator) (u16 | invalid) = {
 	};
 };
 
-fn percent_decode(s: str) (str | invalid) = {
+fn percent_decode(s: str) (str | invalid | nomem) = {
 	let buf = memio::dynamic();
-	match (percent_decode_static(&buf, s)) {
-	case void => void;
-	case invalid =>
-		io::close(&buf)!;
-		return invalid;
-	};
+	let success = false;
+	defer if (!success) io::close(&buf)!;
+	percent_decode_static(&buf, s)?;
+	success = true;
 	return memio::string(&buf)!;
 };
 
-fn percent_decode_static(out: io::handle, s: str) (void | invalid) = {
+fn percent_decode_static(out: io::handle, s: str) (void | invalid | nomem) = {
 	let iter = strings::iter(s);
 	let tmp = memio::dynamic();
 	defer io::close(&tmp)!;
 	let percent_data: []u8 = [];
+	let success = false;
+	if (!success) free(percent_data);
+
 	for (true) {
 		match (strings::next(&iter)) {
 		case let r: rune =>
@@ -346,13 +351,16 @@ fn percent_decode_static(out: io::handle, s: str) (void | invalid) = {
 				memio::reset(&tmp);
 				for (let i = 0z; i < 2; i += 1) {
 					const r = wantrune(&iter)?;
-					memio::appendrune(&tmp, r)!;
+					if (memio::appendrune(&tmp, r)
+							is io::error) {
+						return nomem;
+					};
 				};
 
 				match (strconv::stou8(memio::string(&tmp)!,
 					strconv::base::HEX)) {
 				case let ord: u8 =>
-					append(percent_data, ord)!;
+					append(percent_data, ord)?;
 				case =>
 					return invalid;
 				};
@@ -360,7 +368,10 @@ fn percent_decode_static(out: io::handle, s: str) (void | invalid) = {
 				if(len(percent_data) > 0) {
 					match(strings::fromutf8(percent_data)) {
 					case let stro: str =>
-						memio::concat(out, stro)!;
+						if (memio::concat(out, stro)
+								is io::error) {
+							return nomem;
+						};
 					case utf8::invalid =>
 						return invalid;
 					};
@@ -369,13 +380,18 @@ fn percent_decode_static(out: io::handle, s: str) (void | invalid) = {
 					percent_data = [];
 				};
 
-				memio::appendrune(out, r)!;
+				if (memio::appendrune(out, r) is io::error) {
+					return nomem;
+				};
 			};
 		case done =>
 			if(len(percent_data) > 0) {
 				match(strings::fromutf8(percent_data)) {
 				case let stro: str =>
-					memio::concat(out, stro)!;
+					if (memio::concat(out, stro)
+							is io::error) {
+						return nomem;
+					};
 				case utf8::invalid =>
 					return invalid;
 				};
@@ -387,6 +403,8 @@ fn percent_decode_static(out: io::handle, s: str) (void | invalid) = {
 			break;
 		};
 	};
+
+	success = true;
 };
 
 fn wantrune(iter: *strings::iterator) (rune | invalid) = {
