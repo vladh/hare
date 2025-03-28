@@ -125,7 +125,13 @@ fn seek(
 	return s.pos: io::off;
 };
 
-fn copy(dest: *io::stream, src: *io::stream) (size | io::error) = {
+fn copy(dest: *io::stream, src: io::handle) (size | io::error) = {
+	const src = match (src) {
+	case let st: *io::stream =>
+		yield st;
+	case io::handle =>
+		return errors::unsupported;
+	};
 	if (src.reader != &read || dest.writer == null) {
 		return errors::unsupported;
 	};

@@ -22,30 +22,21 @@ export fn copy(dest: handle, src: handle) (size | error) = {
 			};
 		};
 		return copy_fallback(dest, src);
-	case let st: *stream =>
-		if (!(src is *stream)) {
+	case let dest: *stream =>
+		match (dest.copier) {
+		case null =>
 			return copy_fallback(dest, src);
-		};
-		return copy_streams(st, src as *stream);
-	};
-};
-
-fn copy_streams(dest: *stream, src: *stream) (size | error) = {
-	match (dest.copier) {
-	case null => void;
-	case let c: *copier =>
-		match (c(dest, src)) {
-		case let err: error =>
-			match (err) {
-			case errors::unsupported => void;
-			case =>
+		case let c: *copier =>
+			match (c(dest, src)) {
+			case errors::unsupported =>
+				return copy_fallback(dest, src);
+			case let err: error =>
 				return err;
+			case let s: size =>
+				return s;
 			};
-		case let s: size =>
-			return s;
 		};
 	};
-	return copy_fallback(dest, src);
 };
 
 fn copy_fallback(dest: handle, src: handle) (size | error) = {

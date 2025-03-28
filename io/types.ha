@@ -54,17 +54,17 @@ export type writer = fn(s: *stream, buf: const []u8) (size | error);
 // and free any underlying resources, and cannot be used again.
 export type closer = fn(s: *stream) (void | error);
 
-// The interface for a stream which has first-class support for copying data
-// from another stream. Often this only works if the second stream is of the
-// same underlying stream type. This is optional, [[copy]] still works even with
-// a stream which does not implement this (it falls back to calling read and
-// write in a loop).
+// The interface for a stream which provides an efficient path for copying data
+// from a second I/O source.
 //
 // Returns the number of bytes copied, or an error if one occured. Do not close
-// either stream. If the operation is unsupported for this particular pair of
-// streams, return [[errors::unsupported]] to have [[copy]] proceed with its
-// fallback implementation.
-export type copier = fn(to: *stream, from: *stream) (size | error);
+// either "to" or "from".
+//
+// Most implementations of copier only support certain configurations of "to"
+// and "from", such as requiring both to be the same kind of [[stream]]. In case
+// of an unsupported configuration, return [[errors::unsupported]]. [[copy]]
+// falls back to a read/write loop in this case.
+export type copier = fn(to: *stream, from: handle) (size | error);
 
 // The interface for a stream which can be seeked. Sets the offset for the next
 // read or write to offset, interpreted according to whence:
