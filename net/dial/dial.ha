@@ -54,7 +54,7 @@ def HOST_MAX: size = 255;
 
 // Performs a [[dial]] operation for a given URI, taking the service name from
 // the URI scheme and forming an address from the URI host and port.
-export fn dial_uri(proto: str, uri: *uri::uri) (net::socket | error | nomem) = {
+export fn dial_uri(proto: str, uri: *uri::uri) (net::socket | error) = {
 	// XXX: Should the code to convert a URI to e.g. "[::1]:80" be
 	// generalized for end-user use?
 	if (uri.host is str && len(uri.host as str) > HOST_MAX) {
