@@ -3,7 +3,7 @@
 
 use types;
 
-// Duplicates a string. Aborts on allocation failure.
+// Duplicates a string. The result must be freed after use.
 export fn dup(s: const str) (str | nomem) = {
 	const in = &s: *types::string;
 	const id = match (in.data) {
