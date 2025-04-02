@@ -14,7 +14,7 @@ export type dupflag = enum {
 };
 
 // Duplicates a file descriptor.
-export fn dup(old: file, flags: dupflag) (file | error) = {
+export fn dup(old: file, flags: dupflag = dupflag::NONE) (file | error) = {
 	flags ^= dupflag::NOCLOEXEC; // Invert CLOEXEC
 
 	match (rt::dup(old)) {
@@ -30,7 +30,11 @@ export fn dup(old: file, flags: dupflag) (file | error) = {
 // Duplicates a file descriptor and stores the new file at a specific file
 // descriptor number. If the file indicated by "new" already refers to an open
 // file, this file will be closed before the file descriptor is reused.
-export fn dup2(old: file, new: file, flags: dupflag) (file | error) = {
+export fn dup2(
+	old: file,
+	new: file,
+	flags: dupflag = dupflag::NONE,
+) (file | error) = {
 	flags ^= dupflag::NOCLOEXEC; // Invert CLOEXEC
 
 	match (rt::dup3(old, new, flags)) {
