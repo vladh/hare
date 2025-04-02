@@ -3,6 +3,8 @@
 
 use debug::image;
 use fmt;
+use fs;
+use os;
 use rt;
 
 let default_abort = null: *rt::abort_handler;
@@ -20,14 +22,24 @@ fn debug_abort(
 ) never = {
 	begin_fatal();
 
-	fmt::errorfln("Abort: {}:{}:{}: {}", *path, line, col, msg): void;
-
 	const self = match (image::self()) {
 	case let img: image::image =>
 		yield img;
-	case => halt();
+	case =>
+		fmt::errorfln("Abort: {}:{}:{}: {}", *path, line, col, msg): void;
+		halt();
 	};
 	defer image::close(&self);
+
+	const st = match (os::fstat(self.fd)) {
+	case let st: fs::filestat =>
+		yield st;
+	case fs::error =>
+		yield fs::filestat { mask = 0, ... };
+	};
+
+	fmt::errorfln("Abort: {}:{}:{}: {}", *path, line, col, msg): void;
+	print_context(*path, line, col, st.mtime);
 
 	let frame = walk();
 	// Skip rt::abort and debug::debug_abort

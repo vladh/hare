@@ -98,29 +98,6 @@ fn printframe(
 		yield tuple;
 	};
 
-	const file = match (os::open(path)) {
-	case fs::error =>
-		printframe_with_symbol(&sym, name, path, (line, col), pc);
-		return;
-	case let file: io::file =>
-		yield file;
-	};
-	defer io::close(file): void;
-
-	static let linebuf: [1024]u8 = [0...];
-	const scan = bufio::newscanner_static(file, linebuf);
-
-	let context = "";
-	for (let i = 0u; i < line; i += 1) {
-		match (bufio::scan_line(&scan)) {
-		case let s: const str =>
-			context = s;
-		case =>
-			printframe_with_symbol(&sym, name, path, (line, col), pc);
-			return;
-		};
-	};
-
 	fmt::errorf("{}:{}:{} {}+0x{:x} [0x{:x}]",
 		path, line, col, symname_to_ident(name),
 		pc - sym.st_value: uintptr, pc): void;
@@ -135,29 +112,7 @@ fn printframe(
 	static append(seen, pc)!;
 	fmt::errorln(): void;
 
-	if (imgstat.mask & fs::stat_mask::MTIME != 0) {
-		match (os::fstat(file)) {
-		case let st: fs::filestat =>
-			if (st.mask & fs::stat_mask::MTIME == 0) yield;
-			if (time::compare(st.mtime, imgstat.mtime) == 1) {
-				fmt::errorln("* Warning: file was modified after executable was built"): void;
-			};
-		case => void;
-		};
-	};
-
-	fmt::errorfln("| {}", context): void;
-
-	if (col != 0) {
-		fmt::errorf("  "): void;
-		for (let i = 1u; i < col - 1; i += 1) {
-			fmt::errorf(" "): void;
-		};
-		fmt::errorf("^"): void;
-	};
-
-	fmt::errorln(): void;
-
+	print_context(path, line, col, imgstat.mtime);
 };
 
 fn printframe_with_symbol(
