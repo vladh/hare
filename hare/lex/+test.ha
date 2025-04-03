@@ -499,3 +499,25 @@ type op = enum {
 	];
 	lextest(in, expected);
 };
+
+@test fn save_restore() void = {
+	const lexer = initstr(`export fn main() void = void;`);
+	assert(lex(&lexer)!.0 == ltok::EXPORT);
+	assert(lex(&lexer)!.0 == ltok::FN);
+
+	let tok = lex(&lexer)!;
+	assert(tok.0 == ltok::NAME && tok.1 as str == "main");
+	let state = save(&lexer)!;
+
+	assert(lex(&lexer)!.0 == ltok::LPAREN);
+	assert(lex(&lexer)!.0 == ltok::RPAREN);
+	assert(lex(&lexer)!.0 == ltok::VOID);
+	assert(lex(&lexer)!.0 == ltok::EQUAL);
+
+	restore(&lexer, &state)!;
+
+	assert(lex(&lexer)!.0 == ltok::LPAREN);
+	assert(lex(&lexer)!.0 == ltok::RPAREN);
+	assert(lex(&lexer)!.0 == ltok::VOID);
+	assert(lex(&lexer)!.0 == ltok::EQUAL);
+};

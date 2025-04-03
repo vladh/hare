@@ -77,6 +77,26 @@ export fn init(
 	};
 };
 
+export type restore_point = struct {
+	off: io::off,
+	state: lexer,
+};
+
+// Saves the state of a [[lexer]], to be restored later with [[restore]]. The
+// underlying I/O source must be seekable.
+export fn save(lex: *lexer) (restore_point | io::error) = {
+	return restore_point {
+		off = io::tell(lex.in)?,
+		state = *lex,
+	};
+};
+
+// Restores a lexer to a state previously recorded with [[save]].
+export fn restore(lex: *lexer, rp: *restore_point) (void | io::error) = {
+	io::seek(lex.in, rp.off, io::whence::SET)?;
+	*lex = rp.state;
+};
+
 // Returns the current value of the comment buffer, or empty string if unset (or
 // if [[flag::COMMENTS]] was not enabled for this lexer).
 export fn comment(lex: *lexer) str = lex.comment;
