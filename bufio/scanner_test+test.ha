@@ -212,3 +212,36 @@ use types;
 	let line = scan_line(&scan) as const str;
 	assert(strings::compare(line, "hello") == 0);
 };
+
+@test fn scan_seek() void = {
+	let buf = memio::fixed(strings::toutf8(`Line 1
+Line 2
+Line 3
+`));
+	let scan = newscanner(&buf);
+	assert(scan_line(&scan) as const str == "Line 1");
+
+	// Test whence::SET / io::tell
+	const line2 = io::tell(&scan)!;
+	io::seek(&scan, 0, io::whence::SET)!;
+
+	assert(scan_line(&scan) as const str == "Line 1");
+	assert(scan_line(&scan) as const str == "Line 2");
+	assert(scan_line(&scan) as const str == "Line 3");
+
+	io::seek(&scan, line2, io::whence::SET)!;
+	assert(scan_line(&scan) as const str == "Line 2");
+	assert(scan_line(&scan) as const str == "Line 3");
+
+	// Test whence::END
+	io::seek(&scan, -(len("Line 3\n"): io::off), io::whence::END)!;
+	assert(scan_line(&scan) as const str == "Line 3");
+
+	// whence::CUR
+	io::seek(&scan, 0, io::whence::SET)!;
+	assert(scan_line(&scan) as const str == "Line 1");
+	assert(scan_line(&scan) as const str == "Line 2");
+	io::seek(&scan, -(len("Line 2\n"): io::off), io::whence::CUR)!;
+	assert(scan_line(&scan) as const str == "Line 2");
+	assert(scan_line(&scan) as const str == "Line 3");
+};

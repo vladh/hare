@@ -12,6 +12,7 @@ def BUFSZ: size = 4096;
 
 const scanner_vtable = io::vtable {
 	reader = &scan_read,
+	seeker = &scan_seek,
 	...
 };
 
@@ -124,6 +125,38 @@ fn scan_read(s: *io::stream, buf: []u8) (size | io::EOF | io::error) = {
 	const n = if (len(buf) > len(scan.pending)) len(scan.pending) else len(buf);
 	buf[..n] = scan_consume(scan, n)[..];
 	return n;
+};
+
+fn scan_seek(
+	s: *io::stream,
+	off: io::off,
+	w: io::whence,
+) (io::off | io::error) = {
+	let scan = s: *scanner;
+
+	if (w == io::whence::CUR) {
+		// Fast path for io::tell
+		if (off == 0) {
+			let new_off = io::tell(scan.src)?;
+			new_off -= len(scan.pending): io::off;
+			return new_off;
+		};
+
+		// Adjust offset to account for buffered data
+		off -= len(scan.pending): io::off;
+	};
+
+	const new_off = match (io::seek(scan.src, off, w)) {
+	case let off: io::off =>
+		yield off;
+	case let err: io::error =>
+		return err;
+	};
+
+	// Discard read-ahead buffer
+	scan.start = 0;
+	scan.pending = scan.buffer[..0];
+	return new_off;
 };
 
 // Fills up the scanner buffer with data from the underlying I/O handle. If no
