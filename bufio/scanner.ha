@@ -146,12 +146,7 @@ fn scan_seek(
 		off -= len(scan.pending): io::off;
 	};
 
-	const new_off = match (io::seek(scan.src, off, w)) {
-	case let off: io::off =>
-		yield off;
-	case let err: io::error =>
-		return err;
-	};
+	const new_off = io::seek(scan.src, off, w)?;
 
 	// Discard read-ahead buffer
 	scan.start = 0;
