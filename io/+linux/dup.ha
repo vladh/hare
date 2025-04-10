@@ -35,7 +35,13 @@ export fn dup2(
 	new: file,
 	flags: dupflag = dupflag::NONE,
 ) (file | error) = {
-	flags ^= dupflag::NOCLOEXEC; // Invert CLOEXEC
+	let flags = flags: int;
+	flags ^= rt::FD_CLOEXEC; // Invert CLOEXEC
+	if (flags & rt::FD_CLOEXEC != 0) {
+		// dup3 has different flags from dup
+		flags &= ~rt::FD_CLOEXEC;
+		flags |= rt::O_CLOEXEC;
+	};
 
 	match (rt::dup3(old, new, flags)) {
 	case let fd: int =>
