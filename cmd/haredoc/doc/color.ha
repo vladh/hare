@@ -36,7 +36,7 @@ fn init_colors() (void | error) = {
 	const expr = regex::compile(`([a-z_]+)=(_|[0-9;]*)`)!;
 	defer regex::finish(&expr);
 
-	const matches = regex::findall(&expr, env_colors);
+	const matches = regex::findall(&expr, env_colors)!;
 	defer regex::result_freeall(matches);
 
 	for (let m .. matches) {

@@ -39,7 +39,7 @@ fn run_find_case(
 		abort();
 	};
 
-	const result = find(&re, string);
+	const result = find(&re, string)!;
 	defer result_free(result);
 	if (len(result) == 0) {
 		if (expected == matchres::MATCH) {
@@ -75,7 +75,7 @@ fn run_submatch_case(
 	const re = compile(expr)!;
 	defer finish(&re);
 
-	const result = find(&re, string);
+	const result = find(&re, string)!;
 	defer result_free(result);
 	assert(len(result) == len(targets), "Invalid number of captures");
 	for (let i = 0z; i < len(targets); i += 1) {
@@ -108,7 +108,7 @@ fn run_findall_case(
 		abort();
 	};
 
-	const results = findall(&re, string);
+	const results = findall(&re, string)!;
 	if (len(results) == 0 && expected == matchres::MATCH) {
 		fmt::errorfln("Expected expression /{}/ to match string \"{}\", but it did not",
 			expr, string)!;
@@ -193,7 +193,7 @@ fn run_rawreplace_case(
 	};
 	defer finish(&re);
 
-	const s = rawreplacen(&re, string, target, n);
+	const s = rawreplacen(&re, string, target, n)!;
 	defer free(s);
 	if (expected != s) {
 		fmt::errorfln("expr=/{}/ string=\"{}\" target=\"{}\" n={} expected=\"{}\" return=\"{}\"",
