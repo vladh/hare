@@ -14,6 +14,7 @@ use math;
 use memio;
 use os;
 use rt;
+use sort;
 use strings;
 use time;
 use unix::signal;
@@ -96,6 +97,8 @@ const @symbol("__test_array_end") test_end: [*]test;
 export @symbol("__test_main") fn main() size = {
 	const ntest = (&test_end: uintptr - &test_start: uintptr): size / size(test);
 	const tests = test_start[..ntest];
+	sort::sort(tests, size(test), &test_cmp)!;
+
 	let enabled_tests: []test = [];
 	defer free(enabled_tests);
 	if (len(os::args) == 1) {
@@ -228,6 +231,12 @@ export @symbol("__test_main") fn main() size = {
 	easter_egg(ctx.failures, enabled_tests);
 
 	return len(ctx.failures);
+};
+
+fn test_cmp(a: const *opaque, b: const *opaque) int = {
+	const a = a: const *test;
+	const b = b: const *test;
+	return strings::compare(a.name, b.name);
 };
 
 fn reset(ctx: *context) void = {
