@@ -4,14 +4,26 @@
 use math;
 use types;
 
-// Sorts a slice of items in place. This function provides a stable sort -
-// relative order of equal elements is preserved.
+// Sorts a slice of items. This function provides a stable sort - relative order
+// of equal elements is preserved.
+//
+// In the event that [[sort]] returns nomem, the input is unchanged.
 export fn sort(items: []opaque, itemsz: size, cmp: *cmpfunc) (void | nomem) = {
 	if (len(items) < 256) {
 		insort(items, itemsz, cmp);
 		return;
 	};
 	powersort(items, itemsz, cmp)?;
+};
+
+// Sorts a slice of items in place. This function provides a stable sort -
+// relative order of equal elements is preserved.
+//
+// The list is sorted in place, with no additional allocations. This is
+// inefficient for large lists (see [[sort]]), but has the advantage of never
+// returning nomem.
+export fn inplace(items: []opaque, itemsz: size, cmp: *cmpfunc) void = {
+	return insort(items, itemsz, cmp);
 };
 
 // Checks if all of the items in a slice are sorted.
